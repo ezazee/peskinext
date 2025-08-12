@@ -1,9 +1,6 @@
-// File: tailwind.config.ts
-
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  // PERUBAHAN DI SINI: Tambahkan 'src/' di depan setiap path
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -11,7 +8,6 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // Konfigurasi tema Anda sudah benar, tidak perlu diubah
       colors: {
         primary: "#1D9AD2",
         secondary: "#045880",

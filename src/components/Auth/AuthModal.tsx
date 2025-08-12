@@ -1,7 +1,9 @@
+// File: app/components/auth/AuthModal.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { QrCodeIcon, XMarkIcon } from "../icons";
 
 interface AuthModalProps {
@@ -48,14 +50,14 @@ export const AuthModal = ({
                 <h2 className="text-2xl font-bold text-base-text">
                   {view === "login" ? "Masuk" : "Daftar"}
                 </h2>
-                <button
-                  onClick={() =>
-                    setView(view === "login" ? "register" : "login")
-                  }
+                {/* 2. Ganti <button> menjadi <Link> */}
+                <Link
+                  href={view === "login" ? "/register" : "/login"}
+                  onClick={onClose}
                   className="font-bold text-primary hover:underline"
                 >
                   {view === "login" ? "Daftar" : "Masuk"}
-                </button>
+                </Link>
               </div>
               <button
                 onClick={onClose}

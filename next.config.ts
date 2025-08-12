@@ -10,6 +10,15 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'p16-images-comn-sg.tokopedia-static.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'peskinpro.id',
+        pathname: '/**',
+      },
     ],
   },
 };

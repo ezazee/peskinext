@@ -1,20 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  ArrowLeftIcon,
+  BellIcon,
   CartIcon,
-  ChevronDownIcon,
   LocationIcon,
   SearchIcon,
-  ArrowLeftIcon,
-} from "../../components/icons";
+} from "@/components/icons";
+import { AuthModal } from "../Auth/AuthModal";
+import { AddressModal } from "../ui/alamat/AddressModal";
+
+const AuthAction = ({
+  isLoggedIn,
+  openAuthModal,
+  children,
+  href,
+}: {
+  isLoggedIn: boolean;
+  openAuthModal: () => void;
+  children: ReactNode;
+  href?: string;
+}) => {
+  const router = useRouter();
+
+  const handleClick = () => {
+    if (!isLoggedIn) {
+      openAuthModal();
+    } else if (href) {
+      router.push(href);
+    } else {
+      // Jika anak dari komponen ini adalah tombol, event kliknya akan tetap berfungsi
+      console.log("Aksi untuk pengguna yang sudah login tanpa navigasi");
+    }
+  };
+
+  // 1. Dikembalikan menjadi <div>. Ini adalah elemen yang benar untuk membungkus tombol lain.
+  // Kelas cursor-pointer akan berfungsi karena div ini memiliki konten (children).
+  return (
+    <div onClick={handleClick} className="cursor-pointer">
+      {children}
+    </div>
+  );
+};
 
 export const MobileHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   useEffect(() => {
-    if (isSearchFocused) {
+    const shouldLockScroll =
+      isSearchFocused || isAuthModalOpen || isAddressModalOpen;
+    if (shouldLockScroll) {
       document.body.classList.add("overflow-hidden");
     } else {
       document.body.classList.remove("overflow-hidden");
@@ -22,7 +63,9 @@ export const MobileHeader = () => {
     return () => {
       document.body.classList.remove("overflow-hidden");
     };
-  }, [isSearchFocused]);
+  }, [isSearchFocused, isAuthModalOpen, isAddressModalOpen]);
+
+  const openAuthModal = () => setIsAuthModalOpen(true);
 
   const FullScreenSearchUI = () => (
     <motion.div
@@ -54,7 +97,6 @@ export const MobileHeader = () => {
           Cari
         </button>
       </div>
-
       <div className="p-4">
         <div className="flex justify-between items-center p-3 border border-border-color rounded-lg hover:bg-tertiary cursor-pointer">
           <div className="flex items-center gap-3">
@@ -76,12 +118,22 @@ export const MobileHeader = () => {
 
   return (
     <>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialView="login"
+      />
+      <AddressModal
+        isOpen={isAddressModalOpen}
+        onClose={() => setIsAddressModalOpen(false)}
+      />
+
       <AnimatePresence>
         {isSearchFocused && <FullScreenSearchUI />}
       </AnimatePresence>
 
-      <header className="md:hidden bg-white sticky top-0 z-40 p-3 shadow-sm">
-        <div className="flex items-center gap-3">
+      <header className="md:hidden bg-white sticky top-0 z-40 p-4 shadow-sm">
+        <div className="flex items-center gap-1">
           <div
             className="flex-grow flex items-center relative cursor-pointer"
             onClick={() => setIsSearchFocused(true)}
@@ -93,15 +145,53 @@ export const MobileHeader = () => {
               Cari Produk PE
             </div>
           </div>
-          <CartIcon withBadge />
+          <AuthAction
+            isLoggedIn={isLoggedIn}
+            openAuthModal={openAuthModal}
+            href="/notification"
+          >
+            <BellIcon />
+          </AuthAction>
+          <AuthAction
+            isLoggedIn={isLoggedIn}
+            openAuthModal={openAuthModal}
+            href="/cart"
+          >
+            <CartIcon withBadge />
+          </AuthAction>
         </div>
-        <div className="flex items-center gap-1.5 pt-3 text-sm text-subtle-text">
-          <LocationIcon className="h-4 w-4" />
-          <span>
-            Dikirim ke{" "}
-            <span className="font-bold text-base-text">Rumah Garut Reza</span>
-          </span>
-          <ChevronDownIcon className="h-4 w-4" />
+
+        <div className="pt-3">
+          {isLoggedIn ? (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsAddressModalOpen(true)}
+                className="flex items-center gap-2 bg-tertiary px-3 py-1.5 rounded-full text-sm font-semibold text-base-text"
+              >
+                <LocationIcon className="h-4 w-4 text-green-500" />
+                <span>Rumah Garut Reza</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div>
+                  <p className="font-bold text-base-text">
+                    Hai, Selamat Datang!
+                  </p>
+                  <p className="text-xs text-subtle-text">
+                    Login Untuk Melakukan Transaksi
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={openAuthModal}
+                className="bg-primary cursor-pointer text-white font-bold px-6 py-2 rounded-lg text-sm"
+              >
+                Masuk
+              </button>
+            </div>
+          )}
         </div>
       </header>
     </>

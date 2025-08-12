@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
 const slides = [
@@ -10,38 +10,51 @@ const slides = [
       "https://placehold.co/1200x300/A855F7/FFFFFF?text=Promo+Spesial+1",
     mobileImage: "https://placehold.co/600x400/F87171/FFFFFF?text=",
     alt: "Promo Banner 1",
-    mobileTitle: "Nikmatin diskon pengguna baru",
-    mobileSubtitle: "Diskon sd 40% Hemat hingga 30k",
-    timer: "11 : 48 : 48",
   },
   {
     desktopImage:
       "https://placehold.co/1200x300/22C55E/FFFFFF?text=Cashback+Terbesar",
     mobileImage: "https://placehold.co/600x400/34D399/FFFFFF?text=",
     alt: "Promo Banner 2",
-    mobileTitle: "Cashback s.d 100 Ribu!",
-    mobileSubtitle: "Untuk semua produk elektronik",
-    timer: "02 : 15 : 30",
   },
   {
     desktopImage:
       "https://placehold.co/1200x300/3B82F6/FFFFFF?text=Gratis+Ongkir+Sepuasnya",
     mobileImage: "https://placehold.co/600x400/60A5FA/FFFFFF?text=",
     alt: "Promo Banner 3",
-    mobileTitle: "Bebas Ongkir Tanpa Batas",
-    mobileSubtitle: "Nikmati belanja tanpa biaya kirim",
-    timer: "23 : 59 : 59",
   },
 ];
 
 export const PromoBanner = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const goToPrevious = () => {
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const swipeThreshold = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current - touchEndX.current > swipeThreshold) {
+      goToNext();
+    }
+
+    if (touchEndX.current - touchStartX.current > swipeThreshold) {
+      goToPrevious();
+    }
+  };
+
+  const goToPrevious = useCallback(() => {
     const isFirstSlide = currentIndex === 0;
     const newIndex = isFirstSlide ? slides.length - 1 : currentIndex - 1;
     setCurrentIndex(newIndex);
-  };
+  }, [currentIndex]);
 
   const goToNext = useCallback(() => {
     const isLastSlide = currentIndex === slides.length - 1;
@@ -59,7 +72,12 @@ export const PromoBanner = () => {
   }, [goToNext]);
 
   return (
-    <div className="relative w-full h-[200px] md:h-[300px] mb-0 md:mb-6 group">
+    <div
+      className="relative w-full h-[200px] md:h-[300px] mb-0 md:mb-6 group"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="w-full h-full rounded-none md:rounded-xl overflow-hidden">
         {/* Desktop Slider */}
         <div
@@ -96,22 +114,12 @@ export const PromoBanner = () => {
                 className="w-full h-full object-cover"
                 priority={true}
               />
-              <div className="absolute top-4 left-4 text-white">
-                <h2 className="font-bold text-xl">{slide.mobileTitle}</h2>
-                <p className="text-sm bg-white/30 px-2 py-1 rounded-md inline-block mt-1">
-                  {slide.mobileSubtitle}
-                </p>
-              </div>
-              <div className="absolute bottom-4 right-4 bg-white/90 p-1 px-2 rounded-lg flex items-center gap-2">
-                <span className="text-red-500 font-bold text-sm">
-                  {slide.timer}
-                </span>
-              </div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Navigation Arrows */}
       <div
         className="hidden group-hover:md:block absolute top-1/2 -translate-y-1/2 left-5 text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer"
         onClick={goToPrevious}

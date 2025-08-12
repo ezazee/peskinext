@@ -1,9 +1,11 @@
-// File: components/header/DesktopHeader.tsx
+// File: src/app/components/Header/DekstopHeader.tsx
 "use client";
 
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+
 import {
   BellIcon,
   CartIcon,
@@ -12,20 +14,23 @@ import {
   SearchIcon,
   MailIcon,
   TagIcon,
-} from "../../components/icons";
-import { AuthModal } from "../../components/Auth/AuthModal";
-import Link from "next/link";
+} from "@/components/icons";
+import { AuthModal } from "@/components/Auth/AuthModal";
+import { AddressModal } from "../ui/alamat/AddressModal";
 
 export const DesktopHeader = () => {
+  const router = useRouter();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  // --- Simulasi Status Login ---
+  // Ubah menjadi `false` untuk melihat tampilan saat belum login
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 2. Tambahkan state untuk mengontrol modal
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalView, setAuthModalView] = useState<"login" | "register">(
     "login"
   );
-
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,7 +48,6 @@ export const DesktopHeader = () => {
     };
   }, [searchContainerRef]);
 
-  // 3. Buat fungsi untuk membuka modal dengan tampilan yang benar
   const openAuthModal = (view: "login" | "register") => {
     setAuthModalView(view);
     setIsAuthModalOpen(true);
@@ -51,11 +55,14 @@ export const DesktopHeader = () => {
 
   return (
     <>
-      {/* 4. Render komponen modal di sini */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         initialView={authModalView}
+      />
+      <AddressModal
+        isOpen={isAddressModalOpen}
+        onClose={() => setIsAddressModalOpen(false)}
       />
 
       <AnimatePresence>
@@ -101,7 +108,7 @@ export const DesktopHeader = () => {
         </div>
 
         <div className="max-w-screen-xl mx-auto px-8">
-          <div className="flex items-center gap-6 py-4">
+          <div className="flex items-center gap-6 py-3">
             <Image
               src="/logo.png"
               alt="PE Skinpro Logo"
@@ -150,6 +157,7 @@ export const DesktopHeader = () => {
 
             <div className="flex items-center gap-2 shrink-0">
               {isLoggedIn ? (
+                // Tampilan jika SUDAH LOGIN
                 <>
                   <CartIcon withBadge />
                   <BellIcon />
@@ -167,28 +175,16 @@ export const DesktopHeader = () => {
                       zeniwa
                     </span>
                   </div>
-                  <div className="border-b border-gray-200"></div>
-                  <div className="max-w-screen-xl mx-auto px-8">
-                    <div className="flex justify-end items-center gap-2 py-2 text-sm text-secondary">
-                      <LocationIcon className="h-4 w-4" />
-                      <span>
-                        Dikirim ke{" "}
-                        <span className="font-bold text-gray-800">
-                          Rumah Garut Reza
-                        </span>
-                      </span>
-                      <ChevronDownIcon className="h-4 w-4" />
-                    </div>
-                  </div>
                 </>
               ) : (
+                // Tampilan jika BELUM LOGIN
                 <>
-                  <Link
-                    href="/register"
+                  <button
+                    onClick={() => router.push("/register")}
                     className="cursor-pointer border border-border-color font-semibold text-primary px-6 py-2 rounded-lg hover:bg-tertiary transition-colors"
                   >
                     Daftar
-                  </Link>
+                  </button>
                   <button
                     onClick={() => openAuthModal("login")}
                     className="cursor-pointer bg-primary font-semibold text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
@@ -200,6 +196,30 @@ export const DesktopHeader = () => {
             </div>
           </div>
         </div>
+
+        {/* --- KONDISI TAMPILAN BERDASARKAN LOGIN --- */}
+        {isLoggedIn && (
+          <>
+            <div className="border-b border-gray-200"></div>
+            <div className="max-w-screen-xl mx-auto px-8">
+              <div className="flex justify-end items-center py-2">
+                <button
+                  onClick={() => setIsAddressModalOpen(true)}
+                  className="flex items-center gap-2 text-sm text-secondary cursor-pointer"
+                >
+                  <LocationIcon className="h-4 w-4" />
+                  <span>
+                    Dikirim ke{" "}
+                    <span className="font-bold text-gray-800">
+                      Rumah Garut Reza
+                    </span>
+                  </span>
+                  <ChevronDownIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </header>
     </>
   );
