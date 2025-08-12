@@ -8,7 +8,7 @@ import { ChevronLeftIcon, ChevronRightIcon, FlashIcon } from "../icons";
 // Filter produk diskon
 const discountProducts = productsData.filter((product) => product.isFlashSale);
 
-export const SpecialDiscount = () => {
+export const FlashSaleDiscount = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // --- TIMER STATE ---

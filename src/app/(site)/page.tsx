@@ -14,7 +14,7 @@ import {
   bottomNavItemsData,
 } from "@/data/";
 import { Footer } from "@/components/Footer/DekstopFooter";
-import { SpecialDiscount } from "@/components/Section/SpecialDiscount";
+import { FlashSaleDiscount } from "@/components/Section/FlashSaleDiscount";
 
 export default function HomePage() {
   const [isBannerOpen, setIsBannerOpen] = useState(false);
@@ -44,7 +44,7 @@ export default function HomePage() {
             mobileCategories={mobileCategoriesData}
           /> */}
 
-          <SpecialDiscount />
+          <FlashSaleDiscount />
 
           <div className="h-2 bg-white md:hidden my-2"></div>
           <ProductGrid products={productsData} />

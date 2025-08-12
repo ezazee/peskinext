@@ -1,5 +1,5 @@
+import { Category } from '@/data';
 import Image from 'next/image';
-import type { Category } from '../data/mock';
 
 interface Props {
   desktopCategories: Category[];
