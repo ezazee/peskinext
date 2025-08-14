@@ -1,9 +1,9 @@
 "use client";
 
+import type { Product } from "@data/types";
 import Image from "next/image";
 import { useState } from "react";
 import { HiOutlineHeart, HiOutlineShare } from "react-icons/hi";
-import { Product } from "@/data/types";
 
 type MobileDetailProps = {
   product: Product;

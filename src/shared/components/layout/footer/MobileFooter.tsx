@@ -1,4 +1,4 @@
-import { NavItem } from "@/data";
+import type { NavItem } from "@data/types";
 import MobileAppOffer from "./MobileAppOffer";
 
 export const MobileFooter = ({ navItems }: { navItems: NavItem[] }) => (

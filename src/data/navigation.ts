@@ -3,7 +3,7 @@ import {
   PromoIcon,
   TransactionIcon,
   AccountIcon,
-} from "@/components/icons";
+} from "@shared/components/icons";
 import type { NavItem } from "./types";
 
 export const bottomNavItemsData: NavItem[] = [

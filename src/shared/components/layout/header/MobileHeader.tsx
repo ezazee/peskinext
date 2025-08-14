@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -9,9 +9,9 @@ import {
   CartIcon,
   LocationIcon,
   SearchIcon,
-} from "@/components/icons";
-import { AuthModal } from "../Auth/AuthModal";
-import { AddressModal } from "../ui/alamat/AddressModal";
+} from "@shared/components/icons";
+import { AuthModal } from "../../../../features/auth/components/AuthModal";
+import { AddressModal } from "../../ui/AddressModal";
 
 const AuthAction = ({
   isLoggedIn,

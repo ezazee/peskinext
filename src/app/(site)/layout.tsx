@@ -1,7 +1,5 @@
-// File: src/app/(site)/layout.tsx
-
-import { DesktopHeader } from "@/components/Header/DekstopHeader";
-import { MobileHeader } from "@/components/Header/MobileHeader";
+import { DesktopHeader } from "@shared/components/layout/header/DekstopHeader";
+import { MobileHeader } from "@shared/components/layout/header/MobileHeader";
 
 export default function SiteLayout({
   children,

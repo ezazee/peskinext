@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { HiOutlineHeart, HiOutlineShare } from "react-icons/hi";
-import { Product } from "@/data/types";
 import ProductTabs from "./productTabs";
+import type { Product } from "@data/types";
 
 type DesktopDetailProps = {
   product: Product;
@@ -75,17 +75,29 @@ export default function DesktopDetail({
 
             {/* Thumbnails */}
             <div className="mt-3 grid grid-cols-5 gap-2">
-              {[product.img, product.imgHover || product.img, product.img, product.imgHover || product.img, product.img].map(
-                (src, i) => (
-                  <button
-                    key={i}
-                    className="relative w-full aspect-square rounded-md overflow-hidden border border-gray-200"
-                    onMouseEnter={() => (i % 2 === 1 ? setHover(true) : setHover(false))}
-                  >
-                    <Image src={src} alt={`thumb-${i}`} fill className="object-cover" unoptimized />
-                  </button>
-                )
-              )}
+              {[
+                product.img,
+                product.imgHover || product.img,
+                product.img,
+                product.imgHover || product.img,
+                product.img,
+              ].map((src, i) => (
+                <button
+                  key={i}
+                  className="relative w-full aspect-square rounded-md overflow-hidden border border-gray-200"
+                  onMouseEnter={() =>
+                    i % 2 === 1 ? setHover(true) : setHover(false)
+                  }
+                >
+                  <Image
+                    src={src}
+                    alt={`thumb-${i}`}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </button>
+              ))}
             </div>
           </div>
         </section>
@@ -105,11 +117,17 @@ export default function DesktopDetail({
           {/* Harga */}
           <div className="mt-4">
             <div className="flex items-end gap-3">
-              <div className="text-3xl font-bold text-gray-900">{product.price}</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {product.price}
+              </div>
               {hasDiscount && (
                 <div className="flex items-center gap-2">
-                  <span className="line-through text-gray-400">{product.oldPrice}</span>
-                  <span className="text-rose-600 font-semibold">{product.discount}</span>
+                  <span className="line-through text-gray-400">
+                    {product.oldPrice}
+                  </span>
+                  <span className="text-rose-600 font-semibold">
+                    {product.discount}
+                  </span>
                 </div>
               )}
             </div>
@@ -151,13 +169,21 @@ export default function DesktopDetail({
           <div className="sticky top-4 rounded-xl border border-gray-200 p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="relative w-14 h-14 rounded-md overflow-hidden border">
-                <Image src={product.img} alt={product.name} fill className="object-cover" unoptimized />
+                <Image
+                  src={product.img}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
               </div>
               <div className="text-sm text-gray-600 leading-tight">
                 <div className="font-medium text-gray-800 line-clamp-1">
                   {selectedVar || variations[0]}
                 </div>
-                <div className="text-gray-500">Stok: {stock.toLocaleString("id-ID")}</div>
+                <div className="text-gray-500">
+                  Stok: {stock.toLocaleString("id-ID")}
+                </div>
               </div>
             </div>
 

@@ -1,10 +1,10 @@
 "use client";
 
+import { productsData } from "@data/products";
+import DesktopDetail from "@features/product/components/dekstopDetail";
+import MobileDetail from "@features/product/components/mobileDetail";
+import { parseRupiahToNumber } from "@shared/libs/format";
 import { useParams, useRouter } from "next/navigation";
-import { productsData } from "@/data";
-import MobileDetail from "@/components/page/detailProduct/mobileDetail";
-import DesktopDetail from "@/components/page/detailProduct/dekstopDetail";
-import { parseRupiahToNumber } from "@/components/page/detailProduct/helper";
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { productsData } from "@/data";
-import { ProductCard } from "../Product/ProductCard";
+import { ProductCard } from "../product/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon, FlashIcon } from "../icons";
+import { productsData } from "@data/products";
 
 // Filter produk diskon
 const discountProducts = productsData.filter((product) => product.isFlashSale);

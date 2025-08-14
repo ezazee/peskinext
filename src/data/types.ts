@@ -1,6 +1,6 @@
 // File: src/data/types.ts
 
-import type { ComponentType } from 'react';
+import type { ComponentType } from "react";
 
 export interface Category {
   name: string;
@@ -16,7 +16,7 @@ export interface Product {
   img: string;
   imgHover: string;
   isFlashSale: boolean;
-  type: 'single' | 'bundle';
+  type: "single" | "bundle";
 }
 
 export interface NavItem {
@@ -24,3 +24,22 @@ export interface NavItem {
   icon: ComponentType<{ active?: boolean }>;
   active?: boolean;
 }
+
+export interface Banner {
+  src: string;
+  alt: string;
+  href?: string;
+}
+
+export interface PromoShowcaseProps {
+  title?: string;
+  carousel: Banner[];
+  tiles: Banner[];
+  autoPlayMs?: number;
+}
+
+export type EventPromoProps = {
+  voucherCode?: string;
+  headline?: string;
+  subhead?: string;
+};

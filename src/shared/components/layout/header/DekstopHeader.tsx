@@ -14,9 +14,9 @@ import {
   SearchIcon,
   MailIcon,
   TagIcon,
-} from "@/components/icons";
-import { AuthModal } from "@/components/Auth/AuthModal";
-import { AddressModal } from "../ui/alamat/AddressModal";
+} from "@shared/components/icons";
+import { AuthModal } from "@features/auth/components/AuthModal";
+import { AddressModal } from "@shared/components/ui/AddressModal";
 
 export const DesktopHeader = () => {
   const router = useRouter();

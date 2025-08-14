@@ -1,4 +1,4 @@
-import { Category } from '@/data';
+import type { Category } from '@data/types';
 import Image from 'next/image';
 
 interface Props {

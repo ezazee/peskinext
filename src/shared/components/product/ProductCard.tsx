@@ -1,11 +1,12 @@
-// File: src/app/components/Product/ProductCard.tsx
+// File: src/features/shared/components/product/ProductCard.tsx
+import type { Product } from "@data/types";
 import Image from "next/image";
-import type { Product } from "@/data";
 import Link from "next/link";
 
 export const ProductCard = ({ product }: { product: Product }) => (
-  <Link href="#" className="no-underline h-full">
-    <div className="bg-white rounded-lg md:shadow-md shadow-sm overflow-hidden h-full flex flex-col group">
+  // PERUBAHAN DI SINI: href sekarang dinamis
+  <Link href={`/product/${product.slug}`} className="no-underline h-full">
+    <div className="bg-white rounded-lg md:shadow-lg shadow-md overflow-hidden h-full flex flex-col group">
       <div className="relative w-full h-32 md:h-40 overflow-hidden">
         <Image
           src={product.img}

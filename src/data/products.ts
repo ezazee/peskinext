@@ -20,7 +20,7 @@ export const productsData: Product[] = [
     img: "https://placehold.co/200x200/38bdf8/ffffff?text=Toner",
     imgHover: "https://placehold.co/200x200/0ea5e9/ffffff?text=Hover+2",
     isFlashSale: false,
-    type: "single",
+    type: "bundle",
   },
   {
     name: "PE Skinpro Gentle Cleanser",
@@ -29,7 +29,7 @@ export const productsData: Product[] = [
     img: "https://placehold.co/200x200/a78bfa/ffffff?text=Cleanser",
     imgHover: "https://placehold.co/200x200/8b5cf6/ffffff?text=Hover+3",
     isFlashSale: false,
-    type: "single",
+    type: "bundle",
   },
   {
     name: "PE Skinpro Sunscreen SPF 50++",
@@ -40,7 +40,7 @@ export const productsData: Product[] = [
     img: "https://placehold.co/200x200/facc15/ffffff?text=Sunscreen",
     imgHover: "https://placehold.co/200x200/eab308/ffffff?text=Hover+4",
     isFlashSale: true,
-    type: "single",
+    type: "bundle",
   },
   {
     name: "PE Skinpro Night Cream",
@@ -49,7 +49,7 @@ export const productsData: Product[] = [
     img: "https://placehold.co/200x200/1f2937/ffffff?text=Cream",
     imgHover: "https://placehold.co/200x200/334155/ffffff?text=Hover+5",
     isFlashSale: true,
-    type: "single",
+    type: "bundle",
   },
   {
     name: "PE Skinpro Eye Serum",
@@ -58,7 +58,7 @@ export const productsData: Product[] = [
     img: "https://placehold.co/200x200/6b7280/ffffff?text=Eye+Serum",
     imgHover: "https://placehold.co/200x200/475569/ffffff?text=Hover+6",
     isFlashSale: true,
-    type: "single",
+    type: "bundle",
   },
   {
     name: "PE Skinpro Acne Spot Treatment",
@@ -67,7 +67,7 @@ export const productsData: Product[] = [
     img: "https://placehold.co/200x200/ef4444/ffffff?text=Acne",
     imgHover: "https://placehold.co/200x200/dc2626/ffffff?text=Hover+7",
     isFlashSale: true,
-    type: "single",
+    type: "bundle",
   },
 
   // --- 5 Produk Bundle ---
