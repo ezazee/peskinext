@@ -51,9 +51,12 @@ const ShippingInfo = () => (
   </div>
 );
 
-type MobileDetailProps = {
+export interface MobileDetailProps {
   product: Product;
-};
+  hasDiscount: boolean;
+  priceNumber: number;
+  oldPriceNumber: number;
+}
 
 export default function MobileDetail({ product }: MobileDetailProps) {
   // --- STATE YANG SAMA DENGAN DESKTOP ---
