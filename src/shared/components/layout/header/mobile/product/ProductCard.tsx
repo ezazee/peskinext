@@ -8,6 +8,7 @@ export const ProductCard = ({ product }: { product: Product }) => (
   <Link href={`/product/${product.slug}`} className="no-underline h-full">
     <div className="bg-white rounded-lg md:shadow-lg shadow-md overflow-hidden h-full flex flex-col group">
       <div className="relative w-full h-32 md:h-40 overflow-hidden">
+        {/* Gambar Utama */}
         <Image
           src={product.img}
           alt={product.name}
@@ -15,6 +16,7 @@ export const ProductCard = ({ product }: { product: Product }) => (
           height={200}
           className="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-300"
         />
+        {/* Gambar Hover */}
         {product.imgHover && (
           <Image
             src={product.imgHover}

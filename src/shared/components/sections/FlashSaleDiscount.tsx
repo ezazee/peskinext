@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { ProductCard } from "../product/ProductCard";
+import { ProductCard } from "../layout/header/mobile/product/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon, FlashIcon } from "../icons";
 import { productsData } from "@data/products";
 

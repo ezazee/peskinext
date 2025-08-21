@@ -1,254 +1,401 @@
+// File: src/features/product/components/DesktopDetail.tsx
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
-import { HiOutlineHeart, HiOutlineShare } from "react-icons/hi";
-import ProductTabs from "./productTabs";
-import type { Product } from "@data/types";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
+import type { Product, Variant } from "@data/types";
+import { IoStar } from "react-icons/io5";
+import { formatRupiah } from "@shared/libs/format";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  HeartIcon,
+  ShareIcon,
+} from "@shared/components/icons";
+import { AuthModal } from "@features/auth/components/AuthModal";
+import ProductReview from "../review/productReview";
+import ProductTabs from "@shared/components/layout/header/mobile/product/productTabs";
+import { productsData } from "@data/products";
+import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
+
+// --- Ikon pengiriman ---
+const TruckIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className="w-6 h-6"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125V14.25m-17.25 4.5v-9m17.25 9v-9m-17.25-2.25H21m-17.25 0V6.75A2.25 2.25 0 015.25 4.5h9.75a2.25 2.25 0 012.25 2.25v4.5m-17.25 0h-1.125a1.125 1.125 0 00-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125H3.375"
+    />
+  </svg>
+);
+
+// --- Info Pengiriman ---
+const ShippingInfo = () => (
+  <div className="border-b pb-4">
+    <h3 className="font-bold text-lg mb-3">Pengiriman</h3>
+    <div className="flex items-start gap-4">
+      <TruckIcon />
+      <div>
+        <p className="font-semibold text-base-text">
+          Dikirim dari{" "}
+          <span className="font-bold">Kota Administrasi Jakarta</span>
+        </p>
+      </div>
+      <a
+        href="#"
+        className="ml-auto text-primary font-bold text-sm whitespace-nowrap"
+      >
+        Lihat Kurir Lainnya
+      </a>
+    </div>
+  </div>
+);
+
+// --- Tombol yang butuh login ---
+const AuthActionButton = ({
+  isLoggedIn,
+  openAuthModal,
+  onClick,
+  children,
+  className,
+}: {
+  isLoggedIn: boolean;
+  openAuthModal: () => void;
+  onClick: () => void;
+  children: ReactNode;
+  className: string;
+}) => (
+  <button
+    onClick={() => (!isLoggedIn ? openAuthModal() : onClick())}
+    className={className}
+  >
+    {children}
+  </button>
+);
 
 type DesktopDetailProps = {
   product: Product;
-  hasDiscount: boolean;
-  priceNumber: number;
-  oldPriceNumber: number;
 };
 
-export default function DesktopDetail({
-  product,
-  hasDiscount,
-  priceNumber,
-  oldPriceNumber,
-}: DesktopDetailProps) {
-  const variations = useMemo(
-    () =>
-      product?.type === "bundle"
-        ? ["Bundle 2 pcs", "Bundle 3 pcs", "Bundle 5 pcs"]
-        : ["Collagen set 3pcs", "Hydrating set", "Brightening set"],
-    [product?.type]
+export default function DesktopDetail({ product }: DesktopDetailProps) {
+  const [selectedVariant, setSelectedVariant] = useState<Variant>(
+    product.variants[0]
   );
-
-  const [hover, setHover] = useState(false);
-  const [selectedVar, setSelectedVar] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
-  const stock = 7654;
-  const subtotal = priceNumber * qty;
+  const [imageIndex, setImageIndex] = useState(0);
+
+  const [isLoggedIn] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const images = product.galleryImages;
+
+  const nextImage = useCallback(() => {
+    setImageIndex((p) => (p + 1) % images.length);
+  }, [images.length]);
+
+  const prevImage = () => {
+    setImageIndex((p) => (p - 1 + images.length) % images.length);
+  };
+
+  useEffect(() => {
+    const t = setInterval(nextImage, 4000);
+    return () => clearInterval(t);
+  }, [nextImage]);
+
+  useEffect(() => {
+    setSelectedVariant(product.variants[0]);
+    setQty(1);
+  }, [product]);
+
+  const subtotal = selectedVariant.price * qty;
+  const hasDiscount = !!selectedVariant.oldPrice;
+
+  const handleAddToCart = () => {
+    console.log(
+      `Menambahkan ${qty} x ${product.name} (${selectedVariant.name}) ke keranjang`
+    );
+  };
+  const handleBuyNow = () => {
+    console.log(`Membeli ${qty} x ${product.name} (${selectedVariant.name})`);
+  };
 
   return (
     <>
-      {/* Breadcrumb */}
-      <nav className="text-sm text-gray-500 mb-5">
-        <ol className="flex flex-wrap gap-1">
-          <li>Home</li>
-          <li>/</li>
-          <li>Kecantikan</li>
-          <li>/</li>
-          <li>Perawatan Wajah</li>
-          <li>/</li>
-          <li className="text-gray-700 font-medium truncate max-w-[50vw]">
-            {product.name}
-          </li>
-        </ol>
-      </nav>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialView="login"
+      />
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Kiri */}
-        <section className="col-span-4">
-          <div className="sticky top-4">
-            <div
-              className="relative w-full aspect-square rounded-lg overflow-hidden bg-white"
-              onMouseEnter={() => setHover(true)}
-              onMouseLeave={() => setHover(false)}
-            >
-              <Image
-                src={hover && product.imgHover ? product.imgHover : product.img}
-                alt={product.name}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-              {hasDiscount && (
-                <span className="absolute left-3 top-3 bg-rose-600 text-white text-xs font-bold px-2 py-1 rounded">
-                  {product.discount}
-                </span>
-              )}
-            </div>
-
-            {/* Thumbnails */}
-            <div className="mt-3 grid grid-cols-5 gap-2">
-              {[
-                product.img,
-                product.imgHover || product.img,
-                product.img,
-                product.imgHover || product.img,
-                product.img,
-              ].map((src, i) => (
-                <button
-                  key={i}
-                  className="relative w-full aspect-square rounded-md overflow-hidden border border-gray-200"
-                  onMouseEnter={() =>
-                    i % 2 === 1 ? setHover(true) : setHover(false)
-                  }
+      <div className="hidden md:block container mx-auto">
+        {/* 3 kolom × 2 baris */}
+        <div className="grid grid-cols-12 grid-rows-[auto_auto] gap-6">
+          {/* Kiri (gambar) — col 1..4 */}
+          <section className="col-span-4 row-start-1">
+            <div className="sticky top-36 rounded-xl ">
+              <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-white group">
+                <div
+                  className="flex h-full transition-transform duration-500 ease-out"
+                  style={{ transform: `translateX(-${imageIndex * 100}%)` }}
                 >
-                  <Image
-                    src={src}
-                    alt={`thumb-${i}`}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Tengah */}
-        <section className="col-span-5">
-          <h1 className="text-[26px] font-semibold leading-snug">
-            {product.name} – {selectedVar || variations[0]}
-          </h1>
-
-          <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
-            <span>Terjual 1 rb+</span>
-            <span>•</span>
-            <span>4.8 (4 rating)</span>
-          </div>
-
-          {/* Harga */}
-          <div className="mt-4">
-            <div className="flex items-end gap-3">
-              <div className="text-3xl font-bold text-gray-900">
-                {product.price}
-              </div>
-              {hasDiscount && (
-                <div className="flex items-center gap-2">
-                  <span className="line-through text-gray-400">
-                    {product.oldPrice}
-                  </span>
-                  <span className="text-rose-600 font-semibold">
-                    {product.discount}
-                  </span>
+                  {images.map((src, i) => (
+                    <div
+                      key={i}
+                      className="relative w-full h-full flex-shrink-0"
+                    >
+                      <Image
+                        src={src}
+                        alt={`${product.name} – gambar ${i + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Variasi */}
-          <div className="mt-6">
-            <p className="text-sm text-gray-600 mb-2">
-              Pilih variation: {selectedVar || variations[0]}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {variations.map((v) => {
-                const active = (selectedVar || variations[0]) === v;
-                return (
+                <button
+                  onClick={prevImage}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                  aria-label="Sebelumnya"
+                >
+                  <ChevronLeftIcon />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+                  aria-label="Berikutnya"
+                >
+                  <ChevronRightIcon />
+                </button>
+
+                {hasDiscount && (
+                  <span className="absolute left-3 top-3 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+                    {Math.round(
+                      ((selectedVariant.oldPrice! - selectedVariant.price) /
+                        selectedVariant.oldPrice!) *
+                        100
+                    )}
+                    %
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-3 grid grid-cols-5 gap-2">
+                {images.map((src, i) => (
                   <button
-                    key={v}
-                    onClick={() => setSelectedVar(v)}
-                    className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                      active
-                        ? "bg-emerald-100 text-emerald-700 border-emerald-300"
+                    key={i}
+                    className={`relative w-full aspect-square rounded-md overflow-hidden border-2 transition-colors ${
+                      imageIndex === i
+                        ? "border-primary"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                    onClick={() => setImageIndex(i)}
+                    aria-label={`Pilih gambar ${i + 1}`}
+                  >
+                    <Image
+                      src={src}
+                      alt={`thumb-${i}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Tengah (info) — col 5..9 */}
+          <section className="col-span-5 row-start-1">
+            <h1 className="text-2xl font-semibold leading-snug">
+              {product.name} – {selectedVariant.name}
+            </h1>
+
+            <div className="mt-3 flex items-center gap-3 text-sm text-gray-500">
+              <span className="flex items-center">
+                <IoStar className="text-yellow-400 mr-1" /> 4.8 (4 rating)
+              </span>
+              <span>•</span>
+              <span>
+                Terjual <strong>1.150</strong>
+              </span>
+            </div>
+
+            <div className="mt-4">
+              <div className="flex items-end gap-3">
+                <div className="text-3xl font-bold text-gray-900">
+                  {formatRupiah(selectedVariant.price)}
+                </div>
+                {hasDiscount && (
+                  <div className="flex items-center gap-2">
+                    <span className="line-through text-gray-400">
+                      {formatRupiah(selectedVariant.oldPrice!)}
+                    </span>
+                    <span className="text-red-600 font-semibold">
+                      {Math.round(
+                        ((selectedVariant.oldPrice! - selectedVariant.price) /
+                          selectedVariant.oldPrice!) *
+                          100
+                      )}
+                      %
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <p className="text-sm text-gray-600 mb-3">
+                Category: <span className="font-bold">{product.category}</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-3">
+                SKU: <span className="font-bold">{product.sku}</span>
+              </p>
+              <p className="text-sm text-gray-600 mb-5">
+                Pilih variasi:{" "}
+                <span className="font-bold">{selectedVariant.name}</span>
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {product.variants.map((variant) => (
+                  <button
+                    key={variant.id}
+                    onClick={() => setSelectedVariant(variant)}
+                    className={`cursor-pointer px-3 py-1.5 rounded-full text-sm border transition ${
+                      selectedVariant.id === variant.id
+                        ? "bg-primary/10 text-primary font-bold border-primary"
                         : "bg-white hover:bg-gray-50 border-gray-300 text-gray-700"
                     }`}
                   >
-                    {v}
+                    {variant.name}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Tabs */}
-          <div className="mt-8">
-            <ProductTabs />
-          </div>
+            <div className="mt-8">
+              <ProductTabs
+                description={product.description}
+                ingredients={product.ingredients}
+                howToUse={product.howToUse}
+              />
+            </div>
+
+            <div className="mt-6 border-t pt-6 space-y-4">
+              <ShippingInfo />
+            </div>
+          </section>
+
+          {/* Kanan (buy) — col 10..12, span 2 baris */}
+          <aside className="col-start-10 col-span-3 row-span-2">
+            <div className="sticky top-36 rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="relative w-14 h-14 rounded-md overflow-hidden border">
+                  <Image
+                    src={product.img}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="text-sm text-gray-600 leading-tight">
+                  <div className="font-medium text-gray-800 line-clamp-1">
+                    {selectedVariant.name}
+                  </div>
+                  <div className="text-gray-500">
+                    Stok: {selectedVariant.stock.toLocaleString("id-ID")}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Atur jumlah</span>
+                <div className="flex items-center border rounded-lg overflow-hidden">
+                  <button
+                    className="px-3 py-2 hover:bg-gray-50"
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    aria-label="Kurangi jumlah"
+                  >
+                    −
+                  </button>
+                  <input
+                    value={qty}
+                    onChange={(e) => {
+                      const v = Number(e.target.value) || 1;
+                      setQty(Math.min(Math.max(1, v), selectedVariant.stock));
+                    }}
+                    className="w-12 text-center outline-none py-2"
+                  />
+                  <button
+                    className="px-3 py-2 hover:bg-gray-50"
+                    onClick={() =>
+                      setQty((q) => Math.min(selectedVariant.stock, q + 1))
+                    }
+                    aria-label="Tambah jumlah"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                {selectedVariant.oldPrice && (
+                  <div className="text-sm text-gray-400 line-through">
+                    {formatRupiah(selectedVariant.oldPrice * qty)}
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Subtotal</span>
+                  <span className="text-2xl font-bold">
+                    {formatRupiah(subtotal)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                <AuthActionButton
+                  isLoggedIn={isLoggedIn}
+                  openAuthModal={() => setIsAuthModalOpen(true)}
+                  onClick={handleAddToCart}
+                  className="w-full bg-primary cursor-pointer text-white py-3 rounded-lg hover:opacity-90 font-semibold"
+                >
+                  + Keranjang
+                </AuthActionButton>
+                <AuthActionButton
+                  isLoggedIn={isLoggedIn}
+                  openAuthModal={() => setIsAuthModalOpen(true)}
+                  onClick={handleBuyNow}
+                  className="w-full border cursor-pointer border-primary text-primary py-3 rounded-lg hover:bg-primary/5 font-semibold"
+                >
+                  Beli Langsung
+                </AuthActionButton>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+                <button className="flex items-center gap-2 hover:text-gray-800">
+                  <HeartIcon /> Wishlist
+                </button>
+                <button className="flex items-center gap-2 hover:text-gray-800">
+                  <ShareIcon /> Share
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          {/* Review — baris 2, kolom 1..9 */}
+          <section className="col-start-1 col-span-9 row-start-2">
+            <ProductReview />
+          </section>
+        </div>
+        <section>
+          <ProductGrid products={productsData} />
         </section>
-
-        {/* Kanan */}
-        <aside className="col-span-3">
-          <div className="sticky top-4 rounded-xl border border-gray-200 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="relative w-14 h-14 rounded-md overflow-hidden border">
-                <Image
-                  src={product.img}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-              <div className="text-sm text-gray-600 leading-tight">
-                <div className="font-medium text-gray-800 line-clamp-1">
-                  {selectedVar || variations[0]}
-                </div>
-                <div className="text-gray-500">
-                  Stok: {stock.toLocaleString("id-ID")}
-                </div>
-              </div>
-            </div>
-
-            {/* Qty */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Atur jumlah</span>
-              <div className="flex items-center border rounded-lg overflow-hidden">
-                <button
-                  className="px-3 py-2 hover:bg-gray-50"
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                >
-                  −
-                </button>
-                <input
-                  value={qty}
-                  onChange={(e) => {
-                    const v = Number(e.target.value) || 1;
-                    setQty(Math.min(Math.max(1, v), stock));
-                  }}
-                  className="w-12 text-center outline-none py-2"
-                />
-                <button
-                  className="px-3 py-2 hover:bg-gray-50"
-                  onClick={() => setQty((q) => Math.min(stock, q + 1))}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Subtotal */}
-            <div className="mt-4">
-              {oldPriceNumber > 0 && (
-                <div className="text-sm text-gray-400 line-through">
-                  Rp{(oldPriceNumber * qty).toLocaleString("id-ID")}
-                </div>
-              )}
-              <div className="text-sm text-gray-500">Subtotal</div>
-              <div className="text-2xl font-bold">
-                Rp{subtotal.toLocaleString("id-ID")}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="mt-4 space-y-2">
-              <button className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700">
-                + Keranjang
-              </button>
-              <button className="w-full border border-emerald-600 text-emerald-700 py-3 rounded-lg hover:bg-emerald-50">
-                Beli Langsung
-              </button>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-              <button className="flex items-center gap-2 hover:text-gray-800">
-                <HiOutlineHeart /> Wishlist
-              </button>
-              <button className="flex items-center gap-2 hover:text-gray-800">
-                <HiOutlineShare /> Share
-              </button>
-              <button className="hover:text-gray-800">Chat</button>
-            </div>
-          </div>
-        </aside>
       </div>
     </>
   );

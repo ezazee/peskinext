@@ -5,11 +5,11 @@ import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { productsData } from "@data/products";
-import { ProductCard } from "../product/ProductCard";
-import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import type { EventPromoProps } from "@data/types";
+import { ProductCard } from "../layout/header/mobile/product/ProductCard";
+import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 
-const promoProducts = productsData.slice(0, 6);
+const promoProducts = productsData.filter((product) => product.isEvent);
 
 export const EventPromo: React.FC<EventPromoProps> = ({
   voucherCode = "PEMERDEKA17",
@@ -30,8 +30,6 @@ export const EventPromo: React.FC<EventPromoProps> = ({
 
   const handleCopyCode = () => {
     const text = voucherCode;
-
-    // Clipboard API + fallback
     navigator.clipboard
       .writeText(text)
       .then(() => {
@@ -40,20 +38,13 @@ export const EventPromo: React.FC<EventPromoProps> = ({
       })
       .catch((err) => {
         console.error("Gagal menyalin kode: ", err);
-        try {
-          const textArea = document.createElement("textarea");
-          textArea.value = text;
-          document.body.appendChild(textArea);
-          textArea.select();
-          document.execCommand("copy");
-          document.body.removeChild(textArea);
-          setShowToaster(true);
-          setTimeout(() => setShowToaster(false), 3000);
-        } catch (fallbackErr) {
-          console.error("Fallback gagal: ", fallbackErr);
-        }
       });
   };
+
+  // Jangan render komponen ini jika tidak ada produk event
+  if (promoProducts.length === 0) {
+    return null;
+  }
 
   return (
     <>

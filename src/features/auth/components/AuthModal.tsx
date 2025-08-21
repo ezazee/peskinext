@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { QrCodeIcon, XMarkIcon } from "../../../shared/components/icons";
+import { QrCodeIcon, XMarkIcon } from "@shared/components/icons";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -61,7 +61,7 @@ export const AuthModal = ({
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-800"
+                className="text-gray-400 cursor-pointer hover:text-gray-800"
               >
                 <XMarkIcon />
               </button>

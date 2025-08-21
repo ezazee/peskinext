@@ -20,7 +20,7 @@ export const SearchIcon = ({
 );
 
 export const CartIcon = ({ withBadge }: { withBadge?: boolean }) => (
-  <button className="p-2 rounded-full hover:bg-tertiary relative">
+  <button className="p-2 rounded-full hover:bg-tertiary relative cursor-pointer">
     {withBadge && (
       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold rounded-full h-4 w-4 flex items-center justify-center">
         1
@@ -360,4 +360,39 @@ export const FlashIcon = () => (
     <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
         <path d="M11.983 0a1.003 1.003 0 00-.843.453l-6.94 9.55a1 1 0 00.843 1.547H10V18a1 1 0 001.53.848l6.94-9.55A1 1 0 0017.627 8H12V2a1 1 0 00-.017-2z" />
     </svg>
+);
+
+
+export const HeartIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className="w-6 h-6"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+    />
+  </svg>
+);
+export const ShareIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="w-6 h-6"
+  >
+    <circle cx="18" cy="5" r="2" fill="currentColor" />
+    <circle cx="6" cy="12" r="2" fill="currentColor" />
+    <circle cx="18" cy="19" r="2" fill="currentColor" />
+    <path d="M8 12 L16 7 M8 12 L16 17" />
+  </svg>
 );

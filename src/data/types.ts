@@ -7,16 +7,32 @@ export interface Category {
   img: string;
 }
 
+export interface Variant {
+  id: number;
+  name: string;
+  price: number;
+  oldPrice?: number;
+  stock: number;
+}
+
 export interface Product {
   name: string;
   slug: string;
+  description: string;
+  ingredients: string[];
+  howToUse: string[];
+  category: string;
+  sku: string;
   price: string;
   oldPrice?: string;
   discount?: string;
-  img: string;
-  imgHover: string;
+  img: string;          
+  imgHover?: string;
+  galleryImages: string[]; 
   isFlashSale: boolean;
+  isEvent: boolean;
   type: "single" | "bundle";
+  variants: Variant[];
 }
 
 export interface NavItem {
@@ -42,4 +58,13 @@ export type EventPromoProps = {
   voucherCode?: string;
   headline?: string;
   subhead?: string;
+};
+
+export type Review = {
+    id: number;
+    user: string;
+    variant: string;
+    comment: string;
+    image: string | null;
+    likes: number;
 };

@@ -1,6 +1,8 @@
-import { DesktopHeader } from "@shared/components/layout/header/DekstopHeader";
-import { MobileHeader } from "@shared/components/layout/header/MobileHeader";
-
+import { bottomNavItemsData } from "@data/navigation";
+import { Footer } from "@shared/components/layout/footer/DekstopFooter";
+import { MobileFooter } from "@shared/components/layout/footer/MobileFooter";
+import HeaderSwitcher from "@shared/components/layout/header/HeaderSwitcher";
+import RouteTransition from "@shared/components/transition/RouteTransition";
 export default function SiteLayout({
   children,
 }: {
@@ -8,9 +10,12 @@ export default function SiteLayout({
 }) {
   return (
     <>
-      <DesktopHeader />
-      <MobileHeader />
-      <main>{children}</main>
+      <RouteTransition>
+        <HeaderSwitcher />
+        <main>{children}</main>
+        <Footer />
+        <MobileFooter navItems={bottomNavItemsData} />
+      </RouteTransition>
     </>
   );
 }

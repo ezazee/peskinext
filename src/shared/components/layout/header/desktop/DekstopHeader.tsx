@@ -17,6 +17,7 @@ import {
 } from "@shared/components/icons";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
+import Link from "next/link";
 
 export const DesktopHeader = () => {
   const router = useRouter();
@@ -109,13 +110,15 @@ export const DesktopHeader = () => {
 
         <div className="max-w-screen-xl mx-auto px-8">
           <div className="flex items-center gap-6 py-3">
-            <Image
-              src="/logo.png"
-              alt="PE Skinpro Logo"
-              width={60}
-              height={40}
-              className="shrink-0"
-            />
+            <Link href="/">
+              <Image
+                src="/logo.png"
+                alt="PE Skinpro Logo"
+                width={60}
+                height={40}
+                className="shrink-0"
+              />
+            </Link>
 
             <div className="flex-grow relative mx-4" ref={searchContainerRef}>
               <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">

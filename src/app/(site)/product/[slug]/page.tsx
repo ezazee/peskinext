@@ -37,16 +37,12 @@ export default function ProductDetailPage() {
         product={product}
         hasDiscount={hasDiscount}
         priceNumber={priceNumber}
+        oldPriceNumber={oldPriceNumber}
       />
 
       {/* Desktop */}
       <div className="hidden md:block">
-        <DesktopDetail
-          product={product}
-          hasDiscount={hasDiscount}
-          priceNumber={priceNumber}
-          oldPriceNumber={oldPriceNumber}
-        />
+        <DesktopDetail product={product} />
       </div>
     </div>
   );

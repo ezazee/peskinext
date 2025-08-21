@@ -4,7 +4,7 @@ import MobileAppOffer from "./MobileAppOffer";
 export const MobileFooter = ({ navItems }: { navItems: NavItem[] }) => (
   <>
     {/* <MobileAppOffer /> */}
-    <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center py-1 z-50">
+    <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center py-1">
       {navItems.map((item) => (
         <a
           key={item.name}
