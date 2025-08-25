@@ -1,5 +1,5 @@
 // File: src/features/shared/components/product/ProductCard.tsx
-import type { Product } from "@data/types";
+import type { Product } from "@shared/types/types";
 import Image from "next/image";
 import Link from "next/link";
 

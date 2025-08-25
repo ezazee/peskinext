@@ -1,4 +1,4 @@
-import type { Review } from "@data/types";
+import type { Review } from "@shared/types/types";
 import Image from "next/image";
 import { IoStar } from "react-icons/io5";
 

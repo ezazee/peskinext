@@ -1,4 +1,4 @@
-import type { Product } from "./types";
+import type { Product } from "../shared/types/types";
 
 export const productsData: Product[] = [
   // --- 7 Produk Satuan ---

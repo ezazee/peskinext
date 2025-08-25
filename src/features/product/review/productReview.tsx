@@ -81,7 +81,7 @@ const ProductReview = () => {
           <div>
             <h3 className="font-bold text-lg">ULASAN PILIHAN</h3>
             <p className="text-sm text-subtle-text">
-              Menampilkan 6 dari 6 ulasan
+              Menampilkan 6 dari 6 ulasan 
             </p>
           </div>
         </div>

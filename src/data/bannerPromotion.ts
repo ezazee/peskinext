@@ -1,4 +1,4 @@
-import type { Banner } from "./types";
+import type { Banner } from "../shared/types/types";
 
 export const carouselData: Banner[] = [
   { src: "https://placehold.co/600x800/E879F9/FFFFFF?text=Keajaiban+Dinamis", alt: "Promo iPhone 15" },

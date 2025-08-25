@@ -4,7 +4,7 @@ import {
   TransactionIcon,
   AccountIcon,
 } from "@shared/components/icons";
-import type { NavItem } from "./types";
+import type { NavItem } from "../shared/types/types";
 
 export const bottomNavItemsData: NavItem[] = [
   { name: "Home", icon: HomeIcon, active: true },

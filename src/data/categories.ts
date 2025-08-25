@@ -1,5 +1,5 @@
 // File: src/data/categories.ts
-import type { Category } from "./types";
+import type { Category } from "../shared/types/types";
 
 export const desktopCategoriesData: Category[] = [
   {

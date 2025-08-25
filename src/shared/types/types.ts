@@ -26,9 +26,9 @@ export interface Product {
   price: string;
   oldPrice?: string;
   discount?: string;
-  img: string;          
+  img: string;
   imgHover?: string;
-  galleryImages: string[]; 
+  galleryImages: string[];
   isFlashSale: boolean;
   isEvent: boolean;
   type: "single" | "bundle";
@@ -61,10 +61,40 @@ export type EventPromoProps = {
 };
 
 export type Review = {
-    id: number;
-    user: string;
-    variant: string;
-    comment: string;
-    image: string | null;
-    likes: number;
+  id: number;
+  user: string;
+  variant: string;
+  comment: string;
+  image: string | null;
+  likes: number;
+  rating: number;
+};
+
+export interface MobileDetailProps {
+  product: Product;
+  hasDiscount: boolean;
+  priceNumber: number;
+  oldPriceNumber: number;
+}
+
+export type ShippingOption = {
+  id: string;
+  courier: string;
+  service?: string;
+  eta: string;
+  price: number;
+  badges?: string[];
+};
+
+export type ShippingGroup = {
+  label: string;
+  items: ShippingOption[];
+};
+
+export type ShippingDetailData = {
+  origin: string;
+  destination: string;
+  weightGr: number;
+  note?: string;
+  groups: ShippingGroup[];
 };

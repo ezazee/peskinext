@@ -5,7 +5,7 @@ import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { productsData } from "@data/products";
-import type { EventPromoProps } from "@data/types";
+import type { EventPromoProps } from "@shared/types/types";
 import { ProductCard } from "../layout/header/mobile/product/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 

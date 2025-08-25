@@ -1,10 +1,10 @@
-import type { NavItem } from "@data/types";
+import type { NavItem } from "@shared/types/types";
 import MobileAppOffer from "./MobileAppOffer";
 
 export const MobileFooter = ({ navItems }: { navItems: NavItem[] }) => (
   <>
     {/* <MobileAppOffer /> */}
-    <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center py-1">
+    <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center py-1 z-[10]">
       {navItems.map((item) => (
         <a
           key={item.name}

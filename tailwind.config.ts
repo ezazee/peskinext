@@ -19,6 +19,12 @@ const config: Config = {
       boxShadow: {
         "focus-glow": "0 0 0 3px rgba(29, 154, 210, 0.4)",
       },
+      spacing: {
+        'safe-area-inset-bottom': 'env(safe-area-inset-bottom)',
+      },
+      padding: {
+        'safe-area-inset-bottom': 'env(safe-area-inset-bottom)',
+      }
     },
   },
   plugins: [],

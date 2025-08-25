@@ -119,8 +119,12 @@ export const ChevronDownIcon = ({
   </svg>
 );
 
-export const ChevronRightIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6">
+export const ChevronRightIcon = ({
+  className = "h-4 w-4",
+}: {
+  className?: string;
+}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
     </svg>
 );
@@ -394,5 +398,27 @@ export const ShareIcon = () => (
     <circle cx="6" cy="12" r="2" fill="currentColor" />
     <circle cx="18" cy="19" r="2" fill="currentColor" />
     <path d="M8 12 L16 7 M8 12 L16 17" />
+  </svg>
+);
+
+// --- Icon truk/bis ---
+export const BusIcon = ({
+  className = "h-4 w-4",
+}: {
+  className?: string;
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className={className}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M6.75 16.5h10.5m-10.5 0A2.25 2.25 0 014.5 14.25v-9A2.25 2.25 0 016.75 3h10.5A2.25 2.25 0 0119.5 5.25v9a2.25 2.25 0 01-2.25 2.25m-10.5 0v1.5A2.25 2.25 0 008.25 20.25h7.5A2.25 2.25 0 0018 18v-1.5"
+    />
   </svg>
 );

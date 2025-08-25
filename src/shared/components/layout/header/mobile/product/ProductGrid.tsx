@@ -1,6 +1,6 @@
 // File: src/app/components/Product/ProductGrid.tsx
 
-import type { Product } from "@data/types";
+import type { Product } from "@shared/types/types";
 import { ProductCard } from "./ProductCard";
 
 export const ProductGrid = ({ products }: { products: Product[] }) => (

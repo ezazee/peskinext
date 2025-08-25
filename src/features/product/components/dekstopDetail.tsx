@@ -2,14 +2,22 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useCallback, type ReactNode } from "react";
-import type { Product, Variant } from "@data/types";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+  useMemo,
+} from "react";
+import type { Product, Variant } from "@shared/types/types";
 import { IoStar } from "react-icons/io5";
 import { formatRupiah } from "@shared/libs/format";
 import {
+  BusIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   HeartIcon,
+  LocationIcon,
   ShareIcon,
 } from "@shared/components/icons";
 import { AuthModal } from "@features/auth/components/AuthModal";
@@ -17,46 +25,8 @@ import ProductReview from "../review/productReview";
 import ProductTabs from "@shared/components/layout/header/mobile/product/productTabs";
 import { productsData } from "@data/products";
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
-
-// --- Ikon pengiriman ---
-const TruckIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    className="w-6 h-6"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125V14.25m-17.25 4.5v-9m17.25 9v-9m-17.25-2.25H21m-17.25 0V6.75A2.25 2.25 0 015.25 4.5h9.75a2.25 2.25 0 012.25 2.25v4.5m-17.25 0h-1.125a1.125 1.125 0 00-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125H3.375"
-    />
-  </svg>
-);
-
-// --- Info Pengiriman ---
-const ShippingInfo = () => (
-  <div className="border-b pb-4">
-    <h3 className="font-bold text-lg mb-3">Pengiriman</h3>
-    <div className="flex items-start gap-4">
-      <TruckIcon />
-      <div>
-        <p className="font-semibold text-base-text">
-          Dikirim dari{" "}
-          <span className="font-bold">Kota Administrasi Jakarta</span>
-        </p>
-      </div>
-      <a
-        href="#"
-        className="ml-auto text-primary font-bold text-sm whitespace-nowrap"
-      >
-        Lihat Kurir Lainnya
-      </a>
-    </div>
-  </div>
-);
+import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
+import { mockShippingData } from "@data/shipingData";
 
 // --- Tombol yang butuh login ---
 const AuthActionButton = ({
@@ -85,6 +55,8 @@ type DesktopDetailProps = {
 };
 
 export default function DesktopDetail({ product }: DesktopDetailProps) {
+  const [open, setOpen] = useState(false);
+
   const [selectedVariant, setSelectedVariant] = useState<Variant>(
     product.variants[0]
   );
@@ -125,6 +97,23 @@ export default function DesktopDetail({ product }: DesktopDetailProps) {
   const handleBuyNow = () => {
     console.log(`Membeli ${qty} x ${product.name} (${selectedVariant.name})`);
   };
+
+  const cheapest = useMemo(() => {
+    let minPrice = Infinity;
+    let eta = "";
+    let groupLabel = "";
+    mockShippingData.groups.forEach((g) => {
+      g.items.forEach((it) => {
+        if (it.price < minPrice) {
+          minPrice = it.price;
+          eta = it.eta;
+          groupLabel = g.label;
+        }
+      });
+    });
+    if (!isFinite(minPrice)) return null;
+    return { price: minPrice, eta, group: groupLabel };
+  }, []);
 
   return (
     <>
@@ -287,10 +276,54 @@ export default function DesktopDetail({ product }: DesktopDetailProps) {
               />
             </div>
 
-            <div className="mt-6 border-t pt-6 space-y-4">
-              <ShippingInfo />
+            {/* Shiping Info */}
+            <div className="mt-6 border-t pt-6">
+              <h3 className="font-bold text-lg mb-3">Pengiriman</h3>
+
+              <div className="space-y-2 text-sm">
+                {/* alamat */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <LocationIcon className="w-4 h-4" />
+                    <span>
+                      Dikirim dari{" "}
+                      <span className="font-semibold">
+                        {mockShippingData.origin}
+                      </span>
+                    </span>
+                  </div>
+                  {/* tombol pindah ke kanan */}
+                  <button
+                    onClick={() => setOpen(true)}
+                    className="text-primary cursor-pointer font-semibold text-sm hover:underline"
+                  >
+                    Lihat Kurir Lainnya
+                  </button>
+                </div>
+
+                {/* ongkir */}
+                {cheapest && (
+                  <div className="flex items-center gap-2">
+                    <BusIcon className="w-4 h-4" />
+                    <div>
+                      <p className="font-semibold">
+                        Ongkir mulai {formatRupiah(cheapest.price)}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {cheapest.group} • Estimasi tiba {cheapest.eta}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
+
+          <ShippingModal
+            open={open}
+            data={mockShippingData}
+            onClose={() => setOpen(false)}
+          />
 
           {/* Kanan (buy) — col 10..12, span 2 baris */}
           <aside className="col-start-10 col-span-3 row-span-2">

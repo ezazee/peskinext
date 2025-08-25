@@ -1,7 +1,7 @@
 // File: src/features/shared/sections/PromoShowcase.tsx
 "use client";
 
-import type { PromoShowcaseProps } from "@data/types";
+import type { PromoShowcaseProps } from "@shared/types/types";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
