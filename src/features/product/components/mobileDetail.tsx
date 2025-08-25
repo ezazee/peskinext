@@ -22,7 +22,12 @@ import { reviewsData } from "@data/review";
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
 import { productsData } from "@data/products";
 
-type MobileDetailProps = { product: Product };
+type MobileDetailProps = {
+  product: Product;
+  hasDiscount: boolean;
+  priceNumber: number;
+  oldPriceNumber: number;
+};
 
 /** ---- helpers: tanpa any ---- */
 type VariantExtras = {
