@@ -9,6 +9,7 @@ export const reviewsData: Review[] = [
     image: "https://placehold.co/80x80/EEEEEE/AAAAAA?text=Foto",
     likes: 3,
     rating: 4,
+    date: "2025-05-02",
   },
   {
     id: 2,
@@ -19,6 +20,7 @@ export const reviewsData: Review[] = [
     image: null,
     likes: 1,
     rating: 3,
+    date: "2025-05-02",
   },
   {
     id: 3,
@@ -28,6 +30,7 @@ export const reviewsData: Review[] = [
     image: "https://placehold.co/80x80/EEEEEE/AAAAAA?text=Foto",
     likes: 5,
     rating: 5,
+    date: "2025-05-02",
   },
   {
     id: 4,
@@ -36,7 +39,8 @@ export const reviewsData: Review[] = [
     comment: "Ukuran pas, jahitan rapi. Nyaman dipakai seharian.",
     image: null,
     likes: 2,
-    rating: 4,
+    rating: 5,
+    date: "2025-05-02",
   },
   {
     id: 5,
@@ -46,6 +50,7 @@ export const reviewsData: Review[] = [
     image: "https://placehold.co/80x80/EEEEEE/AAAAAA?text=Foto",
     likes: 7,
     rating: 5,
+    date: "2025-05-02",
   },
   {
     id: 6,
@@ -55,6 +60,7 @@ export const reviewsData: Review[] = [
     image: null,
     likes: 0,
     rating: 3,
+    date: "2025-03-03",
   },
   {
     id: 7,
@@ -64,6 +70,7 @@ export const reviewsData: Review[] = [
     image: "https://placehold.co/80x80/EEEEEE/AAAAAA?text=Foto",
     likes: 4,
     rating: 4,
+    date: "2025-03-03",
   },
   {
     id: 8,
@@ -73,6 +80,7 @@ export const reviewsData: Review[] = [
     image: null,
     likes: 1,
     rating: 2,
+    date: "2025-03-03",
   },
   {
     id: 9,
@@ -82,6 +90,7 @@ export const reviewsData: Review[] = [
     image: "https://placehold.co/80x80/EEEEEE/AAAAAA?text=Foto",
     likes: 6,
     rating: 5,
+    date: "2025-03-03",
   },
   {
     id: 10,
@@ -91,6 +100,7 @@ export const reviewsData: Review[] = [
     image: null,
     likes: 2,
     rating: 3,
+    date: "2025-12-03",
   },
   {
     id: 11,
@@ -100,6 +110,7 @@ export const reviewsData: Review[] = [
     image: "https://placehold.co/80x80/EEEEEE/AAAAAA?text=Foto",
     likes: 3,
     rating: 4,
+    date: "2025-12-03",
   },
   {
     id: 12,
@@ -109,6 +120,7 @@ export const reviewsData: Review[] = [
     image: null,
     likes: 1,
     rating: 3,
+    date: "2025-12-03",
   },
   {
     id: 13,
@@ -118,6 +130,7 @@ export const reviewsData: Review[] = [
     image: "https://placehold.co/80x80/EEEEEE/AAAAAA?text=Foto",
     likes: 9,
     rating: 5,
+    date: "2025-08-03",
   },
   {
     id: 14,
@@ -127,6 +140,7 @@ export const reviewsData: Review[] = [
     image: null,
     likes: 2,
     rating: 4,
+    date: "2025-08-03",
   },
   {
     id: 15,
@@ -136,5 +150,6 @@ export const reviewsData: Review[] = [
     image: "https://placehold.co/80x80/EEEEEE/AAAAAA?text=Foto",
     likes: 8,
     rating: 5,
+    date: "2025-08-03",
   },
 ];

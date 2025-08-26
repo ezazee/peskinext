@@ -66,21 +66,32 @@ export type Review = {
   variant: string;
   comment: string;
   image: string | null;
-  likes: number;
   rating: number;
+  date: string;
 };
+
+export type DesktopDetailProps = {
+  product: Product;
+  isLoading: boolean;
+  hasDiscount: boolean;
+  priceNumber: number;
+  oldPriceNumber: number;
+};
+
 
 export interface MobileDetailProps {
   product: Product;
   hasDiscount: boolean;
   priceNumber: number;
   oldPriceNumber: number;
+  isLoading: boolean;
 }
 
+/* ===== Shipping Types ===== */
 export type ShippingOption = {
   id: string;
   courier: string;
-  service?: string;
+  service: string;
   eta: string;
   price: number;
   badges?: string[];

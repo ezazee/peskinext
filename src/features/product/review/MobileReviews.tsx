@@ -1,22 +1,78 @@
+// File: src/features/product/components/review/MobileReviews.tsx
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect, useRef as useRefReact } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoHeartOutline, IoStar } from "react-icons/io5";
+import { IoStar } from "react-icons/io5";
 import type { Review } from "@data/index";
+import ReviewsModalMobile from "./ReviewsModalMobile";
+import ReviewsModalMobileSkeleton from "./ReviewsModalMobileSkeleton";
 
 type Props = { reviews?: Review[]; seeAllHref?: string };
 const nfID = (n: number) => n.toLocaleString("id-ID");
 
+// Simulasi API: delay 800ms lalu kembalikan data dummy (reviews awal)
+async function fetchAllReviewsDummy(fallback: Review[]): Promise<Review[]> {
+  await new Promise((r) => setTimeout(r, 800));
+  // ganti ini dengan fetch API kamu nanti
+  return [...fallback];
+}
+
 export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
+  // urutkan dummy agar enak dilihat
   const safe = useMemo(
     () =>
-      (Array.isArray(reviews) ? [...reviews] : [])
-        .sort((a, b) => b.rating - a.rating || b.likes - a.likes),
+      (Array.isArray(reviews) ? [...reviews] : []).sort(
+        (a, b) => b.rating - a.rating
+      ),
     [reviews]
   );
+
+  // ====== modal state ======
+  const [openModal, setOpenModal] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalReviews, setModalReviews] = useState<Review[] | null>(null);
+
+  // cegah fetch berulang saat modal open (akar masalah looping)
+  const hasFetchedRef = useRefReact(false);
+
+  useEffect(() => {
+    let alive = true;
+    if (!openModal) return;
+
+    // Prefill data agar tidak kosong jika fetch lama/gagal
+    if (!modalReviews || modalReviews.length === 0) {
+      setModalReviews(safe);
+    }
+
+    // Hanya fetch SEKALI per lifecycle komponen (atau saat kamu reset manual)
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+
+    setModalLoading(true);
+    fetchAllReviewsDummy(safe)
+      .then((res) => {
+        if (!alive) return;
+        // Pakai hasil fetch; kalau kosong, tetap pakai prefill "safe"
+        if (Array.isArray(res) && res.length > 0) {
+          setModalReviews(res);
+        }
+      })
+      .catch(() => {
+        /* biarkan pakai prefill "safe" */
+      })
+      .finally(() => {
+        if (!alive) return;
+        setModalLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+    // ⚠️ Penting: JANGAN masukkan `modalReviews` ke dependency, agar tidak re-fetch loop
+  }, [openModal, safe]);
 
   const top3 = useMemo(() => safe.slice(0, 3), [safe]);
 
@@ -26,6 +82,7 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
     return safe.reduce((s, r) => s + r.rating, 0) / safe.length;
   }, [safe]);
 
+  // slider kecil
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [idx, setIdx] = useState(0);
   const handleScroll: React.UIEventHandler<HTMLDivElement> = (e) => {
@@ -36,7 +93,7 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
 
   return (
     <motion.section
-      id="ulasan" // anchor untuk link dari bawah Variasi
+      id="ulasan"
       className="rounded-xl bg-white shadow-sm p-4"
       initial={{ y: 8, opacity: 0 }}
       whileInView={{ y: 0, opacity: 1 }}
@@ -47,7 +104,14 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">Ulasan pembeli</h2>
         {seeAllHref && (
-          <Link href={seeAllHref} className="text-sm text-primary font-semibold">
+          <Link
+            href={seeAllHref}
+            className="text-sm text-primary font-semibold"
+            onClick={(e) => {
+              e.preventDefault();
+              setOpenModal(true);
+            }}
+          >
             Lihat Semua
           </Link>
         )}
@@ -56,7 +120,9 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
       {/* Summary (avg + count) */}
       <div className="mt-2 flex items-center gap-2 text-sm text-gray-700">
         <Stars value={avg} />
-        <span>{avg.toFixed(1)} • {nfID(safe.length)} ulasan</span>
+        <span>
+          {avg.toFixed(1)} • {nfID(safe.length)} ulasan
+        </span>
       </div>
 
       {/* Slider — 1 kartu per layar */}
@@ -69,14 +135,14 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
               className="flex overflow-x-auto no-scrollbar pb-1 snap-x snap-mandatory snap-always touch-pan-x overscroll-x-contain scroll-smooth"
             >
               {top3.map((r) => (
-                <motion.article key={r.id} whileTap={{ scale: 0.98 }} className="snap-start min-w-full px-4">
+                <motion.article
+                  key={r.id}
+                  whileTap={{ scale: 0.98 }}
+                  className="snap-start min-w-full px-4"
+                >
                   <div className="rounded-xl bg-white shadow-sm p-3">
                     <div className="flex items-start justify-between">
                       <p className="text-sm font-semibold">{r.user}</p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <IoHeartOutline className="text-gray-400" />
-                        <span>{nfID(r.likes)}</span>
-                      </div>
                     </div>
 
                     {/* rating per review */}
@@ -94,7 +160,12 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
                     {r.image && (
                       <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar">
                         <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0">
-                          <Image src={r.image} alt="foto ulasan" fill className="object-cover" />
+                          <Image
+                            src={r.image}
+                            alt="foto ulasan"
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
                     )}
@@ -107,12 +178,33 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
           {/* dots */}
           <div className="mt-2 flex justify-center gap-2">
             {top3.map((_, i) => (
-              <span key={i} className={`h-1.5 w-1.5 rounded-full ${idx === i ? "bg-primary" : "bg-gray-300"}`} />
+              <span
+                key={i}
+                className={`h-1.5 w-1.5 rounded-full ${
+                  idx === i ? "bg-primary" : "bg-gray-300"
+                }`}
+              />
             ))}
           </div>
         </>
       ) : (
         <p className="mt-4 text-sm text-gray-500">Belum ada ulasan.</p>
+      )}
+
+      {/* ===== Modal & Skeleton (Opsi A) ===== */}
+      {openModal && modalLoading && (
+        <ReviewsModalMobileSkeleton
+          open={openModal}
+          onClose={() => setOpenModal(false)}
+        />
+      )}
+
+      {openModal && !modalLoading && (
+        <ReviewsModalMobile
+          open={openModal}
+          reviews={modalReviews ?? []}
+          onClose={() => setOpenModal(false)}
+        />
       )}
     </motion.section>
   );
@@ -122,7 +214,8 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
 function Stars({ value, size = "md" }: { value: number; size?: "sm" | "md" }) {
   const count = Math.round(value); // 0..5
   const cls = size === "sm" ? "text-yellow-400 text-[14px]" : "text-yellow-400";
-  const clsEmpty = size === "sm" ? "text-gray-300 text-[14px]" : "text-gray-300";
+  const clsEmpty =
+    size === "sm" ? "text-gray-300 text-[14px]" : "text-gray-300";
   return (
     <span className="flex items-center">
       {Array.from({ length: 5 }).map((_, i) => (
@@ -148,7 +241,11 @@ function ExpandableText({ text }: { text: string }) {
           {content}
         </motion.div>
       </AnimatePresence>
-      <button type="button" onClick={() => setOpen((s) => !s)} className="mt-1 text-sm font-semibold text-primary">
+      <button
+        type="button"
+        onClick={() => setOpen((s) => !s)}
+        className="mt-1 text-sm font-semibold text-primary"
+      >
         {open ? "Tutup" : "Selengkapnya"}
       </button>
     </div>
