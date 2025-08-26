@@ -1,60 +1,40 @@
+// src/features/shiping/hooks/useShippingQuotes.ts
 "use client";
-import { useEffect, useMemo, useState } from "react";
+
+import { useEffect, useState } from "react";
 import type { ShippingDetailData } from "@shared/types/types";
-import { fetchShippingQuotes, type ShippingQueryParams } from "../api/fetchQuotes";
+import { buildMockShippingData } from "@data/shipingData";
+import type { ShippingQueryParams } from "./useShippingParamsForProduct";
 
 export function useShippingQuotes(
-  open: boolean,
-  params?: ShippingQueryParams | null,
-  initialData?: ShippingDetailData
+  enable: boolean,
+  params: ShippingQueryParams | null
 ) {
-  const [data, setData] = useState<ShippingDetailData | undefined>(initialData);
-  const [loading, setLoading] = useState<boolean>(!!open);
-  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<ShippingDetailData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const paramsKey = useMemo(
-    () => `${params?.origin ?? ""}|${params?.destination ?? ""}|${params?.weightGram ?? 0}`,
-    [params?.origin, params?.destination, params?.weightGram]
-  );
-
-  const refetch = async () => {
-    if (!params) {
-      setError(new Error("Parameter ongkir belum lengkap"));
-      setLoading(false);
-      return;
-    }
+  async function run(p: ShippingQueryParams) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchShippingQuotes(params);
-      setData(res);
-    } catch (e) {
-      setError(e as Error);
+      await new Promise((r) => setTimeout(r, 600)); // simulasi API
+      setData(buildMockShippingData(p));
+    } catch {
+      setError("Gagal memuat ongkir");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
-    if (!open || !params) {
-      setLoading(false);
-      return;
-    }
-    let alive = true;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetchShippingQuotes(params);
-        if (alive) setData(res);
-      } catch (e) {
-        if (alive) setError(e as Error);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => { alive = false; };
-  }, [open, params, paramsKey]);
+    if (!enable || !params) return;
+    run(params);
+  }, [enable, params?.origin, params?.destination, params?.weightGr]);
+
+  const refetch = () => {
+    if (params) run(params);
+  };
 
   return { data, loading, error, refetch };
 }

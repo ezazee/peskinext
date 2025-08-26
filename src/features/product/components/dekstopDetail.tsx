@@ -117,13 +117,14 @@ export default function DesktopDetail({ product, isLoading }: DesktopDetailProps
 
         {/* Modal ongkir: wrapper akan fetch & tampilkan skeleton sendiri */}
         <ShippingModal
-          open={open}
-          params={params ?? null}
-          initialData={quotes as ShippingDetailData | undefined}
-          selectedId={selectedShippingId}
-          onSelect={(opt) => setSelectedShippingId(opt.id)}
-          onClose={() => setOpen(false)}
-        />
+  open={open}
+  params={params ?? null}
+  initialData={quotes ?? undefined}
+  selectedId={selectedShippingId}
+  onSelect={(opt) => setSelectedShippingId(opt.id)}
+  onClose={() => setOpen(false)}
+/>
+
 
         {/* Buy Box */}
         <aside className="col-start-10 col-span-3 row-span-2">

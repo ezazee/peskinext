@@ -1,19 +1,45 @@
-import type { ShippingDetailData } from "@shared/types/types";
+// src/data/shipingData.ts
+import type { ShippingDetailData, ShippingGroup } from "@shared/types/types";
 
-export const mockShippingData: ShippingDetailData = {
-  origin: "Kota Administrasi Jakarta Pusat",
-  destination: "Rumah Garut Reza",
-  weightGr: 800,
-  note: "Total ongkir dihitung saat checkout",
-  groups: [
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function formatEtaRange(minOffsetDays: number, maxOffsetDays: number, ref = new Date()): string {
+  const s = new Date(ref); s.setDate(s.getDate() + minOffsetDays);
+  const e = new Date(ref); e.setDate(e.getDate() + maxOffsetDays);
+  const sDay = s.getDate(), eDay = e.getDate();
+  const sMon = MONTHS[s.getMonth()], eMon = MONTHS[e.getMonth()];
+  return sMon === eMon
+    ? `Estimasi tiba ${sDay} - ${eDay} ${sMon}`
+    : `Estimasi tiba ${sDay} ${sMon} - ${eDay} ${eMon}`;
+}
+
+function calcPrice(basePerKg: number, weightGr: number): number {
+  const kg = Math.ceil(Math.max(1, weightGr) / 1000); // min 1kg
+  return basePerKg * kg;
+}
+
+export function buildMockShippingData(params: {
+  origin: string;
+  destination: string;
+  weightGr: number;
+  note?: string;
+}): ShippingDetailData {
+  const { origin, destination, weightGr, note } = params;
+
+  const etaStd = formatEtaRange(3, 7);
+  const eta2_5 = formatEtaRange(2, 5);
+  const eta1_3 = formatEtaRange(1, 3);
+
+  const groups: ShippingGroup[] = [
     {
       label: "Standard",
       items: [
         {
           id: "std-1",
           courier: "Standard",
-          eta: "Estimasi tiba 23 Aug - 2 Sep",
-          price: 20000,
+          service: "Economy",
+          eta: etaStd,
+          price: calcPrice(10000, weightGr),
           badges: ["Hemat"],
         },
       ],
@@ -24,34 +50,53 @@ export const mockShippingData: ShippingDetailData = {
         {
           id: "reg-sicepat",
           courier: "SiCepat",
-          eta: "Estimasi tiba 24 - 27 Aug",
-          price: 15900,
+          service: "REG",
+          eta: eta2_5,
+          price: calcPrice(12000, weightGr),
           badges: ["Rekomendasi"],
         },
         {
           id: "reg-anteraja",
           courier: "AnterAja",
-          eta: "Estimasi tiba 24 - 27 Aug",
-          price: 16200,
+          service: "REG",
+          eta: eta2_5,
+          price: calcPrice(12500, weightGr),
         },
         {
           id: "reg-jnt",
           courier: "J&T",
-          eta: "Estimasi tiba 23 - 25 Aug",
-          price: 17000,
+          service: "EZ",
+          eta: eta1_3,
+          price: calcPrice(13500, weightGr),
+          badges: ["Cepat"],
         },
         {
           id: "reg-jne",
           courier: "JNE",
-          eta: "Estimasi tiba 23 - 25 Aug",
-          price: 18000,
+          service: "REG",
+          eta: eta1_3,
+          price: calcPrice(14000, weightGr),
         },
       ],
     },
     { label: "Kargo", items: [] },
     { label: "Instan", items: [] },
-    { label: "gOJEK", items: [] },
-    { label: "Gosend", items: [] },
+    { label: "GoJek", items: [] },
+    { label: "GoSend", items: [] },
     { label: "Shopee", items: [] },
-  ],
-};
+  ];
+
+  return {
+    origin,
+    destination,
+    weightGr,
+    note: note ?? "Total ongkir dihitung saat checkout",
+    groups,
+  };
+}
+
+export const mockShippingData: ShippingDetailData = buildMockShippingData({
+  origin: "Kota Administrasi Jakarta Pusat",
+  destination: "Rumah Garut Reza",
+  weightGr: 800,
+});
