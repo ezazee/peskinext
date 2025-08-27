@@ -25,9 +25,8 @@ export interface Product {
   sku: string;
   price: string;
   oldPrice?: string;
-  discount?: string;
   img: string;
-  imgHover?: string;
+  imgHover: string;
   galleryImages: string[];
   isFlashSale: boolean;
   isEvent: boolean;
@@ -68,6 +67,7 @@ export type Review = {
   image: string | null;
   rating: number;
   date: string;
+  productSlug: string;
 };
 
 export type DesktopDetailProps = {
@@ -77,7 +77,6 @@ export type DesktopDetailProps = {
   priceNumber: number;
   oldPriceNumber: number;
 };
-
 
 export interface MobileDetailProps {
   product: Product;

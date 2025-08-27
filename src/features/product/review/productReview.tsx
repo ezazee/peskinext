@@ -1,63 +1,22 @@
 // File: src/features/product/components/ProductReview.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { IoStar } from "react-icons/io5";
+import type { Review } from "@shared/types/types";
 import { reviewsData } from "@data/review";
 import { ReviewCard } from "./reviewCard";
-import type { Review } from "@data/index";
-import {
-  nfID,
-  StarsClean,
-  useRatingSummary,
-} from "@shared/helpers/productReview";
+import { nfID, StarsClean } from "@shared/helpers/productReview";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
+import { useProductRating } from "../hooks/useProductRating";
+import { useProductReviews } from "../hooks/useProductReviews";
 
-/* ================= Fake API layer (bisa diganti ke fetch nanti) ================= */
+// hooks dinamis berbasis API
 
-const PAGE_SIZE = 6;
+/* ================= Config ================= */
+const DEFAULT_PAGE_SIZE = 6;
 
-/** Simulasi request: sort → slice → delay */
-async function fetchReviewsPage(page: number, pageSize: number) {
-  const sorted = [...reviewsData].sort((a, b) => b.rating - a.rating);
-  const total = sorted.length;
-  const start = (page - 1) * pageSize;
-  const end = Math.min(start + pageSize, total);
-  const items = sorted.slice(start, end);
-  // simulasi latency 500ms
-  await new Promise((r) => setTimeout(r, 500));
-  return { items, total };
-}
-
-/** Hook paginasi + loading */
-function usePaginatedReviews(page: number, pageSize: number) {
-  const [items, setItems] = useState<Review[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-    fetchReviewsPage(page, pageSize)
-      .then(({ items, total }) => {
-        if (!alive) return;
-        setItems(items);
-        setTotal(total);
-      })
-      .finally(() => {
-        if (!alive) return;
-        setLoading(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [page, pageSize]);
-
-  return { items, total, loading };
-}
-
-/* ================= Universal Skeletons (pakai Skeleton primitives) ================= */
-
+/* ================= Skeletons ================= */
 function ReviewSummarySkeleton() {
   return (
     <div className="rounded-lg p-4 border">
@@ -119,35 +78,84 @@ function ReviewCardSkeleton() {
   );
 }
 
+/* ================= Util ================= */
+type Star = 1 | 2 | 3 | 4 | 5;
+type Counts = Record<Star, number>;
+const emptyCounts: Counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+function buildCounts(items: ReadonlyArray<Review>): Counts {
+  const c: Counts = { ...emptyCounts };
+  for (const r of items) {
+    const key = Math.max(1, Math.min(5, Math.round(r.rating))) as Star;
+    c[key] += 1;
+  }
+  return c;
+}
+
 /* ================= Component ================= */
+export type ProductReviewProps = {
+  /** kunci produk; kirim dua-duanya agar sinkron dg mock (slug) & backend (sku) */
+  sku: string;
+  slug: string;
+  /** ukuran halaman daftar ulasan */
+  pageSize: number;
+};
 
-const ProductReview = () => {
-  // ringkasan bisa pakai semua data (statik lokal), jadi tidak perlu loading
+const ProductReview: React.FC<ProductReviewProps> = ({
+  sku,
+  slug,
+  pageSize = DEFAULT_PAGE_SIZE,
+}) => {
+  const hasKey = Boolean(sku || slug);
+
+  // 1) Ringkasan rating (avg + total) — API
   const {
-    total: totalAll,
-    avg,
-    counts,
-    satisfied,
-  } = useRatingSummary(reviewsData);
+    average: avgFromApi,
+    count: totalFromApi,
+    loading: loadingSummary,
+  } = useProductRating({ sku, slug });
 
-  // ===== Pagination state =====
+  // 2) Daftar ulasan (paginated) — API
   const [page, setPage] = useState(1);
   const {
     items: pageItems,
     total,
-    loading,
-  } = usePaginatedReviews(page, PAGE_SIZE);
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    loading: loadingPage,
+  } = useProductReviews({ sku, slug }, page, pageSize);
 
-  // jaga page supaya tidak out-of-range jika total berubah
+  // 3) Distribusi bintang — ambil semua items (sekali fetch page besar)
+  const { items: allItemsForDist, loading: loadingAllForDist } =
+    useProductReviews({ sku, slug }, 1, 1000);
+
+  // jaga halaman agar tidak out-of-range bila total berubah
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   useEffect(() => {
     setPage((p) => Math.min(p, totalPages));
   }, [totalPages]);
 
-  const startIdx = total ? (page - 1) * PAGE_SIZE + 1 : 0;
-  const endIdx = Math.min(page * PAGE_SIZE, total || 0);
+  // ===== Fallback kalau sku/slug tidak diberikan (pakai semua mock) =====
+  const fallbackCounts = useMemo(() => buildCounts(reviewsData), []);
+  const fallbackAvg = useMemo(() => {
+    const n = reviewsData.length || 1;
+    return reviewsData.reduce((s, r) => s + (r.rating ?? 0), 0) / n;
+  }, []);
+  const fallbackTotal = reviewsData.length;
 
-  const row = (stars: 1 | 2 | 3 | 4 | 5) => {
+  // angka final ringkasan
+  const avg = hasKey ? avgFromApi : fallbackAvg;
+  const totalAll = hasKey ? totalFromApi : fallbackTotal;
+
+  // distribusi final
+  const counts: Counts = hasKey ? buildCounts(allItemsForDist) : fallbackCounts;
+
+  const satisfiedPct = totalAll
+    ? Math.round(((counts[4] + counts[5]) / totalAll) * 100)
+    : 0;
+
+  const startIdx = total ? (page - 1) * pageSize + 1 : 0;
+  const endIdx = Math.min(page * pageSize, total || 0);
+
+  const row = (stars: Star) => {
     const c = counts[stars];
     const pct = totalAll ? Math.round((c / totalAll) * 100) : 0;
     return (
@@ -207,10 +215,13 @@ const ProductReview = () => {
     );
   };
 
+  const loadingSummaryBlock = loadingSummary || (hasKey && loadingAllForDist);
+  const loadingList = loadingPage;
+
   return (
     <div className="mt-8 space-y-8">
-      {/* Ringkasan Ulasan (pakai skeleton universal) */}
-      {loading ? (
+      {/* Ringkasan Ulasan */}
+      {loadingSummaryBlock ? (
         <ReviewSummarySkeleton />
       ) : (
         <div className="rounded-lg p-4 border">
@@ -227,26 +238,26 @@ const ProductReview = () => {
                 </p>
               </div>
               <p className="text-sm font-bold text-primary mt-1">
-                {Math.round(satisfied)}% pembeli merasa puas
+                {satisfiedPct}% pembeli merasa puas
               </p>
               <p className="text-xs text-subtle-text">
                 {nfID(totalAll)} rating • {nfID(totalAll)} ulasan
               </p>
             </div>
             <div className="w-2/3">
-              {[5, 4, 3, 2, 1].map((s) => row(s as 1 | 2 | 3 | 4 | 5))}
+              {[5, 4, 3, 2, 1].map((s) => row(s as Star))}
             </div>
           </div>
         </div>
       )}
 
-      {/* Ulasan Pilihan (paginasi + skeleton universal) */}
+      {/* Ulasan Pilihan (paginasi) */}
       <div>
         <div className="flex justify-between items-center">
           <div>
             <h3 className="font-bold text-lg">ULASAN PILIHAN</h3>
             <p className="text-sm text-subtle-text">
-              {loading
+              {loadingList
                 ? "Memuat ulasan…"
                 : `Menampilkan ${nfID(startIdx)}–${nfID(endIdx)} dari ${nfID(
                     total
@@ -258,9 +269,9 @@ const ProductReview = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={loading || page === 1}
+              disabled={loadingList || page === 1}
               className={`px-3 py-1.5 rounded border cursor-pointer ${
-                loading || page === 1
+                loadingList || page === 1
                   ? "text-subtle-text bg-gray-100 cursor-not-allowed"
                   : "bg-white hover:bg-gray-50"
               }`}
@@ -273,9 +284,9 @@ const ProductReview = () => {
 
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={loading || page === totalPages}
+              disabled={loadingList || page === totalPages}
               className={`px-3 py-1.5 rounded border cursor-pointer ${
-                loading || page === totalPages
+                loadingList || page === totalPages
                   ? "text-subtle-text bg-gray-100 cursor-not-allowed"
                   : "bg-white hover:bg-gray-50"
               }`}
@@ -287,8 +298,8 @@ const ProductReview = () => {
         </div>
 
         <div className="mt-4">
-          {loading
-            ? Array.from({ length: PAGE_SIZE }).map((_, i) => (
+          {loadingList
+            ? Array.from({ length: pageSize }).map((_, i) => (
                 <ReviewCardSkeleton key={`sk-${i}`} />
               ))
             : pageItems.map((review) => (

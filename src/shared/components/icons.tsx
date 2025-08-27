@@ -383,7 +383,9 @@ export const HeartIcon = () => (
     />
   </svg>
 );
-export const ShareIcon = () => (
+export const ShareIcon = ({}: {
+  className?: string;
+}) =>(
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
@@ -392,7 +394,7 @@ export const ShareIcon = () => (
     strokeWidth={1.5}
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="w-6 h-6"
+    className="w-6 h-6 text-primary"
   >
     <circle cx="18" cy="5" r="2" fill="currentColor" />
     <circle cx="6" cy="12" r="2" fill="currentColor" />

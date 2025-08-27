@@ -3,17 +3,10 @@
 
 import { useMemo, useState } from "react";
 import type { MobileDetailProps, Product, Variant } from "@shared/types/types";
-import { IoStar } from "react-icons/io5";
 import { formatRupiah } from "@shared/libs/format";
-import {
-  BusIcon,
-  ChevronRightIcon,
-  HeartIcon,
-  ShareIcon,
-} from "@shared/components/icons";
+import { BusIcon, ChevronRightIcon, ShareIcon } from "@shared/components/icons";
 import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
 import MobileReviews from "../review/MobileReviews";
-import { reviewsData } from "@data/review";
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
 import { productsData } from "@data/products";
 
@@ -25,13 +18,18 @@ import { CollapseCard } from "@shared/components/ui/ExpandableCard";
 import { ProductDescriptionCard } from "@shared/components/ui/ProductDescriptionCard";
 
 import { discountPercent } from "@shared/helpers/price";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { MobileDetailSkeleton } from "./skeleton/MobileDetailSkeleton";
 
-// ⬇️ data ongkir dinamis (tanpa mengubah UI)
 import { useShippingParamsForProduct } from "@features/shiping/hooks/useShippingParamsForProduct";
 import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
 import type { ShippingDetailData } from "@shared/types/types";
+
+// util copy link
+import { copyProductLink } from "@shared/libs/clipboard";
+import { useProductReviews } from "../hooks/useProductReviews";
+
+import { RatingBadge } from "@features/product/review/RatingBadge";
 
 /** adaptor tipe agar tidak pakai `any` */
 type ProductForShipping = Product &
@@ -47,6 +45,7 @@ export default function MobileDetail({
   // state
   const [variant, setVariant] = useState<Variant>(product.variants[0]);
   const [qty, setQty] = useState(1);
+  const [showToaster, setShowToaster] = useState(false);
 
   const images = product.galleryImages?.length
     ? product.galleryImages
@@ -59,7 +58,7 @@ export default function MobileDetail({
   const subtotal = priceNum * qty;
   const maxStock = variant.stock ?? 99;
 
-  // ====== DINAMIS: params & quotes ongkir ======
+  // ====== Dinamis: params & quotes ongkir ======
   const { params } = useShippingParamsForProduct(
     product as ProductForShipping,
     variant as VariantForShipping,
@@ -67,7 +66,6 @@ export default function MobileDetail({
   );
   const { data: quotes } = useShippingQuotes(Boolean(params), params ?? null);
 
-  // Ambil layanan termurah dari hasil quotes (untuk pill info)
   const cheapest = useMemo(() => {
     if (!quotes) return null;
     let min = Infinity;
@@ -82,6 +80,24 @@ export default function MobileDetail({
     );
     return isFinite(min) ? { price: min, eta } : null;
   }, [quotes]);
+
+  // Share (copy link)
+  const handleShare = async () => {
+    const ok = await copyProductLink(product.slug);
+    setShowToaster(true);
+    if (navigator.vibrate) navigator.vibrate(10);
+    setTimeout(() => setShowToaster(false), 2500);
+    if (!ok) {
+      // TODO: tampilkan error detail kalau mau
+    }
+  };
+
+  // Rating + daftar ulasan dinamis (per sku/slug)
+  const { items: productReviews } = useProductReviews(
+    { sku: product.sku, slug: product.slug },
+    1,
+    10
+  );
 
   if (isLoading) return <MobileDetailSkeleton />;
 
@@ -126,19 +142,21 @@ export default function MobileDetail({
                 {product.name} – {variant.name}
               </h1>
               <div className="flex items-center gap-3 text-xl text-gray-700">
-                <motion.button whileTap={{ scale: 0.9 }} className="p-1">
-                  <HeartIcon />
-                </motion.button>
-                <motion.button whileTap={{ scale: 0.9 }} className="p-1">
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  className="p-1 cursor-pointer"
+                  onClick={handleShare}
+                  aria-label="Salin link produk"
+                >
                   <ShareIcon />
                 </motion.button>
               </div>
             </div>
 
-            {/* rating & terjual (dummy) */}
+            {/* RATING & TERJUAL */}
             <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-              <span className="flex items-center">
-                <IoStar className="text-yellow-400 mr-1" /> 4.8 (4)
+              <span className="flex items-center gap-1">
+                <RatingBadge sku={product.sku} slug={product.slug} size="md" />
               </span>
               <span>•</span>
               <span>
@@ -147,7 +165,7 @@ export default function MobileDetail({
             </div>
           </div>
 
-          {/* Shipping Info — UI sama, datanya kini dari quotes */}
+          {/* Shipping Info */}
           {cheapest && (
             <motion.div
               className="mt-4"
@@ -230,12 +248,13 @@ export default function MobileDetail({
           </div>
         </div>
 
+        {/* Review per produk */}
         <MobileReviews
-          reviews={reviewsData} // array dummy dari @data/index
+          reviews={productReviews}
           seeAllHref={`/produk/${product.slug}#ulasan`}
         />
 
-        {/* Modal ongkir — tetap pakai komponen yang sama, tapi sekarang dinamis */}
+        {/* Modal ongkir */}
         <ShippingModal
           open={open}
           params={params ?? null}
@@ -263,6 +282,21 @@ export default function MobileDetail({
           max={maxStock}
         />
       </div>
+
+      {/* Toaster share */}
+      <AnimatePresence>
+        {showToaster && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 120, damping: 14 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-gray-800 text-white text-sm font-semibold py-2 px-4 rounded-full shadow-lg"
+          >
+            Link produk disalin
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

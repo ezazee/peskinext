@@ -17,7 +17,6 @@ export const productsData: Product[] = [
     sku: "CICA-B5-001",
     price: "Rp144.000",
     oldPrice: "Rp160.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=CICA-B5+Refreshing+Toner",
     imgHover:
       "https://placehold.co/600x600/0ea5e9/ffffff?text=CICA-B5+Refreshing+Toner",
@@ -51,7 +50,6 @@ export const productsData: Product[] = [
     sku: "VIT-C-002",
     price: "Rp144.000",
     oldPrice: "Rp160.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=Vit+C+Tone-Up+Daycream+SPF+50",
     imgHover:
       "https://placehold.co/600x600/0ea5e9/ffffff?text=Vit+C+Tone-Up+Daycream+SPF+50",
@@ -86,7 +84,6 @@ export const productsData: Product[] = [
     sku: "HONEY-003",
     price: "Rp144.000",
     oldPrice: "Rp160.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=Honey+Cleansing+Gel",
     imgHover:
       "https://placehold.co/600x600/0ea5e9/ffffff?text=Honey+Cleansing+Gel",
@@ -120,7 +117,6 @@ export const productsData: Product[] = [
     sku: "PE-PAD-004",
     price: "Rp144.000",
     oldPrice: "Rp160.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/1e3a8a/ffffff?text=Prebiotic+Pore-EX+Facial+Pad",
     imgHover:
       "https://placehold.co/600x600/3b82f6/ffffff?text=Prebiotic+Pore-EX+Facial+Pad",
@@ -154,7 +150,6 @@ export const productsData: Product[] = [
     sku: "HYDRO-005",
     price: "Rp144.000",
     oldPrice: "Rp160.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=Hydro+Restorative+Cream",
     imgHover:
       "https://placehold.co/600x600/0ea5e9/ffffff?text=Hydro+Restorative+Cream",
@@ -188,7 +183,6 @@ export const productsData: Product[] = [
     sku: "GLOW-006",
     price: "Rp144.000",
     oldPrice: "Rp160.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=Skin+Awakening+Glow+Serum",
     imgHover: "https://placehold.co/600x600/0ea5e9/ffffff?text=Glow+Serum",
     galleryImages: [
@@ -221,7 +215,6 @@ export const productsData: Product[] = [
     sku: "INTIMATE-007",
     price: "Rp144.000",
     oldPrice: "Rp160.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/f59e0b/ffffff?text=Intimate+Feminine+Mousse+Cleanser",
     imgHover:
       "https://placehold.co/600x600/fbbf24/111111?text=Intimate+Feminine+Mousse+Cleanser",
@@ -256,7 +249,6 @@ export const productsData: Product[] = [
     sku: "BASIC-GLOW-001",
     price: "Rp288.000",
     oldPrice: "Rp320.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=Cleanser+%2B+Toner",
     imgHover:
       "https://placehold.co/600x600/0ea5e9/ffffff?text=Honey+Cleansing+Gel+%2B+CICA-B5+Toner",
@@ -306,7 +298,6 @@ export const productsData: Product[] = [
     sku: "BRIGHT-GLOW-002",
     price: "Rp288.000",
     oldPrice: "Rp320.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=Serum+%2B+Daycream+SPF+50",
     imgHover:
       "https://placehold.co/600x600/0ea5e9/ffffff?text=Glow+Serum+%2B+Daycream",
@@ -352,7 +343,6 @@ export const productsData: Product[] = [
     sku: "HYDRATION-SHIELD-003",
     price: "Rp288.000",
     oldPrice: "Rp320.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=Hydro+Cream+%2B+CICA-B5+Toner",
     imgHover:
       "https://placehold.co/600x600/0ea5e9/ffffff?text=Hydration+Shield",
@@ -398,7 +388,6 @@ export const productsData: Product[] = [
     sku: "PORE-CARE-004",
     price: "Rp288.000",
     oldPrice: "Rp320.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/3b82f6/ffffff?text=Pore-EX+Pad+%2B+Cleanser",
     imgHover: "https://placehold.co/600x600/1e3a8a/ffffff?text=Pore+Care+Set",
     galleryImages: [
@@ -443,7 +432,6 @@ export const productsData: Product[] = [
     sku: "INTIMATE-CARE-005",
     price: "Rp288.000",
     oldPrice: "Rp320.000",
-    discount: "10%",
     img: "https://placehold.co/600x600/f59e0b/ffffff?text=Intimate+Mousse+%2B+Hydro+Cream",
     imgHover:
       "https://placehold.co/600x600/fbbf24/111111?text=Intimate+Care+Set",

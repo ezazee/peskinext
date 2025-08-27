@@ -15,7 +15,7 @@ export function ProductGallery({
   const { index, setIndex, next, prev } = useAutoCarousel(images.length, 4000);
 
   return (
-    <div className="sticky top-36 rounded-xl">
+    <div className="sticky top-40 rounded-xl">
       <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-white group">
         <div
           className="flex h-full transition-transform duration-500 ease-out"

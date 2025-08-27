@@ -8,6 +8,7 @@ import { productsData } from "@data/products";
 import type { EventPromoProps } from "@shared/types/types";
 import { ProductCard } from "../layout/header/mobile/product/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
+import { copyText } from "@shared/libs/clipboard"; // ⬅️ gunakan util copy bersama
 
 const promoProducts = productsData.filter((product) => product.isEvent);
 
@@ -28,23 +29,17 @@ export const EventPromo: React.FC<EventPromoProps> = ({
     });
   };
 
-  const handleCopyCode = () => {
-    const text = voucherCode;
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        setShowToaster(true);
-        setTimeout(() => setShowToaster(false), 3000);
-      })
-      .catch((err) => {
-        console.error("Gagal menyalin kode: ", err);
-      });
+  const handleCopyCode = async () => {
+    const ok = await copyText(voucherCode); // ⬅️ pakai util
+    if (ok) {
+      setShowToaster(true);
+      setTimeout(() => setShowToaster(false), 3000);
+    } else {
+      console.error("Gagal menyalin kode voucher");
+    }
   };
 
-  // Jangan render komponen ini jika tidak ada produk event
-  if (promoProducts.length === 0) {
-    return null;
-  }
+  if (promoProducts.length === 0) return null;
 
   return (
     <>

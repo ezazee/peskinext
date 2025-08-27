@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import type { DesktopDetailProps, Variant } from "@shared/types/types";
-import { IoStar } from "react-icons/io5";
 import { formatRupiah } from "@shared/libs/format";
 import ProductTabs from "@shared/components/layout/header/mobile/product/productTabs";
 import { productsData } from "@data/products";
@@ -17,6 +16,7 @@ import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
 import { DesktopDetailSkeleton } from "./skeleton/DesktopDetailSkeleton";
 import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
 import ProductReview from "../review/productReview";
+import { RatingBadge } from "@features/product/review/RatingBadge";
 
 export default function DesktopDetail({
   product,
@@ -28,12 +28,13 @@ export default function DesktopDetail({
     string | undefined
   >(undefined);
 
-  const estimateQty = 1; // kalau mau ikut qty BuyBox, angkat state qty ke sini
+  const estimateQty = 1;
   const { params, origin } = useShippingParamsForProduct(
     product,
     variant,
     estimateQty
   );
+
 
   // prefetch quotes supaya ShippingInfo bisa dapat "cheapest"
   const { data: quotes } = useShippingQuotes(Boolean(params), params ?? null);
@@ -78,8 +79,8 @@ export default function DesktopDetail({
           </h1>
 
           <div className="mt-3 flex items-center gap-3 text-sm text-gray-500">
-            <span className="flex items-center">
-              <IoStar className="text-yellow-400 mr-1" /> 4.8 (4 rating)
+            <span className="flex items-center gap-1">
+              <RatingBadge sku={product.sku} slug={product.slug} size="sm" />
             </span>
             <span>•</span>
             <span>
@@ -123,7 +124,7 @@ export default function DesktopDetail({
             />
           </div>
 
-          {/* UI ShippingInfo — TETAP, hanya datanya yang kini dinamis */}
+          {/* Shipping Info */}
           <ShippingInfo
             origin={origin}
             cheapest={cheapest}
@@ -131,7 +132,7 @@ export default function DesktopDetail({
           />
         </section>
 
-        {/* Modal ongkir: wrapper akan fetch & tampilkan skeleton sendiri */}
+        {/* Modal ongkir */}
         <ShippingModal
           open={open}
           params={params ?? null}
@@ -157,7 +158,7 @@ export default function DesktopDetail({
 
         {/* Review */}
         <section className="col-start-1 col-span-9 row-start-2">
-          <ProductReview />
+          <ProductReview sku={product.sku} slug={product.slug} pageSize={5} />
         </section>
       </div>
 
