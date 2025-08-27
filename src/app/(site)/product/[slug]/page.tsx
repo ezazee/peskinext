@@ -12,6 +12,9 @@ import {
   buildBreadcrumbJsonLd,
   buildProductJsonLd,
 } from "@shared/libs/seo/jsonld";
+// ⬇️ pakai helper (opsional). Kalau tak pakai, ganti WithParams<RouteParams> menjadi { params: Promise<RouteParams> }
+import type { WithParams } from "@shared/types/next";
+
 type RouteParams = { slug: string };
 export const revalidate = 60;
 
@@ -20,12 +23,10 @@ function getProductBySlug(slug: string): Product | null {
 }
 
 /* ===== Metadata ===== */
-export async function generateMetadata({
-  params,
-}: {
-  params: RouteParams;
-}): Promise<Metadata> {
-  const { slug } = params;
+export async function generateMetadata(
+  { params }: WithParams<RouteParams> // <- params sebagai Promise
+): Promise<Metadata> {
+  const { slug } = await params; // <- di-await
   const p = getProductBySlug(slug);
 
   const name = p?.name ?? titleFromSlug(slug);
@@ -65,8 +66,10 @@ export async function generateStaticParams() {
 }
 
 /* ===== Page ===== */
-export default async function ProductPage({ params }: { params: RouteParams }) {
-  const { slug } = params;
+export default async function ProductPage(
+  { params }: WithParams<RouteParams> // <- params sebagai Promise
+) {
+  const { slug } = await params; // <- di-await
   const p = getProductBySlug(slug);
   const name = p?.name ?? titleFromSlug(slug);
 
