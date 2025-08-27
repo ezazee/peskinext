@@ -3,9 +3,10 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { BellIcon, CartIcon, LocationIcon, SearchIcon } from "@shared/components/icons";
-import { AuthModal } from "../../../../../features/auth/components/AuthModal";
-import { AddressModal } from "../../../ui/AddressModal";
+
 import SearchOverlay from "../SearchOverlay"; // <— tambahkan ini
+import { AuthModal } from "@features/auth/components/AuthModal";
+import { AddressModal } from "@shared/components/ui/AddressModal";
 
 const AuthAction = ({
   isLoggedIn,
@@ -32,7 +33,7 @@ const AuthAction = ({
 
 export const MobileHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
@@ -94,7 +95,7 @@ export const MobileHeader = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsAddressModalOpen(true)}
-                className="flex items-center gap-2 bg-tertiary px-3 py-1.5 rounded-full text-sm font-semibold text-base-text"
+                className="flex cursor-pointer items-center gap-2 bg-tertiary px-3 py-1.5 rounded-full text-sm font-semibold text-base-text"
               >
                 <LocationIcon className="h-4 w-4 text-green-500" />
                 <span>Rumah Garut Reza</span>

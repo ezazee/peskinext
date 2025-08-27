@@ -25,7 +25,7 @@ export const DesktopHeader = () => {
 
   // --- Simulasi Status Login ---
   // Ubah menjadi `false` untuk melihat tampilan saat belum login
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalView, setAuthModalView] = useState<"login" | "register">(

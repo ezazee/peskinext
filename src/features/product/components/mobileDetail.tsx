@@ -5,7 +5,12 @@ import { useMemo, useState } from "react";
 import type { MobileDetailProps, Product, Variant } from "@shared/types/types";
 import { IoStar } from "react-icons/io5";
 import { formatRupiah } from "@shared/libs/format";
-import { BusIcon, ChevronRightIcon, HeartIcon, ShareIcon } from "@shared/components/icons";
+import {
+  BusIcon,
+  ChevronRightIcon,
+  HeartIcon,
+  ShareIcon,
+} from "@shared/components/icons";
 import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
 import MobileReviews from "../review/MobileReviews";
 import { reviewsData } from "@data/review";
@@ -29,17 +34,23 @@ import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
 import type { ShippingDetailData } from "@shared/types/types";
 
 /** adaptor tipe agar tidak pakai `any` */
-type ProductForShipping = Product & Partial<{ originCode: string; origin: string; weight: number }>;
+type ProductForShipping = Product &
+  Partial<{ originCode: string; origin: string; weight: number }>;
 type VariantForShipping = Variant & Partial<{ weight: number }>;
 
-export default function MobileDetail({ product, isLoading }: MobileDetailProps) {
+export default function MobileDetail({
+  product,
+  isLoading,
+}: MobileDetailProps) {
   const [open, setOpen] = useState(false);
 
   // state
   const [variant, setVariant] = useState<Variant>(product.variants[0]);
   const [qty, setQty] = useState(1);
 
-  const images = product.galleryImages?.length ? product.galleryImages : [product.img];
+  const images = product.galleryImages?.length
+    ? product.galleryImages
+    : [product.img];
 
   const priceNum = variant.price;
   const oldPriceNum = variant.oldPrice ?? null;
@@ -78,7 +89,11 @@ export default function MobileDetail({ product, isLoading }: MobileDetailProps) 
     <>
       <div className="md:hidden">
         {/* GALLERY */}
-        <MobileGallery name={product.name} images={images} discountPercent={disc} />
+        <MobileGallery
+          name={product.name}
+          images={images}
+          discountPercent={disc}
+        />
 
         {/* KONTEN */}
         <div className="p-4 bg-white rounded-t-2xl -mt-4 relative z-10 shadow-sm">
@@ -97,7 +112,9 @@ export default function MobileDetail({ product, isLoading }: MobileDetailProps) 
                 <div className="text-sm text-gray-400 line-through">
                   {formatRupiah(oldPriceNum!)}
                 </div>
-                <div className="text-sm text-red-600 font-semibold">{disc}%</div>
+                <div className="text-sm text-red-600 font-semibold">
+                  {disc}%
+                </div>
               </>
             )}
           </div>
@@ -165,7 +182,11 @@ export default function MobileDetail({ product, isLoading }: MobileDetailProps) 
           <p className="text-sm text-gray-600 mb-3">
             Pilih variasi: <span className="font-bold">{variant.name}</span>
           </p>
-          <VariantChips variants={product.variants} activeId={variant.id} onSelect={setVariant} />
+          <VariantChips
+            variants={product.variants}
+            activeId={variant.id}
+            onSelect={setVariant}
+          />
 
           {/* DETAIL & KONTEN PRODUK */}
           <div className="mt-6 space-y-4">
@@ -174,11 +195,15 @@ export default function MobileDetail({ product, isLoading }: MobileDetailProps) 
               <Divider />
               <DetailRow label="Kategori">{product.category || "-"}</DetailRow>
               <Divider />
-              <DetailRow label="Tipe">{product.type?.toUpperCase?.() || "-"}</DetailRow>
+              <DetailRow label="Tipe">
+                {product.type?.toUpperCase?.() || "-"}
+              </DetailRow>
               <Divider />
               <DetailRow label="Varian">{variant?.name || "-"}</DetailRow>
               <Divider />
-              <DetailRow label="Harga (base)">{formatRupiah(Number(product.price) || 0)}</DetailRow>
+              <DetailRow label="Harga (base)">
+                {formatRupiah(Number(product.price) || 0)}
+              </DetailRow>
             </Card>
 
             <ProductDescriptionCard text={product.description ?? ""} />
@@ -206,9 +231,9 @@ export default function MobileDetail({ product, isLoading }: MobileDetailProps) 
         </div>
 
         <MobileReviews
-  reviews={reviewsData} // array dummy dari @data/index
-  seeAllHref={`/produk/${product.slug}#ulasan`}
-/>
+          reviews={reviewsData} // array dummy dari @data/index
+          seeAllHref={`/produk/${product.slug}#ulasan`}
+        />
 
         {/* Modal ongkir — tetap pakai komponen yang sama, tapi sekarang dinamis */}
         <ShippingModal
@@ -231,7 +256,9 @@ export default function MobileDetail({ product, isLoading }: MobileDetailProps) 
           subtotal={subtotal}
           qty={qty}
           onQtyChange={(n) => setQty(Math.min(Math.max(1, n), maxStock))}
-          onAddToCart={() => console.log("Add to cart", product.slug, variant.id, qty)}
+          onAddToCart={() =>
+            console.log("Add to cart", product.slug, variant.id, qty)
+          }
           onBuyNow={() => console.log("Buy now", product.slug, variant.id, qty)}
           max={maxStock}
         />

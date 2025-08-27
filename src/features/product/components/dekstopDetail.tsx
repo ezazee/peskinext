@@ -12,30 +12,44 @@ import { VariantSelector } from "@features/product/components/desktop/VariantSel
 import { ShippingInfo } from "@features/product/components/desktop/ShippingInfo";
 import { BuyBox } from "@features/product/components/desktop/BuyBox";
 import { discountPercent } from "@shared/helpers/price";
-import type { ShippingDetailData } from "@shared/types/types";
 import { useShippingParamsForProduct } from "@features/shiping/hooks/useShippingParamsForProduct";
 import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
 import { DesktopDetailSkeleton } from "./skeleton/DesktopDetailSkeleton";
 import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
 import ProductReview from "../review/productReview";
 
-export default function DesktopDetail({ product, isLoading }: DesktopDetailProps) {
+export default function DesktopDetail({
+  product,
+  isLoading,
+}: DesktopDetailProps) {
   const [open, setOpen] = useState(false);
   const [variant, setVariant] = useState<Variant>(product.variants[0]);
-  const [selectedShippingId, setSelectedShippingId] = useState<string | undefined>(undefined);
+  const [selectedShippingId, setSelectedShippingId] = useState<
+    string | undefined
+  >(undefined);
 
   const estimateQty = 1; // kalau mau ikut qty BuyBox, angkat state qty ke sini
-  const { params, origin } = useShippingParamsForProduct(product, variant, estimateQty);
+  const { params, origin } = useShippingParamsForProduct(
+    product,
+    variant,
+    estimateQty
+  );
 
   // prefetch quotes supaya ShippingInfo bisa dapat "cheapest"
   const { data: quotes } = useShippingQuotes(Boolean(params), params ?? null);
 
   const cheapest = useMemo(() => {
     if (!quotes) return null;
-    let min = Infinity, eta = "", group = "";
+    let min = Infinity,
+      eta = "",
+      group = "";
     quotes.groups.forEach((g) => {
       g.items.forEach((it) => {
-        if (it.price < min) { min = it.price; eta = it.eta; group = g.label; }
+        if (it.price < min) {
+          min = it.price;
+          eta = it.eta;
+          group = g.label;
+        }
       });
     });
     return isFinite(min) ? { price: min, eta, group } : null;
@@ -58,7 +72,7 @@ export default function DesktopDetail({ product, isLoading }: DesktopDetailProps
         </section>
 
         {/* Info */}
-        <section className="col-span-5 row-start-1">
+        <section className="col-span-5 row-start-1 pt-5">
           <h1 className="text-2xl font-semibold leading-snug">
             {product.name} – {variant.name}
           </h1>
@@ -68,7 +82,9 @@ export default function DesktopDetail({ product, isLoading }: DesktopDetailProps
               <IoStar className="text-yellow-400 mr-1" /> 4.8 (4 rating)
             </span>
             <span>•</span>
-            <span>Terjual <strong>1.150</strong></span>
+            <span>
+              Terjual <strong>1.150</strong>
+            </span>
           </div>
 
           <div className="mt-4 flex items-end gap-3">
@@ -117,22 +133,25 @@ export default function DesktopDetail({ product, isLoading }: DesktopDetailProps
 
         {/* Modal ongkir: wrapper akan fetch & tampilkan skeleton sendiri */}
         <ShippingModal
-  open={open}
-  params={params ?? null}
-  initialData={quotes ?? undefined}
-  selectedId={selectedShippingId}
-  onSelect={(opt) => setSelectedShippingId(opt.id)}
-  onClose={() => setOpen(false)}
-/>
-
+          open={open}
+          params={params ?? null}
+          initialData={quotes ?? undefined}
+          selectedId={selectedShippingId}
+          onSelect={(opt) => setSelectedShippingId(opt.id)}
+          onClose={() => setOpen(false)}
+        />
 
         {/* Buy Box */}
         <aside className="col-start-10 col-span-3 row-span-2">
           <BuyBox
             product={product}
             variant={variant}
-            onAdd={(qty) => console.log("Add to cart", product.slug, variant.id, qty)}
-            onBuy={(qty) => console.log("Buy now", product.slug, variant.id, qty)}
+            onAdd={(qty) =>
+              console.log("Add to cart", product.slug, variant.id, qty)
+            }
+            onBuy={(qty) =>
+              console.log("Buy now", product.slug, variant.id, qty)
+            }
           />
         </aside>
 

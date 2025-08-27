@@ -3,7 +3,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useRef, useState, useEffect, useRef as useRefReact } from "react";
+import {
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+  useRef as useRefReact,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoStar } from "react-icons/io5";
 import type { Review } from "@data/index";
@@ -72,6 +78,7 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
       alive = false;
     };
     // ⚠️ Penting: JANGAN masukkan `modalReviews` ke dependency, agar tidak re-fetch loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openModal, safe]);
 
   const top3 = useMemo(() => safe.slice(0, 3), [safe]);
@@ -225,29 +232,48 @@ function Stars({ value, size = "md" }: { value: number; size?: "sm" | "md" }) {
   );
 }
 
-function ExpandableText({ text }: { text: string }) {
+function ExpandableText({
+  text,
+  wordLimit = 40,
+}: {
+  text: string;
+  wordLimit?: number;
+}) {
   const [open, setOpen] = useState(false);
-  const content = text?.trim() ? text : "-";
+
+  const content = (text ?? "").trim() || "-";
+  const words = content.split(/\s+/);
+  const isTruncated = words.length > wordLimit;
+  const shortText = isTruncated
+    ? words.slice(0, wordLimit).join(" ") + "…"
+    : content;
+
   return (
     <div className="mt-2 text-sm leading-relaxed text-gray-800">
+      {/* jika tidak melewati batas, tampilkan apa adanya */}
+      {/* jika melewati batas dan belum dibuka, tampilkan yang dipotong */}
       <AnimatePresence initial={false}>
         <motion.div
           key={open ? "open" : "closed"}
-          initial={{ height: 64, overflow: "hidden" }}
-          animate={{ height: open ? "auto" : 64 }}
-          exit={{ height: 64 }}
-          transition={{ duration: 0.25 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
         >
-          {content}
+          {open || !isTruncated ? content : shortText}
         </motion.div>
       </AnimatePresence>
-      <button
-        type="button"
-        onClick={() => setOpen((s) => !s)}
-        className="mt-1 text-sm font-semibold text-primary"
-      >
-        {open ? "Tutup" : "Selengkapnya"}
-      </button>
+
+      {/* tombol hanya muncul jika memang terpotong */}
+      {isTruncated && (
+        <button
+          type="button"
+          onClick={() => setOpen((s) => !s)}
+          className="mt-1 text-sm font-semibold text-primary"
+        >
+          {open ? "Tutup" : "Selengkapnya"}
+        </button>
+      )}
     </div>
   );
 }
