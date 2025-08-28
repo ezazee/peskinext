@@ -1,7 +1,7 @@
 // shared/lazy/index.ts
 import type { PromoShowcaseProps, Product } from "@shared/types/types";
-import { lazyOnView, lazyOnViewNamed } from "./LazyOnView";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
+import { lazyOnView, lazyOnViewNamed } from "./lazyOnView";
 
 /* ===== Skeleton kecil per section ===== */
 const BannerSkeleton = <Skeleton.Block height={140} radius={12} />;
