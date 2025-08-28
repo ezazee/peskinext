@@ -270,7 +270,7 @@ const ProductReview: React.FC<ProductReviewProps> = ({
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={loadingList || page === 1}
-              className={`px-3 py-1.5 rounded border cursor-pointer ${
+              className={`px-3 py-1.5 rounded cursor-pointer ${
                 loadingList || page === 1
                   ? "text-subtle-text bg-gray-100 cursor-not-allowed"
                   : "bg-white hover:bg-gray-50"
@@ -285,7 +285,7 @@ const ProductReview: React.FC<ProductReviewProps> = ({
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={loadingList || page === totalPages}
-              className={`px-3 py-1.5 rounded border cursor-pointer ${
+              className={`px-3 py-1.5 rounded cursor-pointer ${
                 loadingList || page === totalPages
                   ? "text-subtle-text bg-gray-100 cursor-not-allowed"
                   : "bg-white hover:bg-gray-50"
