@@ -124,16 +124,38 @@ export const ChevronRightIcon = ({
 }: {
   className?: string;
 }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-    </svg>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={3}
+    stroke="currentColor"
+    className={className}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M8.25 4.5l7.5 7.5-7.5 7.5"
+    />
+  </svg>
 );
 
 // 2. Tambahkan ikon panah kiri
 export const ChevronLeftIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-    </svg>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={3}
+    stroke="currentColor"
+    className="w-6 h-6"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.75 19.5L8.25 12l7.5-7.5"
+    />
+  </svg>
 );
 
 export const LocationIcon = ({
@@ -361,11 +383,10 @@ export const ClockIcon = () => (
 );
 
 export const FlashIcon = () => (
-    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M11.983 0a1.003 1.003 0 00-.843.453l-6.94 9.55a1 1 0 00.843 1.547H10V18a1 1 0 001.53.848l6.94-9.55A1 1 0 0017.627 8H12V2a1 1 0 00-.017-2z" />
-    </svg>
+  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M11.983 0a1.003 1.003 0 00-.843.453l-6.94 9.55a1 1 0 00.843 1.547H10V18a1 1 0 001.53.848l6.94-9.55A1 1 0 0017.627 8H12V2a1 1 0 00-.017-2z" />
+  </svg>
 );
-
 
 export const HeartIcon = () => (
   <svg
@@ -383,9 +404,7 @@ export const HeartIcon = () => (
     />
   </svg>
 );
-export const ShareIcon = ({}: {
-  className?: string;
-}) =>(
+export const ShareIcon = ({}: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
@@ -404,11 +423,7 @@ export const ShareIcon = ({}: {
 );
 
 // --- Icon truk/bis ---
-export const BusIcon = ({
-  className = "h-4 w-4",
-}: {
-  className?: string;
-}) => (
+export const BusIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
@@ -422,5 +437,23 @@ export const BusIcon = ({
       strokeLinejoin="round"
       d="M6.75 16.5h10.5m-10.5 0A2.25 2.25 0 014.5 14.25v-9A2.25 2.25 0 016.75 3h10.5A2.25 2.25 0 0119.5 5.25v9a2.25 2.25 0 01-2.25 2.25m-10.5 0v1.5A2.25 2.25 0 008.25 20.25h7.5A2.25 2.25 0 0018 18v-1.5"
     />
+  </svg>
+);
+
+
+
+export const IconTrash =  ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" className={className}>
+    <path d="M3 6h18v2H3V6zm2 3h14l-1 12H6L5 9zm4-5h6v2H9V4z" />
+  </svg>
+);
+export const IconMinus = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" className={className}>
+    <rect x="5" y="11" width="14" height="2" rx="1" />
+  </svg>
+);
+export const IconPlus = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" className={className}>
+    <path d="M11 5h2v14h-2zM5 11h14v2H5z" />
   </svg>
 );

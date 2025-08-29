@@ -164,18 +164,25 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
 
                     <ExpandableText text={r.comment} />
 
-                    {r.image && (
-                      <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar">
-                        <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0">
-                          <Image
-                            src={r.image}
-                            alt="foto ulasan"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      </div>
-                    )}
+                   {r.images && r.images.length > 0 && (
+  <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar">
+    {r.images.map((img, i) => (
+      <div
+        key={`${r.id}-${i}`}
+        className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0"
+      >
+        <Image
+          src={img}
+          alt={`Foto ulasan ${i + 1}`}
+          fill
+          className="object-cover"
+          sizes="96px" // optimasi untuk mobile thumbnail
+        />
+      </div>
+    ))}
+  </div>
+)}
+
                   </div>
                 </motion.article>
               ))}

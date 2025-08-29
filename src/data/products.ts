@@ -1,13 +1,479 @@
 import type { Product } from "../shared/types/types";
 
 export const productsData: Product[] = [
+  // --- 7 Produk Satuan ---
+  {
+    name: "CICA-B5 Refreshing Toner",
+    slug: "cica-b5-refreshing-toner",
+    description:
+      "CICA Refreshing Toner adalah produk perawatan kulit yang dirancang untuk memberikan sensasi segar dan menenangkan pada kulit Anda. Dengan kandungan bahan-bahan alami dan aktif yang dipilih secara teliti, toner ini membantu menghidrasi, menyejukkan, dan memperbaiki kondisi kulit Anda",
+    ingredients: ["Centella Asiatica", "Hyaluronic Acid", "Vitamin B5"],
+    howToUse: [
+      "Tuangkan toner ke kapas",
+      "Usapkan lembut ke wajah",
+      "Gunakan pagi dan malam",
+    ],
+    category: "Skincare",
+    sku: "CICA-B5-001",
+    price: "Rp144.000",
+    oldPrice: "Rp160.000",
+    img: "https://placehold.co/600x600/38bdf8/ffffff?text=CICA-B5+Refreshing+Toner",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=CICA-B5+Refreshing+Toner",
+    galleryImages: [
+      "https://placehold.co/600x600/38bdf8/ffffff?text=CICA-B5+Refreshing+Toner+DETAIL",
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=CICA-B5+Refreshing+Toner+DETAIL",
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Toner+DETAIL",
+    ],
+    isFlashSale: true,
+    type: "single",
+    isEvent: false,
+    variants: [
+      { id: 1, name: "50ml", price: 144000, oldPrice: 160000, stock: 120 },
+      { id: 2, name: "100ml", price: 270000, oldPrice: 300000, stock: 90 },
+      { id: 3, name: "150ml", price: 390000, oldPrice: 430000, stock: 60 },
+      { id: 4, name: "200ml", price: 500000, oldPrice: 550000, stock: 40 },
+    ],
+  },
+  {
+    name: "Vit C Tone-Up Daycream SPF 50",
+    slug: "vit-c-tone-up-daycream-spf-50",
+    description:
+      "Daycream dengan SPF 50 yang mencerahkan dan melindungi kulit dari sinar UV.",
+    ingredients: ["Vitamin C", "Niacinamide", "SPF 50"],
+    howToUse: [
+      "Oleskan secukupnya ke wajah",
+      "Gunakan setiap pagi",
+      "Hindari kontak dengan mata",
+    ],
+    category: "Skincare",
+    sku: "VIT-C-002",
+    price: "Rp144.000",
+    oldPrice: "Rp160.000",
+    img: "https://placehold.co/600x600/38bdf8/ffffff?text=Vit+C+Tone-Up+Daycream+SPF+50",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Vit+C+Tone-Up+Daycream+SPF+50",
+    galleryImages: [
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Vit+C+Tone-Up+Daycream+SPF+50",
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Daycream+SPF+50",
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Vitamin+C+Daycream",
+    ],
+    isFlashSale: false,
+    type: "single",
+    isEvent: false,
+    variants: [
+      { id: 5, name: "20g", price: 144000, oldPrice: 160000, stock: 100 },
+      { id: 6, name: "40g", price: 270000, oldPrice: 300000, stock: 80 },
+      { id: 7, name: "60g", price: 390000, oldPrice: 430000, stock: 50 },
+      { id: 8, name: "80g", price: 500000, oldPrice: 550000, stock: 30 },
+    ],
+  },
+  {
+    name: "Honey Cleansing Gel",
+    slug: "honey-cleansing-gel",
+    description:
+      "Gel pembersih wajah dengan ekstrak madu yang membersihkan tanpa mengeringkan kulit.",
+    ingredients: ["Honey Extract", "Aloe Vera", "Gentle Surfactants"],
+    howToUse: [
+      "Basahi wajah",
+      "Tuangkan gel ke telapak tangan",
+      "Pijat lembut ke wajah",
+      "Bilas dengan air",
+    ],
+    category: "Skincare",
+    sku: "HONEY-003",
+    price: "Rp144.000",
+    oldPrice: "Rp160.000",
+    img: "https://placehold.co/600x600/38bdf8/ffffff?text=Honey+Cleansing+Gel",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Honey+Cleansing+Gel",
+    galleryImages: [
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Honey+Cleansing+Gel",
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Cleansing+Gel",
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Honey+Cleanser",
+    ],
+    isFlashSale: false,
+    type: "single",
+    isEvent: false,
+    variants: [
+      { id: 9, name: "50ml", price: 144000, oldPrice: 160000, stock: 150 },
+      { id: 10, name: "100ml", price: 270000, oldPrice: 300000, stock: 100 },
+      { id: 11, name: "150ml", price: 390000, oldPrice: 430000, stock: 70 },
+      { id: 12, name: "200ml", price: 500000, oldPrice: 550000, stock: 40 },
+    ],
+  },
+  {
+    name: "PE Prebiotic Pore-EX Facial Pad",
+    slug: "pe-prebiotic-pore-ex-facial-pad",
+    description:
+      "Pad eksfoliasi dengan prebiotik untuk membersihkan pori-pori dan mengangkat sel kulit mati.",
+    ingredients: ["Prebiotic Complex", "Salicylic Acid", "Willow Bark Extract"],
+    howToUse: [
+      "Gunakan pad pada wajah yang bersih",
+      "Pijat lembut ke area berminyak",
+      "Buang pad setelah digunakan",
+    ],
+    category: "Skincare",
+    sku: "PE-PAD-004",
+    price: "Rp144.000",
+    oldPrice: "Rp160.000",
+    img: "https://placehold.co/600x600/1e3a8a/ffffff?text=Prebiotic+Pore-EX+Facial+Pad",
+    imgHover:
+      "https://placehold.co/600x600/3b82f6/ffffff?text=Prebiotic+Pore-EX+Facial+Pad",
+    galleryImages: [
+      "https://placehold.co/600x600/1e3a8a/ffffff?text=Prebiotic+Pore-EX+Facial+Pad",
+      "https://placehold.co/600x600/3b82f6/ffffff?text=Pore-EX+Pad",
+      "https://placehold.co/600x600/1e3a8a/ffffff?text=Exfoliating+Pad",
+    ],
+    isFlashSale: false,
+    type: "single",
+    isEvent: false,
+    variants: [
+      { id: 13, name: "30 pads", price: 144000, oldPrice: 160000, stock: 110 },
+      { id: 14, name: "60 pads", price: 270000, oldPrice: 300000, stock: 90 },
+      { id: 15, name: "90 pads", price: 390000, oldPrice: 430000, stock: 60 },
+      { id: 16, name: "120 pads", price: 500000, oldPrice: 550000, stock: 40 },
+    ],
+  },
+  {
+    name: "Hydro Restorative Cream",
+    slug: "hydro-restorative-cream",
+    description:
+      "Krim pelembap yang menghidrasi dan menenangkan kulit dengan ekstrak alami.",
+    ingredients: ["Hyaluronic Acid", "Shea Butter", "Chamomile Extract"],
+    howToUse: [
+      "Oleskan secukupnya ke wajah",
+      "Gunakan pagi dan malam",
+      "Hindari area mata",
+    ],
+    category: "Skincare",
+    sku: "HYDRO-005",
+    price: "Rp144.000",
+    oldPrice: "Rp160.000",
+    img: "https://placehold.co/600x600/38bdf8/ffffff?text=Hydro+Restorative+Cream",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Hydro+Restorative+Cream",
+    galleryImages: [
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Hydro+Restorative+Cream",
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Hydro+Cream",
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Restorative+Cream",
+    ],
+    isFlashSale: false,
+    type: "single",
+    isEvent: false,
+    variants: [
+      { id: 17, name: "30g", price: 144000, oldPrice: 160000, stock: 120 },
+      { id: 18, name: "60g", price: 270000, oldPrice: 300000, stock: 90 },
+      { id: 19, name: "90g", price: 390000, oldPrice: 430000, stock: 60 },
+      { id: 20, name: "120g", price: 500000, oldPrice: 550000, stock: 40 },
+    ],
+  },
+  {
+    name: "Skin Awakening Glow Serum",
+    slug: "skin-awakening-glow-serum",
+    description:
+      "Serum pencerah yang memberikan kilau alami pada kulit dengan bahan aktif.",
+    ingredients: ["Niacinamide", "Vitamin C", "Hyaluronic Acid"],
+    howToUse: [
+      "Oleskan beberapa tetes ke wajah",
+      "Pijat lembut hingga meresap",
+      "Gunakan pagi dan malam",
+    ],
+    category: "Skincare",
+    sku: "GLOW-006",
+    price: "Rp144.000",
+    oldPrice: "Rp160.000",
+    img: "https://placehold.co/600x600/38bdf8/ffffff?text=Skin+Awakening+Glow+Serum",
+    imgHover: "https://placehold.co/600x600/0ea5e9/ffffff?text=Glow+Serum",
+    galleryImages: [
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Skin+Awakening+Glow+Serum",
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Glow+Serum",
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Awakening+Serum",
+    ],
+    isFlashSale: false,
+    type: "single",
+    isEvent: false,
+    variants: [
+      { id: 21, name: "15ml", price: 144000, oldPrice: 160000, stock: 150 },
+      { id: 22, name: "30ml", price: 270000, oldPrice: 300000, stock: 100 },
+      { id: 23, name: "50ml", price: 390000, oldPrice: 430000, stock: 70 },
+      { id: 24, name: "75ml", price: 500000, oldPrice: 550000, stock: 40 },
+    ],
+  },
+  {
+    name: "Intimate Feminine Mousse Cleanser",
+    slug: "intimate-feminine-mousse-cleanser",
+    description:
+      "Pembersih intim berbentuk mousse yang lembut dan menyejukkan.",
+    ingredients: ["Chamomile Extract", "Aloe Vera", "Gentle Surfactants"],
+    howToUse: [
+      "Kocok mousse secukupnya",
+      "Oleskan lembut ke area intim",
+      "Bilas dengan air",
+    ],
+    category: "Intimate Care",
+    sku: "INTIMATE-007",
+    price: "Rp144.000",
+    oldPrice: "Rp160.000",
+    img: "https://placehold.co/600x600/f59e0b/ffffff?text=Intimate+Feminine+Mousse+Cleanser",
+    imgHover:
+      "https://placehold.co/600x600/fbbf24/111111?text=Intimate+Feminine+Mousse+Cleanser",
+    galleryImages: [
+      "https://placehold.co/600x600/f59e0b/ffffff?text=Intimate+Feminine+Mousse+Cleanser",
+      "https://placehold.co/600x600/fbbf24/111111?text=Intimate+Cleanser",
+      "https://placehold.co/600x600/f59e0b/ffffff?text=Mousse+Cleanser",
+    ],
+    isFlashSale: false,
+    type: "single",
+    isEvent: false,
+    variants: [
+      { id: 25, name: "50ml", price: 144000, oldPrice: 160000, stock: 130 },
+      { id: 26, name: "100ml", price: 270000, oldPrice: 300000, stock: 90 },
+      { id: 27, name: "150ml", price: 390000, oldPrice: 430000, stock: 60 },
+      { id: 28, name: "200ml", price: 500000, oldPrice: 550000, stock: 40 },
+    ],
+  },
+
+  // --- 5 Produk Bundle ---
+  {
+    name: "Paket Basic Glow (Honey Cleansing Gel + CICA-B5 Toner)",
+    slug: "paket-basic-glow-honey-cleanser-toner",
+    description:
+      "Set dasar perawatan kulit dengan pembersih madu dan toner CICA-B5.",
+    ingredients: ["Honey Extract", "Centella Asiatica", "Hyaluronic Acid"],
+    howToUse: [
+      "Gunakan pembersih untuk membersihkan wajah",
+      "Lanjutkan dengan toner untuk menenangkan kulit",
+    ],
+    category: "Skincare",
+    sku: "BASIC-GLOW-001",
+    price: "Rp288.000",
+    oldPrice: "Rp320.000",
+    img: "https://placehold.co/600x600/38bdf8/ffffff?text=Cleanser+%2B+Toner",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Honey+Cleansing+Gel+%2B+CICA-B5+Toner",
+    galleryImages: [
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Cleanser+%2B+Toner",
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Honey+%2B+Toner",
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Basic+Glow+Set",
+    ],
+    isFlashSale: true,
+    type: "bundle",
+    isEvent: true,
+    variants: [
+      {
+        id: 29,
+        name: "Small Set",
+        price: 288000,
+        oldPrice: 320000,
+        stock: 100,
+      },
+      {
+        id: 30,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 80,
+      },
+      { id: 31, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
+      {
+        id: 32,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 30,
+      },
+    ],
+  },
+  {
+    name: "Paket Bright Glow (Glow Serum + Vit C Daycream SPF 50)",
+    slug: "paket-bright-glow-serum-daycream",
+    description: "Set pencerah kulit dengan serum glow dan daycream SPF 50.",
+    ingredients: ["Niacinamide", "Vitamin C", "SPF 50"],
+    howToUse: [
+      "Oleskan serum ke wajah",
+      "Gunakan daycream setiap pagi untuk perlindungan UV",
+    ],
+    category: "Skincare",
+    sku: "BRIGHT-GLOW-002",
+    price: "Rp288.000",
+    oldPrice: "Rp320.000",
+    img: "https://placehold.co/600x600/38bdf8/ffffff?text=Serum+%2B+Daycream+SPF+50",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Glow+Serum+%2B+Daycream",
+    galleryImages: [
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Serum+%2B+Daycream+SPF+50",
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Bright+Glow+Set",
+      "https://placehold.co/600x600/38bdf8/ffffff?text=VitC+%2B+Serum",
+    ],
+    isFlashSale: false,
+    type: "bundle",
+    isEvent: true,
+    variants: [
+      { id: 33, name: "Small Set", price: 288000, oldPrice: 320000, stock: 90 },
+      {
+        id: 34,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 70,
+      },
+      { id: 35, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
+      {
+        id: 36,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 30,
+      },
+    ],
+  },
+  {
+    name: "Paket Hydration Shield (Hydro Cream + CICA-B5 Toner)",
+    slug: "paket-hydration-shield-cream-toner",
+    description:
+      "Set hidrasi dengan krim pelembap dan toner CICA-B5 untuk kulit lembap dan tenang.",
+    ingredients: ["Hyaluronic Acid", "Centella Asiatica", "Shea Butter"],
+    howToUse: [
+      "Oleskan krim ke wajah",
+      "Gunakan toner untuk menenangkan kulit",
+      "Gunakan pagi dan malam",
+    ],
+    category: "Skincare",
+    sku: "HYDRATION-SHIELD-003",
+    price: "Rp288.000",
+    oldPrice: "Rp320.000",
+    img: "https://placehold.co/600x600/38bdf8/ffffff?text=Hydro+Cream+%2B+CICA-B5+Toner",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Hydration+Shield",
+    galleryImages: [
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Hydro+Cream+%2B+Toner",
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Hydration+Set",
+      "https://placehold.co/600x600/38bdf8/ffffff?text=Moist+%2B+Calm",
+    ],
+    isFlashSale: false,
+    type: "bundle",
+    isEvent: true,
+    variants: [
+      { id: 37, name: "Small Set", price: 288000, oldPrice: 320000, stock: 90 },
+      {
+        id: 38,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 70,
+      },
+      { id: 39, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
+      {
+        id: 40,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 30,
+      },
+    ],
+  },
+  {
+    name: "Paket Pore Care (Pore-EX Facial Pad + Honey Cleanser)",
+    slug: "paket-pore-care-pad-cleanser",
+    description:
+      "Set perawatan pori dengan pad eksfoliasi dan pembersih madu untuk kulit bersih dan halus.",
+    ingredients: ["Prebiotic Complex", "Honey Extract", "Salicylic Acid"],
+    howToUse: [
+      "Gunakan pad pada wajah",
+      "Pijat lembut dengan pembersih",
+      "Bilas dengan air",
+    ],
+    category: "Skincare",
+    sku: "PORE-CARE-004",
+    price: "Rp288.000",
+    oldPrice: "Rp320.000",
+    img: "https://placehold.co/600x600/3b82f6/ffffff?text=Pore-EX+Pad+%2B+Cleanser",
+    imgHover: "https://placehold.co/600x600/1e3a8a/ffffff?text=Pore+Care+Set",
+    galleryImages: [
+      "https://placehold.co/600x600/3b82f6/ffffff?text=Pore-EX+Pad+%2B+Cleanser",
+      "https://placehold.co/600x600/1e3a8a/ffffff?text=Pore+Care+Set",
+      "https://placehold.co/600x600/3b82f6/ffffff?text=Exfoliate+%2B+Cleanse",
+    ],
+    isFlashSale: false,
+    type: "bundle",
+    isEvent: true,
+    variants: [
+      { id: 41, name: "Small Set", price: 288000, oldPrice: 320000, stock: 80 },
+      {
+        id: 42,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 60,
+      },
+      { id: 43, name: "Large Set", price: 750000, oldPrice: 830000, stock: 40 },
+      {
+        id: 44,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 20,
+      },
+    ],
+  },
+  {
+    name: "Paket Intimate Care (Feminine Mousse + Hydro Cream)",
+    slug: "paket-intimate-care-mousse-cream",
+    description:
+      "Set perawatan intim dengan pembersih mousse dan krim pelembap untuk kenyamanan sehari-hari.",
+    ingredients: ["Chamomile Extract", "Hyaluronic Acid", "Aloe Vera"],
+    howToUse: [
+      "Kocok mousse secukupnya",
+      "Oleskan lembut ke area intim",
+      "Gunakan krim untuk melembapkan",
+    ],
+    category: "Intimate Care",
+    sku: "INTIMATE-CARE-005",
+    price: "Rp288.000",
+    oldPrice: "Rp320.000",
+    img: "https://placehold.co/600x600/f59e0b/ffffff?text=Intimate+Mousse+%2B+Hydro+Cream",
+    imgHover:
+      "https://placehold.co/600x600/fbbf24/111111?text=Intimate+Care+Set",
+    galleryImages: [
+      "https://placehold.co/600x600/f59e0b/ffffff?text=Intimate+Mousse+%2B+Hydro+Cream",
+      "https://placehold.co/600x600/fbbf24/111111?text=Intimate+Care+Set",
+      "https://placehold.co/600x600/f59e0b/ffffff?text=Cleanse+%2B+Hydrate",
+    ],
+    isFlashSale: false,
+    type: "bundle",
+    isEvent: true,
+    variants: [
+      { id: 45, name: "Small Set", price: 288000, oldPrice: 320000, stock: 70 },
+      {
+        id: 46,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 50,
+      },
+      { id: 47, name: "Large Set", price: 750000, oldPrice: 830000, stock: 30 },
+      {
+        id: 48,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 20,
+      },
+    ],
+  },
   // --- Bundle Tambahan (menjadi total 20 produk) ---
   {
     name: "Paket Acne Defense (Pore-EX Pad + CICA-B5 Toner)",
     slug: "paket-acne-defense-pad-toner",
     description:
       "Duo andalan untuk membantu membersihkan pori dan menenangkan kemerahan.",
-    ingredients: ["Prebiotic Complex", "Salicylic Acid", "Centella Asiatica", "Hyaluronic Acid"],
+    ingredients: [
+      "Prebiotic Complex",
+      "Salicylic Acid",
+      "Centella Asiatica",
+      "Hyaluronic Acid",
+    ],
     howToUse: [
       "Gunakan Pore-EX Pad pada wajah bersih, fokus area berminyak",
       "Lanjutkan dengan CICA-B5 Toner untuk menenangkan kulit",
@@ -27,10 +493,28 @@ export const productsData: Product[] = [
     type: "bundle",
     isEvent: true,
     variants: [
-      { id: 49, name: "Small Set", price: 288000, oldPrice: 320000, stock: 100 },
-      { id: 50, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 80 },
+      {
+        id: 49,
+        name: "Small Set",
+        price: 288000,
+        oldPrice: 320000,
+        stock: 100,
+      },
+      {
+        id: 50,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 80,
+      },
       { id: 51, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      { id: 52, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
+      {
+        id: 52,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 30,
+      },
     ],
   },
   {
@@ -38,7 +522,12 @@ export const productsData: Product[] = [
     slug: "paket-hydrate-glow-toner-serum",
     description:
       "Kombinasi untuk hidrasi maksimal dan tampilan kulit lebih cerah berkilau.",
-    ingredients: ["Centella Asiatica", "Hyaluronic Acid", "Niacinamide", "Vitamin C"],
+    ingredients: [
+      "Centella Asiatica",
+      "Hyaluronic Acid",
+      "Niacinamide",
+      "Vitamin C",
+    ],
     howToUse: [
       "Aplikasikan CICA-B5 Toner setelah cuci muka",
       "Lanjutkan 2–3 tetes Glow Serum hingga meresap",
@@ -48,7 +537,8 @@ export const productsData: Product[] = [
     price: "Rp288.000",
     oldPrice: "Rp320.000",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=Toner+%2B+Serum",
-    imgHover: "https://placehold.co/600x600/0ea5e9/ffffff?text=Hydrate+%26+Glow",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Hydrate+%26+Glow",
     galleryImages: [
       "https://placehold.co/600x600/38bdf8/ffffff?text=CICA-B5+Toner",
       "https://placehold.co/600x600/0ea5e9/ffffff?text=Glow+Serum",
@@ -59,9 +549,21 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 53, name: "Small Set", price: 288000, oldPrice: 320000, stock: 90 },
-      { id: 54, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 70 },
+      {
+        id: 54,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 70,
+      },
       { id: 55, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      { id: 56, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
+      {
+        id: 56,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 30,
+      },
     ],
   },
   {
@@ -69,7 +571,13 @@ export const productsData: Product[] = [
     slug: "paket-morning-shield-cleanser-daycream",
     description:
       "Rutinitas pagi: kulit bersih dan terlindungi dari UV sepanjang hari.",
-    ingredients: ["Honey Extract", "Aloe Vera", "Vitamin C", "Niacinamide", "SPF 50"],
+    ingredients: [
+      "Honey Extract",
+      "Aloe Vera",
+      "Vitamin C",
+      "Niacinamide",
+      "SPF 50",
+    ],
     howToUse: [
       "Bersihkan wajah dengan Honey Cleansing Gel",
       "Oleskan Vit C Tone-Up Daycream SPF 50 secara merata",
@@ -89,10 +597,28 @@ export const productsData: Product[] = [
     type: "bundle",
     isEvent: true,
     variants: [
-      { id: 57, name: "Small Set", price: 288000, oldPrice: 320000, stock: 110 },
-      { id: 58, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 85 },
+      {
+        id: 57,
+        name: "Small Set",
+        price: 288000,
+        oldPrice: 320000,
+        stock: 110,
+      },
+      {
+        id: 58,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 85,
+      },
       { id: 59, name: "Large Set", price: 750000, oldPrice: 830000, stock: 55 },
-      { id: 60, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 35 },
+      {
+        id: 60,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 35,
+      },
     ],
   },
   {
@@ -100,7 +626,13 @@ export const productsData: Product[] = [
     slug: "paket-night-repair-serum-cream",
     description:
       "Perawatan malam untuk membantu perbaikan skin barrier dan kekenyalan kulit.",
-    ingredients: ["Niacinamide", "Vitamin C", "Hyaluronic Acid", "Shea Butter", "Chamomile"],
+    ingredients: [
+      "Niacinamide",
+      "Vitamin C",
+      "Hyaluronic Acid",
+      "Shea Butter",
+      "Chamomile",
+    ],
     howToUse: [
       "Gunakan Glow Serum setelah toner",
       "Kunci dengan Hydro Restorative Cream",
@@ -121,17 +653,33 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 61, name: "Small Set", price: 288000, oldPrice: 320000, stock: 95 },
-      { id: 62, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 75 },
+      {
+        id: 62,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 75,
+      },
       { id: 63, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      { id: 64, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
+      {
+        id: 64,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 30,
+      },
     ],
   },
   {
     name: "Paket 3-Step Basic (Cleanser + Toner + Hydro Cream)",
     slug: "paket-3-step-basic-cleanser-toner-cream",
-    description:
-      "Langkah dasar harian: bersihkan, tenangkan, lalu lembapkan.",
-    ingredients: ["Honey Extract", "Centella Asiatica", "Hyaluronic Acid", "Shea Butter"],
+    description: "Langkah dasar harian: bersihkan, tenangkan, lalu lembapkan.",
+    ingredients: [
+      "Honey Extract",
+      "Centella Asiatica",
+      "Hyaluronic Acid",
+      "Shea Butter",
+    ],
     howToUse: [
       "Bersihkan wajah dengan Honey Cleansing Gel",
       "Aplikasikan CICA-B5 Toner",
@@ -153,9 +701,27 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 65, name: "Small Set", price: 420000, oldPrice: 470000, stock: 80 },
-      { id: 66, name: "Medium Set", price: 760000, oldPrice: 850000, stock: 60 },
-      { id: 67, name: "Large Set", price: 1080000, oldPrice: 1200000, stock: 40 },
-      { id: 68, name: "Family Set", price: 1390000, oldPrice: 1550000, stock: 25 },
+      {
+        id: 66,
+        name: "Medium Set",
+        price: 760000,
+        oldPrice: 850000,
+        stock: 60,
+      },
+      {
+        id: 67,
+        name: "Large Set",
+        price: 1080000,
+        oldPrice: 1200000,
+        stock: 40,
+      },
+      {
+        id: 68,
+        name: "Family Set",
+        price: 1390000,
+        oldPrice: 1550000,
+        stock: 25,
+      },
     ],
   },
   {
@@ -163,7 +729,13 @@ export const productsData: Product[] = [
     slug: "paket-brightening-power-serum-toner-daycream",
     description:
       "Trio pencerah untuk tampilan kulit merata, lembap, dan terlindungi.",
-    ingredients: ["Niacinamide", "Vitamin C", "Centella Asiatica", "Hyaluronic Acid", "SPF 50"],
+    ingredients: [
+      "Niacinamide",
+      "Vitamin C",
+      "Centella Asiatica",
+      "Hyaluronic Acid",
+      "SPF 50",
+    ],
     howToUse: [
       "Gunakan CICA-B5 Toner",
       "Aplikasikan Glow Serum",
@@ -174,7 +746,8 @@ export const productsData: Product[] = [
     price: "Rp420.000",
     oldPrice: "Rp470.000",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=Serum+%2B+Toner+%2B+SPF",
-    imgHover: "https://placehold.co/600x600/0ea5e9/ffffff?text=Brightening+Power",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Brightening+Power",
     galleryImages: [
       "https://placehold.co/600x600/38bdf8/ffffff?text=Toner",
       "https://placehold.co/600x600/38bdf8/ffffff?text=Serum",
@@ -185,9 +758,27 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 69, name: "Small Set", price: 420000, oldPrice: 470000, stock: 75 },
-      { id: 70, name: "Medium Set", price: 760000, oldPrice: 850000, stock: 55 },
-      { id: 71, name: "Large Set", price: 1080000, oldPrice: 1200000, stock: 35 },
-      { id: 72, name: "Family Set", price: 1390000, oldPrice: 1550000, stock: 20 },
+      {
+        id: 70,
+        name: "Medium Set",
+        price: 760000,
+        oldPrice: 850000,
+        stock: 55,
+      },
+      {
+        id: 71,
+        name: "Large Set",
+        price: 1080000,
+        oldPrice: 1200000,
+        stock: 35,
+      },
+      {
+        id: 72,
+        name: "Family Set",
+        price: 1390000,
+        oldPrice: 1550000,
+        stock: 20,
+      },
     ],
   },
   {
@@ -195,7 +786,12 @@ export const productsData: Product[] = [
     slug: "paket-pore-solution-pad-cleanser-toner",
     description:
       "Solusi pori 3 langkah: eksfoliasi, bersihkan, lalu menenangkan kulit.",
-    ingredients: ["Prebiotic Complex", "Salicylic Acid", "Honey Extract", "Centella Asiatica"],
+    ingredients: [
+      "Prebiotic Complex",
+      "Salicylic Acid",
+      "Honey Extract",
+      "Centella Asiatica",
+    ],
     howToUse: [
       "Gunakan Pore-EX Pad",
       "Cuci wajah dengan Honey Cleansing Gel",
@@ -217,9 +813,27 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 73, name: "Small Set", price: 420000, oldPrice: 470000, stock: 70 },
-      { id: 74, name: "Medium Set", price: 760000, oldPrice: 850000, stock: 55 },
-      { id: 75, name: "Large Set", price: 1080000, oldPrice: 1200000, stock: 35 },
-      { id: 76, name: "Family Set", price: 1390000, oldPrice: 1550000, stock: 20 },
+      {
+        id: 74,
+        name: "Medium Set",
+        price: 760000,
+        oldPrice: 850000,
+        stock: 55,
+      },
+      {
+        id: 75,
+        name: "Large Set",
+        price: 1080000,
+        oldPrice: 1200000,
+        stock: 35,
+      },
+      {
+        id: 76,
+        name: "Family Set",
+        price: 1390000,
+        oldPrice: 1550000,
+        stock: 20,
+      },
     ],
   },
   {
@@ -246,7 +860,8 @@ export const productsData: Product[] = [
     price: "Rp550.000",
     oldPrice: "Rp620.000",
     img: "https://placehold.co/600x600/38bdf8/ffffff?text=4-Step+Routine",
-    imgHover: "https://placehold.co/600x600/0ea5e9/ffffff?text=Ultimate+Routine",
+    imgHover:
+      "https://placehold.co/600x600/0ea5e9/ffffff?text=Ultimate+Routine",
     galleryImages: [
       "https://placehold.co/600x600/38bdf8/ffffff?text=Cleanser%2BToner",
       "https://placehold.co/600x600/38bdf8/ffffff?text=Serum",
@@ -257,9 +872,27 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 77, name: "Small Set", price: 550000, oldPrice: 620000, stock: 80 },
-      { id: 78, name: "Medium Set", price: 990000, oldPrice: 1100000, stock: 60 },
-      { id: 79, name: "Large Set", price: 1420000, oldPrice: 1600000, stock: 40 },
-      { id: 80, name: "Family Set", price: 1850000, oldPrice: 2100000, stock: 25 },
+      {
+        id: 78,
+        name: "Medium Set",
+        price: 990000,
+        oldPrice: 1100000,
+        stock: 60,
+      },
+      {
+        id: 79,
+        name: "Large Set",
+        price: 1420000,
+        oldPrice: 1600000,
+        stock: 40,
+      },
+      {
+        id: 80,
+        name: "Family Set",
+        price: 1850000,
+        oldPrice: 2100000,
+        stock: 25,
+      },
     ],
   },
   {
@@ -267,7 +900,13 @@ export const productsData: Product[] = [
     slug: "paket-sun-ready-toner-daycream",
     description:
       "Kulit siap aktivitas: hidrasi lembut dari toner dan perlindungan SPF 50.",
-    ingredients: ["Centella Asiatica", "Hyaluronic Acid", "Vitamin C", "Niacinamide", "SPF 50"],
+    ingredients: [
+      "Centella Asiatica",
+      "Hyaluronic Acid",
+      "Vitamin C",
+      "Niacinamide",
+      "SPF 50",
+    ],
     howToUse: [
       "Aplikasikan CICA-B5 Toner",
       "Gunakan Vit C Tone-Up Daycream SPF 50 di pagi/siang",
@@ -288,9 +927,21 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 81, name: "Small Set", price: 288000, oldPrice: 320000, stock: 90 },
-      { id: 82, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 70 },
+      {
+        id: 82,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 70,
+      },
       { id: 83, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      { id: 84, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
+      {
+        id: 84,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 30,
+      },
     ],
   },
   {
@@ -298,7 +949,12 @@ export const productsData: Product[] = [
     slug: "paket-intimate-fresh-mousse-toner",
     description:
       "Kenyamanan area intim dan keseimbangan kulit wajah dalam satu paket.",
-    ingredients: ["Chamomile Extract", "Aloe Vera", "Centella Asiatica", "Hyaluronic Acid"],
+    ingredients: [
+      "Chamomile Extract",
+      "Aloe Vera",
+      "Centella Asiatica",
+      "Hyaluronic Acid",
+    ],
     howToUse: [
       "Gunakan Intimate Feminine Mousse Cleanser sesuai kebutuhan",
       "Aplikasikan CICA-B5 Toner pada wajah setelah cuci muka",
@@ -319,10 +975,21 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 85, name: "Small Set", price: 288000, oldPrice: 320000, stock: 70 },
-      { id: 86, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 55 },
+      {
+        id: 86,
+        name: "Medium Set",
+        price: 520000,
+        oldPrice: 580000,
+        stock: 55,
+      },
       { id: 87, name: "Large Set", price: 750000, oldPrice: 830000, stock: 35 },
-      { id: 88, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 20 },
+      {
+        id: 88,
+        name: "Family Set",
+        price: 980000,
+        oldPrice: 1080000,
+        stock: 20,
+      },
     ],
   },
-
 ];

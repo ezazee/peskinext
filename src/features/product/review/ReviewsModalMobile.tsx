@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { XMarkIcon } from "@shared/components/icons";
 import { IoStar } from "react-icons/io5";
+import Lightbox from "@shared/components/ui/Lightbox";
 
 type Props = {
   open: boolean;
@@ -43,7 +44,8 @@ function timeAgoId(input?: string | number | Date) {
 function Stars({ value, size = "md" }: { value: number; size?: "sm" | "md" }) {
   const count = Math.round(value); // 0..5
   const cls = size === "sm" ? "text-yellow-400 text-[14px]" : "text-yellow-400";
-  const clsEmpty = size === "sm" ? "text-gray-300 text-[14px]" : "text-gray-300";
+  const clsEmpty =
+    size === "sm" ? "text-gray-300 text-[14px]" : "text-gray-300";
   return (
     <span className="flex items-center">
       {Array.from({ length: 5 }).map((_, i) => (
@@ -60,8 +62,20 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [open]);
+
+  const [lightbox, setLightbox] = useState<{
+    open: boolean;
+    images: string[];
+    index: number;
+  }>({
+    open: false,
+    images: [],
+    index: 0,
+  });
 
   const [sortBy, setSortBy] = useState<SortKey>("recent");
   const [filter, setFilter] = useState<RatingFilter>(0); // 0 = semua
@@ -86,7 +100,8 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
   }, [reviews, sortBy]);
 
   const filtered = useMemo(
-    () => (filter ? sorted.filter((r) => Math.round(r.rating) === filter) : sorted),
+    () =>
+      filter ? sorted.filter((r) => Math.round(r.rating) === filter) : sorted,
     [sorted, filter]
   );
 
@@ -94,7 +109,10 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
     overlay: { hidden: { opacity: 0 }, visible: { opacity: 1 } },
     sheet: {
       hidden: { y: "100%" },
-      visible: { y: 0, transition: { type: "spring" as const, stiffness: 280, damping: 28 } },
+      visible: {
+        y: 0,
+        transition: { type: "spring" as const, stiffness: 280, damping: 28 },
+      },
       exit: { y: "100%", transition: { duration: 0.2 } },
     },
   };
@@ -151,7 +169,9 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
                       key={v}
                       onClick={() => setFilter(v)}
                       className={`px-2.5 py-1 rounded-full text-xs border shrink-0 ${
-                        filter === v ? "bg-primary/10 text-primary border-primary" : "bg-white text-gray-700"
+                        filter === v
+                          ? "bg-primary/10 text-primary border-primary"
+                          : "bg-white text-gray-700"
                       }`}
                     >
                       {v === 0 ? "Semua" : `${v}★`}
@@ -173,21 +193,30 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
                   </select>
                 </div>
               </div>
-              <p className="mt-1 text-xs text-gray-500">{nfID(filtered.length)} ulasan ditampilkan</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {nfID(filtered.length)} ulasan ditampilkan
+              </p>
             </div>
 
             {/* list */}
             <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
               {filtered.length === 0 ? (
-                <div className="py-8 text-center text-sm text-gray-500">Tidak ada ulasan.</div>
+                <div className="py-8 text-center text-sm text-gray-500">
+                  Tidak ada ulasan.
+                </div>
               ) : (
                 <ul className="space-y-3">
                   {filtered.map((r) => (
-                    <li key={r.id} className="rounded-xl bg-white shadow-sm ring-1 ring-gray-100 p-3">
+                    <li
+                      key={r.id}
+                      className="rounded-xl bg-white shadow-sm ring-1 ring-gray-100 p-3"
+                    >
                       <div className="flex items-start justify-between">
                         <p className="text-sm font-semibold">{r.user}</p>
                         <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                          <span className="whitespace-nowrap">{timeAgoId(r.date)}</span>
+                          <span className="whitespace-nowrap">
+                            {timeAgoId(r.date)}
+                          </span>
                           <span>•</span>
                         </div>
                       </div>
@@ -198,18 +227,39 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
                       </div>
 
                       <p className="mt-1 text-xs text-gray-500">
-                        Varian: <span className="text-gray-700">{r.variant}</span>
+                        Varian:{" "}
+                        <span className="text-gray-700">{r.variant}</span>
                       </p>
 
                       {/* komentar */}
-                      <p className="mt-2 text-sm leading-relaxed text-gray-800">{r.comment}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-gray-800">
+                        {r.comment}
+                      </p>
 
                       {/* foto */}
-                      {r.image && (
+                      {r.images && r.images.length > 0 && (
                         <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar">
-                          <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0">
-                            <Image src={r.image} alt="foto ulasan" fill className="object-cover" />
-                          </div>
+                          {r.images.map((img, i) => (
+                            <div
+                              key={`${r.id}-${i}`}
+                              className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 cursor-pointer"
+                              onClick={() =>
+                                setLightbox({
+                                  open: true,
+                                  images: r.images,
+                                  index: i,
+                                })
+                              }
+                            >
+                              <Image
+                                src={img}
+                                alt={`Foto ulasan ${i + 1}`}
+                                fill
+                                className="object-cover"
+                                sizes="96px"
+                              />
+                            </div>
+                          ))}
                         </div>
                       )}
                     </li>
@@ -218,6 +268,16 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
               )}
               <div className="h-2" />
             </div>
+            {/* Lightbox */}
+            {lightbox.open && (
+              <Lightbox
+                images={lightbox.images}
+                startIndex={lightbox.index}
+                onClose={() =>
+                  setLightbox({ open: false, images: [], index: 0 })
+                }
+              />
+            )}
           </motion.div>
         </>
       )}

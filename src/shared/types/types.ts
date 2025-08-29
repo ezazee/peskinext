@@ -64,7 +64,7 @@ export type Review = {
   user: string;
   variant: string;
   comment: string;
-  image: string | null;
+  images: string[];
   rating: number;
   date: string;
   productSlug: string;
@@ -107,4 +107,20 @@ export type ShippingDetailData = {
   weightGr: number;
   note?: string;
   groups: ShippingGroup[];
+};
+
+
+
+// CART 
+export type CartItem = {
+  id: string;                
+  product: Product;          
+  variantId: Variant["id"];  
+  qty: number;
+  selected: boolean;
+};
+
+/** Payload cart yang dikirim ke komponen */
+export type CartData = {
+  items: CartItem[];
 };
