@@ -1,15 +1,39 @@
 "use client";
-import { useMediaQuery } from "@shared/hooks/useMediaQuery";
-import { useEffect, useState } from "react";
-import { CartDesktop } from "./desktop/DesktopCart";
-import { CartMobile } from "./mobile/MobileCart";
-import type { CartData } from "@data/index";
 
-export default function CartPageClient({ initial }: { initial: CartData }) {
+import { useEffect, useState } from "react";
+import { useMediaQuery } from "@shared/hooks/useMediaQuery";
+import type { CartData } from "@data/index";
+import CartDesktopSkeleton from "./desktop/skeleton/CartDesktop.skeleton";
+import { CartDesktop } from "./DesktopCart";
+import { CartMobile } from "./MobileCart";
+import CartMobileSkeleton from "./mobile/skeleton/CartMobile.skeleton";
+
+type Props = {
+  initial: CartData;
+  /** true saat data cart masih di-fetch */
+  loading?: boolean;
+};
+
+export default function CartPageClient({ initial, loading = false }: Props) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+
+  // Saat belum mounted atau masih loading → tampilkan skeleton versi responsif
+  if (!mounted || loading) {
+    return (
+      <>
+        <div className="hidden md:block">
+          <CartDesktopSkeleton />
+        </div>
+        <div className="md:hidden">
+          <CartMobileSkeleton />
+        </div>
+      </>
+    );
+  }
+
+  // Data siap
   return isDesktop ? (
     <CartDesktop initial={initial} />
   ) : (

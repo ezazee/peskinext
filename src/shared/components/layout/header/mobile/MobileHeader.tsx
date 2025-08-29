@@ -4,7 +4,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { BellIcon, CartIcon, LocationIcon, SearchIcon } from "@shared/components/icons";
 
-import SearchOverlay from "../SearchOverlay"; // <— tambahkan ini
+import SearchOverlay from "../SearchOverlay";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
 
