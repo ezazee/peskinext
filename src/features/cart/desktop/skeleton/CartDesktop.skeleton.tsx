@@ -35,7 +35,7 @@ export default function CartDesktopSkeleton() {
 
       {/* RIGHT */}
       <aside className="col-span-4">
-        <div className="sticky top-20 space-y-4">
+        <div className="sticky top-44 space-y-4">
           <VoucherCardSkeleton />
           <SummaryCardSkeleton />
         </div>

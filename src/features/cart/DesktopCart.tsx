@@ -59,7 +59,7 @@ export function CartDesktop({ initial }: { initial: CartData }) {
 
         {/* RIGHT */}
         <aside className="col-span-12 md:col-span-4">
-          <div className="sticky top-20 space-y-4">
+          <div className="sticky top-44 space-y-4">
             <VoucherCard selectable={hasSelection} />
             <SummaryCard total={totals.subtotal} canCheckout={canCheckout} />
           </div>

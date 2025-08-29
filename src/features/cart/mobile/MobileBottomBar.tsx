@@ -22,7 +22,7 @@ export default function MobileBottomBar({
   const disabledCheckout = !canCheckout;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 bg-white/95 backdrop-blur border-t border-gray-200">
+    <div className="fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200">
       {/* Voucher field */}
       <div className="px-4 pt-3">
         <button

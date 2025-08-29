@@ -39,7 +39,7 @@ function ItemSkeleton() {
 
 function BottomBarSkeleton() {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 bg-white/95 backdrop-blur border-t border-gray-200">
+    <div className="fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200">
       <div className="px-4 pt-3">
         <Skeleton.Block height={44} radius={12} />
       </div>
