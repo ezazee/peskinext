@@ -1,35 +1,17 @@
 "use client";
 
-import { useState, useEffect, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
-import { BellIcon, CartIcon, LocationIcon, SearchIcon } from "@shared/components/icons";
+import { useState, useEffect } from "react";
+import {
+  BellIcon,
+  CartIcon,
+  LocationIcon,
+  SearchIcon,
+} from "@shared/components/icons";
+import { AuthAction } from "@features/auth/AuthAction";
 
 import SearchOverlay from "../SearchOverlay";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
-
-const AuthAction = ({
-  isLoggedIn,
-  openAuthModal,
-  children,
-  href,
-}: {
-  isLoggedIn: boolean;
-  openAuthModal: () => void;
-  children: ReactNode;
-  href?: string;
-}) => {
-  const router = useRouter();
-  const handleClick = () => {
-    if (!isLoggedIn) openAuthModal();
-    else if (href) router.push(href);
-  };
-  return (
-    <div onClick={handleClick} className="cursor-pointer">
-      {children}
-    </div>
-  );
-};
 
 export const MobileHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -82,10 +64,18 @@ export const MobileHeader = () => {
             </div>
           </div>
 
-          <AuthAction isLoggedIn={isLoggedIn} openAuthModal={openAuthModal} href="/notification">
+          <AuthAction
+            isLoggedIn={isLoggedIn}
+            openAuthModal={openAuthModal}
+            href="/notification"
+          >
             <BellIcon />
           </AuthAction>
-          <AuthAction isLoggedIn={isLoggedIn} openAuthModal={openAuthModal} href="/cart">
+          <AuthAction
+            isLoggedIn={isLoggedIn}
+            openAuthModal={openAuthModal}
+            href="/cart"
+          >
             <CartIcon withBadge />
           </AuthAction>
         </div>
@@ -105,8 +95,12 @@ export const MobileHeader = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="font-bold text-base-text">Hai, Selamat Datang!</p>
-                  <p className="text-xs text-subtle-text">Login Untuk Melakukan Transaksi</p>
+                  <p className="font-bold text-base-text">
+                    Hai, Selamat Datang!
+                  </p>
+                  <p className="text-xs text-subtle-text">
+                    Login Untuk Melakukan Transaksi
+                  </p>
                 </div>
               </div>
               <button

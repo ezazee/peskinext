@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import {
   BellIcon,
@@ -12,19 +13,19 @@ import {
   ChevronDownIcon,
   LocationIcon,
   SearchIcon,
-  MailIcon,
   TagIcon,
 } from "@shared/components/icons";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
-import Link from "next/link";
+
+// ⬇️ import AuthAction shared component
+import { AuthAction } from "@features/auth/AuthAction";
 
 export const DesktopHeader = () => {
   const router = useRouter();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // --- Simulasi Status Login ---
-  // Ubah menjadi `false` untuk melihat tampilan saat belum login
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -44,10 +45,8 @@ export const DesktopHeader = () => {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [searchContainerRef]);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const openAuthModal = (view: "login" | "register") => {
     setAuthModalView(view);
@@ -159,28 +158,45 @@ export const DesktopHeader = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
+              {/* ⬇️ Icon actions selalu tampil. Jika belum login -> buka modal. Jika sudah -> navigate */}
+              <AuthAction
+                as="button"
+                className="relative cursor-pointer"
+                isLoggedIn={isLoggedIn}
+                onRequireAuth={() => openAuthModal("login")}
+                href="/cart"
+              >
+                <CartIcon withBadge />
+              </AuthAction>
+
+              <AuthAction
+                as="button"
+                className="cursor-pointer"
+                isLoggedIn={isLoggedIn}
+                onRequireAuth={() => openAuthModal("login")}
+                href="/notification"
+              >
+                <BellIcon />
+              </AuthAction>
+
+              <div className="border-l h-8 mx-2" />
+
               {isLoggedIn ? (
-                // Tampilan jika SUDAH LOGIN
-                <>
-                  <CartIcon withBadge />
-                  <BellIcon />
-                  <MailIcon />
-                  <div className="border-l h-8 mx-2"></div>
-                  <div className="flex items-center gap-3 cursor-pointer p-1 rounded-lg hover:bg-tertiary">
-                    <Image
-                      src="https://placehold.co/32x32/81D4FA/FFFFFF?text=Z"
-                      alt="User"
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                    <span className="font-semibold text-sm text-gray-700">
-                      zeniwa
-                    </span>
-                  </div>
-                </>
+                // Profil singkat saat login
+                <div className="flex items-center gap-3 cursor-pointer p-1 rounded-lg hover:bg-tertiary">
+                  <Image
+                    src="https://placehold.co/32x32/81D4FA/FFFFFF?text=Z"
+                    alt="User"
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                  <span className="font-semibold text-sm text-gray-700">
+                    zeniwa
+                  </span>
+                </div>
               ) : (
-                // Tampilan jika BELUM LOGIN
+                // CTA auth saat belum login
                 <>
                   <button
                     onClick={() => router.push("/register")}
@@ -203,7 +219,7 @@ export const DesktopHeader = () => {
         {/* --- KONDISI TAMPILAN BERDASARKAN LOGIN --- */}
         {isLoggedIn && (
           <>
-            <div className="border-b border-gray-200"></div>
+            <div className="border-b border-gray-200" />
             <div className="max-w-screen-xl mx-auto px-8">
               <div className="flex justify-end items-center py-2">
                 <button

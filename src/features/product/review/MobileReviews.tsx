@@ -1,32 +1,55 @@
-// File: src/features/product/components/review/MobileReviews.tsx
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  useMemo,
-  useRef,
-  useState,
-  useEffect,
-  useRef as useRefReact,
-} from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoStar } from "react-icons/io5";
 import type { Review } from "@data/index";
 import ReviewsModalMobile from "./ReviewsModalMobile";
 import ReviewsModalMobileSkeleton from "./ReviewsModalMobileSkeleton";
+import { useQuery } from "@tanstack/react-query";
 
-type Props = { reviews?: Review[]; seeAllHref?: string };
+type Props = {
+  reviews?: Review[];
+  seeAllHref?: string;
+  slug?: string;
+  sku?: string;
+};
+
+type ReviewsListResponse = {
+  items: Review[];
+  total: number;
+  average: number;
+  count: number;
+  page: number;
+  pageSize: number;
+};
+
 const nfID = (n: number) => n.toLocaleString("id-ID");
 
-// Simulasi API: delay 800ms lalu kembalikan data dummy (reviews awal)
-async function fetchAllReviewsDummy(fallback: Review[]): Promise<Review[]> {
-  await new Promise((r) => setTimeout(r, 800));
-  // ganti ini dengan fetch API kamu nanti
-  return [...fallback];
+async function fetchAllReviewsFromApi(params: {
+  slug?: string;
+  sku?: string;
+}): Promise<Review[]> {
+  const sp = new URLSearchParams();
+  if (params.slug) sp.set("slug", params.slug);
+  if (params.sku) sp.set("sku", params.sku);
+  sp.set("page", "1");
+  sp.set("pageSize", "1000");
+
+  const res = await fetch(`/api/reviews?${sp.toString()}`);
+  if (!res.ok) throw new Error("Failed to fetch reviews");
+  const json = (await res.json()) as ReviewsListResponse;
+  return json.items;
 }
 
-export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
+export default function MobileReviews({
+  reviews = [],
+  seeAllHref,
+  slug,
+  sku,
+}: Props) {
   // urutkan dummy agar enak dilihat
   const safe = useMemo(
     () =>
@@ -38,48 +61,20 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
 
   // ====== modal state ======
   const [openModal, setOpenModal] = useState(false);
-  const [modalLoading, setModalLoading] = useState(false);
-  const [modalReviews, setModalReviews] = useState<Review[] | null>(null);
 
-  // cegah fetch berulang saat modal open (akar masalah looping)
-  const hasFetchedRef = useRefReact(false);
-
-  useEffect(() => {
-    let alive = true;
-    if (!openModal) return;
-
-    // Prefill data agar tidak kosong jika fetch lama/gagal
-    if (!modalReviews || modalReviews.length === 0) {
-      setModalReviews(safe);
-    }
-
-    // Hanya fetch SEKALI per lifecycle komponen (atau saat kamu reset manual)
-    if (hasFetchedRef.current) return;
-    hasFetchedRef.current = true;
-
-    setModalLoading(true);
-    fetchAllReviewsDummy(safe)
-      .then((res) => {
-        if (!alive) return;
-        // Pakai hasil fetch; kalau kosong, tetap pakai prefill "safe"
-        if (Array.isArray(res) && res.length > 0) {
-          setModalReviews(res);
-        }
-      })
-      .catch(() => {
-        /* biarkan pakai prefill "safe" */
-      })
-      .finally(() => {
-        if (!alive) return;
-        setModalLoading(false);
-      });
-
-    return () => {
-      alive = false;
-    };
-    // ⚠️ Penting: JANGAN masukkan `modalReviews` ke dependency, agar tidak re-fetch loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openModal, safe]);
+  // Query untuk isi modal: hanya aktif saat modal dibuka
+  const { data: modalReviews, isLoading: modalLoading } = useQuery<Review[]>({
+    queryKey: ["reviews", "mobile-modal", slug ?? null, sku ?? null],
+    queryFn: async () =>
+      slug || sku
+        ? fetchAllReviewsFromApi({ slug, sku })
+        : Promise.resolve(safe),
+    enabled: openModal, // ⬅️ fetch hanya ketika modal dibuka
+    staleTime: Infinity, // ⬅️ anggap selalu fresh → tidak refetch otomatis
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+  });
 
   const top3 = useMemo(() => safe.slice(0, 3), [safe]);
 
@@ -164,25 +159,24 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
 
                     <ExpandableText text={r.comment} />
 
-                   {r.images && r.images.length > 0 && (
-  <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar">
-    {r.images.map((img, i) => (
-      <div
-        key={`${r.id}-${i}`}
-        className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0"
-      >
-        <Image
-          src={img}
-          alt={`Foto ulasan ${i + 1}`}
-          fill
-          className="object-cover"
-          sizes="96px" // optimasi untuk mobile thumbnail
-        />
-      </div>
-    ))}
-  </div>
-)}
-
+                    {r.images && r.images.length > 0 && (
+                      <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar">
+                        {r.images.map((img, i) => (
+                          <div
+                            key={`${r.id}-${i}`}
+                            className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0"
+                          >
+                            <Image
+                              src={img}
+                              alt={`Foto ulasan ${i + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="96px"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </motion.article>
               ))}
@@ -205,7 +199,7 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
         <p className="mt-4 text-sm text-gray-500">Belum ada ulasan.</p>
       )}
 
-      {/* ===== Modal & Skeleton (Opsi A) ===== */}
+      {/* ===== Modal & Skeleton (fetch saat modal buka) ===== */}
       {openModal && modalLoading && (
         <ReviewsModalMobileSkeleton
           open={openModal}
@@ -216,7 +210,7 @@ export default function MobileReviews({ reviews = [], seeAllHref }: Props) {
       {openModal && !modalLoading && (
         <ReviewsModalMobile
           open={openModal}
-          reviews={modalReviews ?? []}
+          reviews={modalReviews ?? safe}
           onClose={() => setOpenModal(false)}
         />
       )}
@@ -257,8 +251,6 @@ function ExpandableText({
 
   return (
     <div className="mt-2 text-sm leading-relaxed text-gray-800">
-      {/* jika tidak melewati batas, tampilkan apa adanya */}
-      {/* jika melewati batas dan belum dibuka, tampilkan yang dipotong */}
       <AnimatePresence initial={false}>
         <motion.div
           key={open ? "open" : "closed"}
@@ -270,8 +262,6 @@ function ExpandableText({
           {open || !isTruncated ? content : shortText}
         </motion.div>
       </AnimatePresence>
-
-      {/* tombol hanya muncul jika memang terpotong */}
       {isTruncated && (
         <button
           type="button"

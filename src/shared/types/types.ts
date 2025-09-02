@@ -86,7 +86,7 @@ export interface MobileDetailProps {
   isLoading: boolean;
 }
 
-/* ===== Shipping Types ===== */
+/* ================= Shiping ================= */
 export type ShippingOption = {
   id: string;
   courier: string;
@@ -109,13 +109,11 @@ export type ShippingDetailData = {
   groups: ShippingGroup[];
 };
 
-
-
-// CART 
+/* ================= CART ================= */
 export type CartItem = {
-  id: string;                
-  product: Product;          
-  variantId: Variant["id"];  
+  id: string;
+  product: Product;
+  variantId: Variant["id"];
   qty: number;
   selected: boolean;
 };
@@ -123,4 +121,25 @@ export type CartItem = {
 /** Payload cart yang dikirim ke komponen */
 export type CartData = {
   items: CartItem[];
+};
+
+/* ================= VOUCHER ================= */
+
+export type VoucherType = "shipping" | "promo";
+
+export type Voucher = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  type: VoucherType; // "shipping" | "promo"
+  enabled: boolean; // bisa dipilih atau tidak
+  savingLabel?: string; // contoh: "Hemat Rp40rb"
+  code?: string; // kalau voucher berupa kode
+  validTo?: string; // ISO date (opsional)
+};
+
+export type VoucherSelection = {
+  code?: string;
+  shippingId?: string | null;
+  promoId?: string | null;
 };

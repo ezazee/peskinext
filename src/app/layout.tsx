@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import QueryProvider from "@app/providers/QueryProvider";
 
 const poppins = Poppins({
   weight: ["400", "700"],
@@ -92,7 +93,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body className={`${poppins.variable} font-sans bg-white`}>
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );

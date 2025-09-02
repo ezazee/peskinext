@@ -15,7 +15,7 @@ type Props = {
   onClose: () => void;
 };
 
-type SortKey = "recent" | "rating" | "likes";
+type SortKey = "recent" | "rating";
 type RatingFilter = 0 | 1 | 2 | 3 | 4 | 5;
 
 const nfID = (n: number) => n.toLocaleString("id-ID");
@@ -84,9 +84,6 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
     const arr = [...(reviews || [])];
     switch (sortBy) {
       case "rating":
-        arr.sort((a, b) => b.rating - a.rating);
-        break;
-      case "likes":
         arr.sort((a, b) => b.rating - a.rating);
         break;
       default: // "recent"
@@ -189,7 +186,6 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
                   >
                     <option value="recent">Terbaru</option>
                     <option value="rating">Bintang tertinggi</option>
-                    <option value="likes">Paling disukai</option>
                   </select>
                 </div>
               </div>

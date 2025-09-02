@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import DesktopDetailContainer from "@features/product/components/desktop/DesktopDetailContainer";
-import MobileDetailContainer from "@features/product/components/mobile/MobileDetailContainer";
-import { productsData, type Product } from "@data/index";
+import ResponsiveDetailContainer from "@features/product/components/ResponsiveDetailContainer";
 import {
   absolute,
   shortDesc,
@@ -12,10 +10,11 @@ import {
   buildBreadcrumbJsonLd,
   buildProductJsonLd,
 } from "@shared/libs/seo/jsonld";
-// ⬇️ pakai helper (opsional). Kalau tak pakai, ganti WithParams<RouteParams> menjadi { params: Promise<RouteParams> }
-import type { WithParams } from "@shared/types/next";
+import { productsData } from "@data/products";
+import type { Product } from "@data/index";
 
 type RouteParams = { slug: string };
+
 export const revalidate = 60;
 
 function getProductBySlug(slug: string): Product | null {
@@ -23,10 +22,12 @@ function getProductBySlug(slug: string): Product | null {
 }
 
 /* ===== Metadata ===== */
-export async function generateMetadata(
-  { params }: WithParams<RouteParams> // <- params sebagai Promise
-): Promise<Metadata> {
-  const { slug } = await params; // <- di-await
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<RouteParams>;
+}): Promise<Metadata> {
+  const { slug } = await params;
   const p = getProductBySlug(slug);
 
   const name = p?.name ?? titleFromSlug(slug);
@@ -61,15 +62,18 @@ export async function generateMetadata(
 }
 
 /* ===== Static params ===== */
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<RouteParams[]> {
   return productsData.map((p) => ({ slug: p.slug }));
 }
 
 /* ===== Page ===== */
-export default async function ProductPage(
-  { params }: WithParams<RouteParams> // <- params sebagai Promise
-) {
-  const { slug } = await params; // <- di-await
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<RouteParams>;
+}) {
+  const { slug } = await params; // ✅ wajib await di Next 15
+
   const p = getProductBySlug(slug);
   const name = p?.name ?? titleFromSlug(slug);
 
@@ -82,9 +86,7 @@ export default async function ProductPage(
 
   return (
     <>
-      <DesktopDetailContainer slug={slug} />
-      <MobileDetailContainer slug={slug} />
-
+      <ResponsiveDetailContainer slug={slug} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
