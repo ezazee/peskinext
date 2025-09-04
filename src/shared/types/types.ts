@@ -127,15 +127,24 @@ export type CartData = {
 
 export type VoucherType = "shipping" | "promo";
 
+export type VoucherConditions = {
+  minSubtotal?: number;
+  minSelectedItems?: number;
+  regions?: string[];
+  requirePackage?: boolean;
+  validFrom?: string;
+};
+
 export type Voucher = {
   id: string;
   title: string;
   subtitle?: string;
-  type: VoucherType; // "shipping" | "promo"
-  enabled: boolean; // bisa dipilih atau tidak
-  savingLabel?: string; // contoh: "Hemat Rp40rb"
-  code?: string; // kalau voucher berupa kode
-  validTo?: string; // ISO date (opsional)
+  type: VoucherType;
+  enabled: boolean;
+  savingLabel?: string;
+  code?: string;
+  validTo?: string;
+  conditions?: VoucherConditions;
 };
 
 export type VoucherSelection = {
@@ -143,3 +152,7 @@ export type VoucherSelection = {
   shippingId?: string | null;
   promoId?: string | null;
 };
+
+export type RedeemResult =
+  | { ok: true; voucher: Voucher }
+  | { ok: false; reason: string };

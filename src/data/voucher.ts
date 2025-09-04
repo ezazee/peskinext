@@ -9,14 +9,16 @@ export const shippingVouchers: Voucher[] = [
     enabled: true,
     savingLabel: "Hemat s/d Rp10rb",
     validTo: "2025-12-31",
+    conditions: { regions: ["Jabodetabek"] },
   },
   {
     id: "ship-ongkir-25",
     title: "Gratis Ongkir s/d Rp25.000",
     subtitle: "Min. belanja Rp150.000",
     type: "shipping",
-    enabled: false, // contoh: belum memenuhi syarat
+    enabled: true,
     savingLabel: "Hemat s/d Rp25rb",
+    conditions: { minSubtotal: 150_000 },
   },
 ];
 
@@ -29,13 +31,15 @@ export const promoVouchers: Voucher[] = [
     enabled: true,
     savingLabel: "Hemat s/d Rp20rb",
     validTo: "2025-12-31",
+    conditions: { minSelectedItems: 1 },
   },
   {
     id: "promo-20",
     title: "Diskon 20% untuk pembelian paket",
-    subtitle: "Min. belanja Rp200.000",
+    subtitle: "Min. belanja Rp500.000 & khusus paket",
     type: "promo",
-    enabled: false,
+    enabled: true,
     savingLabel: "Hemat s/d Rp50rb",
+    conditions: { minSubtotal: 500_000, requirePackage: true },
   },
 ];

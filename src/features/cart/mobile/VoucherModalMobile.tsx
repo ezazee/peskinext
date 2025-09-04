@@ -2,9 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, easeInOut } from "framer-motion";
-import { XMarkIcon } from "@shared/components/icons";
 import { BrandCheckbox } from "@shared/components/ui/BrandCheckbox";
-import VoucherModalSkeleton from "./skeleton/VoucherModal.skeleton";
+import VoucherModalSkeleton from "../desktop/skeleton/VoucherModal.skeleton";
 import { useToast } from "@shared/components/ui/Toaster";
 import type {
   Voucher,
@@ -20,11 +19,10 @@ type Props = {
   promos: Array<Voucher & { _reason?: string }>;
   initialSelected?: VoucherSelection;
   loading?: boolean;
-  /** opsional: handler redeem kode (boleh dihubungkan ke API / fallback) */
   onRedeemCode?: (codeUpper: string) => Promise<RedeemResult>;
 };
 
-export default function VoucherModal({
+export default function VoucherModalMobile({
   open,
   onClose,
   onApply,
@@ -56,7 +54,7 @@ export default function VoucherModal({
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Kunci scroll + ESC + fokus awal
+  // kunci scroll dsb.
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -70,7 +68,7 @@ export default function VoucherModal({
     };
   }, [open, onClose]);
 
-  // Sinkronkan state setiap modal dibuka
+  // sync saat modal dibuka
   useEffect(() => {
     if (!open) return;
     setCode(initialSelected?.code ?? "");
@@ -79,13 +77,12 @@ export default function VoucherModal({
     setPromoId(initialSelected?.promoId ?? null);
   }, [open, initialSelected]);
 
-  async function handleRedeemClick() {
+  async function handleRedeem() {
     const raw = code.trim();
     if (!raw) return;
     const upper = raw.toUpperCase();
 
     if (!onRedeemCode) {
-      // tanpa API: langsung tandai sebagai terpasang (optimistik)
       setCodeApplied(true);
       onApply({ code: upper, shippingId, promoId });
       toast.success("Kode berhasil diterapkan.");
@@ -101,14 +98,9 @@ export default function VoucherModal({
       return;
     }
 
-    // Optional: jika backend mengembalikan voucher bertipe tertentu, tidak wajib mengubah pilihan lain
     setCodeApplied(true);
     toast.success("Kode berhasil diterapkan.");
-    onApply({
-      code: upper,
-      shippingId,
-      promoId,
-    });
+    onApply({ code: upper, shippingId, promoId });
   }
 
   function handleCancelCode() {
@@ -126,7 +118,7 @@ export default function VoucherModal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[200] flex md:items-center items-end justify-center"
+          className="fixed inset-0 z-[200] flex items-end justify-center"
           initial={{ opacity: 0 }}
           animate={{
             opacity: 1,
@@ -142,9 +134,7 @@ export default function VoucherModal({
             aria-modal="true"
             aria-label="Pakai promo"
             onClick={(e) => e.stopPropagation()}
-            className="relative z-[201] w-full md:w-[min(92vw,720px)]
-              h-[85vh] md:h-auto md:max-h-[82vh]
-              rounded-t-2xl md:rounded-2xl bg-white shadow-2xl flex flex-col"
+            className="relative z-[201] w-full h-[86vh] rounded-t-2xl bg-white shadow-2xl flex flex-col"
             initial={{ y: 28, opacity: 0 }}
             animate={{
               y: 0,
@@ -153,17 +143,14 @@ export default function VoucherModal({
             }}
             exit={{ y: 24, opacity: 0, transition: { duration: 0.16 } }}
           >
-            {/* Header */}
-            <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b bg-white/80 backdrop-blur-sm">
-              <h3 className="text-base md:text-lg font-semibold">
-                Pakai promo
-              </h3>
+            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b bg-white/80 backdrop-blur-sm">
+              <h3 className="text-base font-semibold">Pakai promo</h3>
               <button
                 type="button"
                 onClick={onClose}
                 className="text-primary text-sm font-semibold"
               >
-                Sembunyikan
+                Selesai
               </button>
             </div>
 
@@ -172,7 +159,7 @@ export default function VoucherModal({
             ) : (
               <>
                 {/* Kode promo */}
-                <div className="px-5 pt-4">
+                <div className="px-4 pt-3">
                   <div className="flex items-stretch gap-2">
                     <input
                       ref={inputRef}
@@ -194,7 +181,7 @@ export default function VoucherModal({
                         type="button"
                         className="h-11 px-4 rounded-lg bg-primary text-white text-sm font-semibold disabled:bg-gray-200 disabled:text-gray-500"
                         disabled={!code.trim() || redeemBusy}
-                        onClick={handleRedeemClick}
+                        onClick={handleRedeem}
                       >
                         {redeemBusy ? "Memakai..." : "Pakai"}
                       </motion.button>
@@ -218,7 +205,7 @@ export default function VoucherModal({
                 </div>
 
                 {/* Tabs */}
-                <div className="px-5 mt-4">
+                <div className="px-4 mt-4">
                   <div className="relative grid grid-cols-2">
                     {(["shipping", "promo"] as const).map((t) => (
                       <button
@@ -244,7 +231,7 @@ export default function VoucherModal({
                 </div>
 
                 {/* List konten */}
-                <div className="flex-1 overflow-y-auto px-5 py-4">
+                <div className="flex-1 overflow-y-auto px-4 py-3">
                   {tab === "shipping" ? (
                     <SectionList
                       title="Gratis Ongkir"
@@ -267,7 +254,7 @@ export default function VoucherModal({
                 </div>
 
                 {/* Footer */}
-                <div className="sticky bottom-0 px-5 py-4 border-t bg-white/85 backdrop-blur-sm">
+                <div className="sticky bottom-0 px-4 py-3 border-t bg-white/85 backdrop-blur-sm">
                   <div className="flex items-center gap-3">
                     <div className="text-[13px] text-gray-600">
                       <span className="font-semibold">
@@ -294,17 +281,6 @@ export default function VoucherModal({
                 </div>
               </>
             )}
-
-            {/* Tombol X (desktop) */}
-            <button
-              type="button"
-              onClick={onClose}
-              className="hidden md:grid absolute right-3 top-3 h-8 w-8 place-items-center rounded-full hover:bg-gray-100"
-              aria-label="Tutup"
-              title="Tutup"
-            >
-              <XMarkIcon />
-            </button>
           </motion.div>
         </motion.div>
       )}
@@ -312,7 +288,7 @@ export default function VoucherModal({
   );
 }
 
-/* ---------- List Voucher ---------- */
+/* ---------- List Voucher (mobile) ---------- */
 function SectionList({
   title,
   items,

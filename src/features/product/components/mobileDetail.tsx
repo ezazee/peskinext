@@ -18,7 +18,7 @@ import { CollapseCard } from "@shared/components/ui/ExpandableCard";
 import { ProductDescriptionCard } from "@shared/components/ui/ProductDescriptionCard";
 
 import { discountPercent } from "@shared/helpers/price";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { MobileDetailSkeleton } from "./skeleton/MobileDetailSkeleton";
 
 import { useShippingParamsForProduct } from "@features/shiping/hooks/useShippingParamsForProduct";
@@ -28,8 +28,8 @@ import type { ShippingDetailData } from "@shared/types/types";
 // util copy link
 import { copyProductLink } from "@shared/libs/clipboard";
 import { useProductReviews } from "../hooks/useProductReviews";
-
 import { RatingBadge } from "@features/product/review/RatingBadge";
+import { useToast } from "@shared/components/ui/Toaster";
 
 /** adaptor tipe agar tidak pakai `any` */
 type ProductForShipping = Product &
@@ -40,12 +40,13 @@ export default function MobileDetail({
   product,
   isLoading,
 }: MobileDetailProps) {
+  const toast = useToast();
+
   const [open, setOpen] = useState(false);
 
   // state
   const [variant, setVariant] = useState<Variant>(product.variants[0]);
   const [qty, setQty] = useState(1);
-  const [showToaster, setShowToaster] = useState(false);
 
   const images = product.galleryImages?.length
     ? product.galleryImages
@@ -81,14 +82,14 @@ export default function MobileDetail({
     return isFinite(min) ? { price: min, eta } : null;
   }, [quotes]);
 
-  // Share (copy link)
+  // Share (copy link) — pakai global toast
   const handleShare = async () => {
     const ok = await copyProductLink(product.slug);
-    setShowToaster(true);
     if (navigator.vibrate) navigator.vibrate(10);
-    setTimeout(() => setShowToaster(false), 2500);
-    if (!ok) {
-      // TODO: tampilkan error detail kalau mau
+    if (ok) {
+      toast.success("Link produk disalin");
+    } else {
+      toast.error("Gagal menyalin link produk");
     }
   };
 
@@ -282,21 +283,6 @@ export default function MobileDetail({
           max={maxStock}
         />
       </div>
-
-      {/* Toaster share */}
-      <AnimatePresence>
-        {showToaster && (
-          <motion.div
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 120, damping: 14 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-gray-800 text-white text-sm font-semibold py-2 px-4 rounded-full shadow-lg"
-          >
-            Link produk disalin
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

@@ -10,7 +10,6 @@ import CartMobileSkeleton from "./mobile/skeleton/CartMobile.skeleton";
 
 type Props = {
   initial: CartData;
-  /** true saat data cart masih di-fetch */
   loading?: boolean;
 };
 

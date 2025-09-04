@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@app/providers/QueryProvider";
+import { ToastProvider } from "@shared/components/ui/Toaster";
 
 const poppins = Poppins({
   weight: ["400", "700"],
@@ -93,7 +94,9 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body className={`${poppins.variable} font-sans bg-white`}>
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </QueryProvider>
       </body>
     </html>
   );

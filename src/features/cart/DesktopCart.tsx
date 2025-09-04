@@ -1,33 +1,336 @@
 "use client";
 
-import { useState } from "react";
-import { BrandCheckbox } from "@shared/components/ui/BrandCheckbox";
-import type { CartData, VoucherSelection } from "@shared/types/types";
+import { useEffect, useMemo, useState } from "react";
+import type { CartData, Voucher, VoucherSelection } from "@shared/types/types";
 import { useCartState } from "@features/cart/hooks/useCartState";
-import SummaryCard from "./desktop/SummaryCard";
 import CartItemCard from "./desktop/CartItemCard";
 import VoucherCard from "./desktop/VoucherCard";
 import VoucherModal from "./desktop/VoucherModal";
 import { promoVouchers, shippingVouchers } from "@data/voucher";
+import { useToast } from "@shared/components/ui/Toaster";
+import SummaryCard from "./desktop/SummaryCard";
+
+/* =====================================================================================
+ *  Type guards & helpers (NO any)
+ * ===================================================================================== */
+
+type MinimalProduct = {
+  name?: string;
+  isPackage?: boolean;
+  tags?: ReadonlyArray<string>;
+};
+type LineLike = { selected?: boolean; product?: MinimalProduct };
+
+function isLineLike(v: unknown): v is LineLike {
+  if (typeof v !== "object" || v === null) return false;
+  const obj = v as Record<string, unknown>;
+  const p = obj.product as unknown;
+  const okSelected =
+    obj.selected === undefined || typeof obj.selected === "boolean";
+  const okProduct =
+    p === undefined ||
+    (typeof p === "object" &&
+      p !== null &&
+      (() => {
+        const po = p as Record<string, unknown>;
+        const okName = po.name === undefined || typeof po.name === "string";
+        const okFlag =
+          po.isPackage === undefined || typeof po.isPackage === "boolean";
+        const okTags = po.tags === undefined || Array.isArray(po.tags);
+        return okName && okFlag && okTags;
+      })());
+  return okSelected && okProduct;
+}
+
+function computeHasPackage(items: ReadonlyArray<unknown>): boolean {
+  return items.some((it) => {
+    if (!isLineLike(it) || !it.selected || !it.product) return false;
+    const p = it.product;
+    return (
+      p.isPackage === true ||
+      (Array.isArray(p.tags) && p.tags.includes("package")) ||
+      (typeof p.name === "string" && /paket|bundle/i.test(p.name))
+    );
+  });
+}
+
+/* ----- Voucher evaluation (syarat) ----- */
+
+type VoucherConditions = {
+  minSubtotal?: number;
+  minSelectedItems?: number;
+  regions?: string[];
+  requirePackage?: boolean;
+  validFrom?: string;
+};
+type VoucherWithConditions = Voucher & { conditions?: VoucherConditions };
+type CartCtx = {
+  subtotal: number;
+  selectedCount: number;
+  regionTag?: string;
+  hasPackage?: boolean;
+  now?: Date;
+};
+type EvalResult = { enabled: boolean; reason?: string };
+
+function evaluateVoucher(
+  v: Omit<VoucherWithConditions, "enabled">,
+  ctx: CartCtx
+): EvalResult {
+  const c = v.conditions ?? {};
+  const nowMs = (ctx.now ?? new Date()).getTime();
+  if (v.validTo) {
+    const end = new Date(v.validTo).getTime();
+    if (Number.isFinite(end) && nowMs > end)
+      return { enabled: false, reason: "Voucher sudah tidak berlaku" };
+  }
+  if (c.validFrom) {
+    const start = new Date(c.validFrom).getTime();
+    if (Number.isFinite(start) && nowMs < start)
+      return { enabled: false, reason: "Voucher belum aktif" };
+  }
+  if (typeof c.minSubtotal === "number" && ctx.subtotal < c.minSubtotal)
+    return {
+      enabled: false,
+      reason: `Min. belanja Rp${c.minSubtotal.toLocaleString("id-ID")}`,
+    };
+  if (
+    typeof c.minSelectedItems === "number" &&
+    ctx.selectedCount < c.minSelectedItems
+  )
+    return {
+      enabled: false,
+      reason: `Pilih minimal ${c.minSelectedItems} produk`,
+    };
+  if (c.regions?.length && ctx.regionTag && !c.regions.includes(ctx.regionTag))
+    return { enabled: false, reason: `Hanya untuk ${c.regions.join(", ")}` };
+  if (c.requirePackage && !ctx.hasPackage)
+    return { enabled: false, reason: "Hanya berlaku untuk pembelian paket" };
+  return { enabled: true };
+}
+
+type DecoratedVoucher = Voucher & { _reason?: string };
+function decorateVouchers(src: Voucher[], ctx: CartCtx): DecoratedVoucher[] {
+  return src.map((v) => {
+    const res = evaluateVoucher(v, ctx);
+    return {
+      ...v,
+      enabled: res.enabled,
+      _reason: res.reason,
+      subtitle: !res.enabled && res.reason ? res.reason : v.subtitle,
+    };
+  });
+}
+
+/* ----- Redeem kode (API + fallback dummy) ----- */
+
+export type RedeemResult =
+  | { ok: true; voucher: Voucher }
+  | { ok: false; reason: string };
+
+async function redeemWithFallback(
+  codeUpper: string,
+  ctx: CartCtx
+): Promise<RedeemResult> {
+  try {
+    const res = await fetch("/api/vouchers/redeem", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        code: codeUpper,
+        ctx: {
+          subtotal: ctx.subtotal,
+          selectedCount: ctx.selectedCount,
+          regionTag: ctx.regionTag,
+          hasPackage: ctx.hasPackage,
+          now: new Date().toISOString(),
+        },
+      }),
+    });
+    if (res.ok) {
+      const json: {
+        found: boolean;
+        eligible?: boolean;
+        reason?: string;
+        voucher?: Voucher;
+      } = await res.json();
+      if (!json.found) return { ok: false, reason: "Kode tidak ditemukan" };
+      if (json.eligible && json.voucher)
+        return { ok: true, voucher: { ...json.voucher, enabled: true } };
+      return { ok: false, reason: json.reason ?? "Syarat tidak terpenuhi" };
+    }
+  } catch {
+    /* ignore -> fallback */
+  }
+
+  const DB: Record<string, Omit<Voucher, "enabled">> = {
+    RAHASIA50: {
+      id: "srv-promo-rahasia50",
+      title: "Diskon 50% Rahasia",
+      subtitle: "Maks diskon Rp100.000",
+      type: "promo",
+      savingLabel: "Hemat s/d Rp100rb",
+      code: "RAHASIA50",
+      validTo: "2025-12-31",
+      conditions: { minSelectedItems: 1, minSubtotal: 100_000 },
+    },
+    ONGKIRXTRA: {
+      id: "srv-ship-ongkirxtra",
+      title: "Gratis Ongkir XTRA",
+      subtitle: "Min. belanja Rp250.000, khusus Jabodetabek",
+      type: "shipping",
+      savingLabel: "Hemat ongkir",
+      code: "ONGKIRXTRA",
+      validTo: "2025-12-31",
+      conditions: {
+        minSubtotal: 250_000,
+        minSelectedItems: 1,
+        regions: ["Jabodetabek"],
+      },
+    },
+  };
+  const base = DB[codeUpper];
+  if (!base) return { ok: false, reason: "Kode tidak ditemukan" };
+  const { enabled, reason } = evaluateVoucher(base, ctx);
+  if (!enabled)
+    return { ok: false, reason: reason ?? "Syarat tidak terpenuhi" };
+  return { ok: true, voucher: { ...base, enabled: true } };
+}
+
+/* =====================================================================================
+ *  Component
+ * ===================================================================================== */
 
 export function CartDesktop({ initial }: { initial: CartData }) {
+  const toast = useToast();
   const { items, counts, totals, actions } = useCartState(initial);
   const hasSelection = counts.selectedCount > 0;
   const canCheckout = totals.subtotal > 0 && hasSelection;
+  const regionTag = "Jabodetabek";
+  const hasPackage = useMemo(() => computeHasPackage(items), [items]);
 
-  // voucher state
   const [openVoucher, setOpenVoucher] = useState(false);
-  const [voucherLoading] = useState(false); // ganti true saat fetch data voucher
+  const [voucherLoading, setVoucherLoading] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<VoucherSelection>({
     shippingId: null,
     promoId: null,
+    code: undefined,
   });
+  const [codeVoucher, setCodeVoucher] = useState<Voucher | null>(null);
 
-  const summaryText =
-    (selectedVoucher.code ? "Kode dipakai" : "") ||
-    (selectedVoucher.shippingId || selectedVoucher.promoId
-      ? "Promo terpilih"
-      : "");
+  const ctx = useMemo<CartCtx>(
+    () => ({
+      subtotal: totals.subtotal,
+      selectedCount: counts.selectedCount,
+      regionTag,
+      hasPackage,
+    }),
+    [totals.subtotal, counts.selectedCount, regionTag, hasPackage]
+  );
+
+  const availableShipping = useMemo(
+    () => decorateVouchers(shippingVouchers, ctx),
+    [ctx]
+  );
+  const availablePromos = useMemo(
+    () => decorateVouchers(promoVouchers, ctx),
+    [ctx]
+  );
+
+  useEffect(() => {
+    let changed = false;
+    const msgs: string[] = [];
+    let next: VoucherSelection = { ...selectedVoucher };
+
+    if (counts.selectedCount === 0) {
+      if (
+        selectedVoucher.shippingId ||
+        selectedVoucher.promoId ||
+        selectedVoucher.code
+      ) {
+        next = { shippingId: null, promoId: null, code: undefined };
+        setCodeVoucher(null);
+        changed = true;
+        msgs.push("Voucher dilepas karena tidak ada produk yang dipilih.");
+      }
+    } else {
+      if (
+        selectedVoucher.shippingId &&
+        !availableShipping.some(
+          (v) => v.id === selectedVoucher.shippingId && v.enabled
+        )
+      ) {
+        next.shippingId = null;
+        changed = true;
+        msgs.push("Voucher ongkir dihapus: syarat tidak terpenuhi.");
+      }
+      if (
+        selectedVoucher.promoId &&
+        !availablePromos.some(
+          (v) => v.id === selectedVoucher.promoId && v.enabled
+        )
+      ) {
+        next.promoId = null;
+        changed = true;
+        msgs.push("Voucher promo dihapus: syarat tidak terpenuhi.");
+      }
+      if (selectedVoucher.code && codeVoucher) {
+        const ev = evaluateVoucher(codeVoucher, ctx);
+        if (!ev.enabled) {
+          next.code = undefined;
+          setCodeVoucher(null);
+          changed = true;
+          msgs.push(
+            `Kode voucher dilepas: ${ev.reason ?? "syarat tidak terpenuhi."}`
+          );
+        }
+      }
+    }
+
+    if (changed) {
+      setSelectedVoucher(next);
+      if (msgs.length) toast.warning(msgs.join("\n"), "Voucher dilepas");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    counts.selectedCount,
+    availableShipping,
+    availablePromos,
+    ctx.hasPackage,
+    ctx.subtotal,
+  ]);
+
+  const appliedCount = useMemo(
+    () =>
+      (selectedVoucher.shippingId ? 1 : 0) +
+      (selectedVoucher.promoId ? 1 : 0) +
+      (selectedVoucher.code?.trim() ? 1 : 0),
+    [selectedVoucher]
+  );
+
+  const savingText = useMemo(() => {
+    const labels: string[] = [];
+    if (selectedVoucher.shippingId) {
+      const s = availableShipping.find(
+        (v) => v.id === selectedVoucher.shippingId
+      );
+      if (s?.savingLabel) labels.push(s.savingLabel);
+    }
+    if (selectedVoucher.promoId) {
+      const p = availablePromos.find((v) => v.id === selectedVoucher.promoId);
+      if (p?.savingLabel) labels.push(p.savingLabel);
+    }
+    if (selectedVoucher.code && codeVoucher?.savingLabel)
+      labels.push(codeVoucher.savingLabel);
+    return labels.join(" + ");
+  }, [selectedVoucher, availableShipping, availablePromos, codeVoucher]);
+
+  // helper: redeem yang mengembalikan RedeemResult (bukan boolean biasa)
+  async function redeemVoucher(codeUpper: string): Promise<RedeemResult> {
+    const res = await redeemWithFallback(codeUpper, ctx);
+    if (res.ok) setCodeVoucher(res.voucher);
+    return res;
+  }
 
   return (
     <>
@@ -41,16 +344,6 @@ export function CartDesktop({ initial }: { initial: CartData }) {
               </div>
             </nav>
           </div>
-
-          <label className="flex items-center gap-3 mb-3">
-            <BrandCheckbox
-              checked={counts.allSelected}
-              onChange={(checked) => actions.toggleSelectAll(checked)}
-              ariaLabel="Pilih semua produk"
-              size={16}
-            />
-            <span className="text-sm">Pilih semua produk</span>
-          </label>
 
           <div className="space-y-4">
             {items.map((line) => (
@@ -72,9 +365,18 @@ export function CartDesktop({ initial }: { initial: CartData }) {
               selectable={hasSelection}
               onOpen={() => setOpenVoucher(true)}
               loading={voucherLoading}
-              summaryText={summaryText || undefined}
+              appliedCount={appliedCount}
+              savingText={hasSelection ? savingText || undefined : undefined}
             />
-            <SummaryCard total={totals.subtotal} canCheckout={canCheckout} />
+            <SummaryCard
+              subtotal={totals.subtotal}
+              shippingFee={0}
+              canCheckout={canCheckout}
+              selected={selectedVoucher}
+              shipping={availableShipping}
+              promos={availablePromos}
+              redeemedVoucher={codeVoucher}
+            />
           </div>
         </aside>
       </div>
@@ -84,13 +386,35 @@ export function CartDesktop({ initial }: { initial: CartData }) {
         open={openVoucher}
         onClose={() => setOpenVoucher(false)}
         loading={voucherLoading}
-        shipping={shippingVouchers}
-        promos={promoVouchers}
+        shipping={availableShipping}
+        promos={availablePromos}
         initialSelected={selectedVoucher}
+        onRedeemCode={async (codeUpper) => {
+          const res = await redeemVoucher(codeUpper);
+          if (!res.ok)
+            toast.error(res.reason ?? "Gagal memproses voucher", "Voucher");
+          return res; // <- Kembalikan RedeemResult, sesuai tipe prop
+        }}
         onApply={(payload) => {
-          setSelectedVoucher(payload);
-          setOpenVoucher(false);
-          // TODO: terapkan diskon pada totals (next step)
+          const shipOk =
+            !payload.shippingId ||
+            availableShipping.some(
+              (v) => v.id === payload.shippingId && v.enabled
+            );
+          const promoOk =
+            !payload.promoId ||
+            availablePromos.some((v) => v.id === payload.promoId && v.enabled);
+          if (!shipOk || !promoOk) {
+            toast.error("Voucher tidak memenuhi syarat.");
+            return;
+          }
+          setVoucherLoading(true);
+          setTimeout(() => {
+            setSelectedVoucher(payload);
+            setVoucherLoading(false);
+            setOpenVoucher(false);
+            toast.success("Voucher diterapkan.");
+          }, 250);
         }}
       />
     </>

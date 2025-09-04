@@ -1,37 +1,25 @@
 "use client";
-
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 
-export default function CartItemSkeleton() {
+export default function CartItemCardSkeleton() {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white px-4 py-4">
-      <div className="flex gap-3">
-        {/* checkbox */}
-        <Skeleton.Block width={16} height={16} radius={4} className="mt-2" />
-
-        {/* image */}
-        <Skeleton.Block width={80} height={80} radius={8} />
-
-        {/* detail */}
-        <div className="flex-1 min-w-0">
-          <Skeleton.Text lines={2} lineHeight={14} />
-          <Skeleton.Text
-            className="mt-2"
-            lines={1}
-            lineHeight={12}
-            widths={["40%"]}
-          />
-          <Skeleton.Block className="mt-2" width={"30%"} height={18} />
+    <div className="rounded-2xl ring-1 ring-gray-200 bg-white p-4 flex items-start gap-4">
+      <Skeleton.Block width={88} height={88} radius={12} />
+      <div className="flex-1 min-w-0">
+        <Skeleton.Text lines={1} widths={["70%"]} />
+        <Skeleton.Text className="mt-2" lines={1} lineHeight={14} widths={["35%"]} />
+        <div className="mt-2 flex items-center gap-2">
+          <Skeleton.Block width={64} height={16} radius={6} />
+          <Skeleton.Block width={36} height={16} radius={6} />
         </div>
-
-        {/* actions */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Skeleton.Circle size={32} />
-          <div className="flex items-center gap-1">
-            <Skeleton.Block width={36} height={32} radius={6} />
-            <Skeleton.Block width={44} height={32} radius={6} />
-            <Skeleton.Block width={36} height={32} radius={6} />
-          </div>
+        <Skeleton.Block className="mt-2" width={120} height={18} radius={6} />
+      </div>
+      <div className="ml-auto flex items-center gap-3">
+        <Skeleton.Circle size={20} />
+        <div className="grid grid-cols-3 items-center gap-2">
+          <Skeleton.Block width={32} height={32} radius={10} />
+          <Skeleton.Block width={42} height={32} radius={10} />
+          <Skeleton.Block width={32} height={32} radius={10} />
         </div>
       </div>
     </div>
