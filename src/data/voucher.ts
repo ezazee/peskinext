@@ -1,5 +1,7 @@
+// File: src/data/voucher.ts
 import type { Voucher } from "@shared/types/types";
 
+/* ========================== SHIPPING VOUCHERS ========================== */
 export const shippingVouchers: Voucher[] = [
   {
     id: "ship-ongkir-10",
@@ -12,6 +14,24 @@ export const shippingVouchers: Voucher[] = [
     conditions: { regions: ["Jabodetabek"] },
   },
   {
+    id: "ship-ongkir-12",
+    title: "Gratis Ongkir s/d Rp12.000",
+    subtitle: "Tanpa minimum belanja (seluruh Indonesia)",
+    type: "shipping",
+    enabled: true,
+    savingLabel: "Hemat s/d Rp12rb",
+    validTo: "2025-12-31",
+  },
+  {
+    id: "ship-ongkir-15",
+    title: "Gratis Ongkir s/d Rp15.000",
+    subtitle: "Tanpa minimum belanja",
+    type: "shipping",
+    enabled: true,
+    savingLabel: "Hemat s/d Rp15rb",
+    validTo: "2025-12-31",
+  },
+  {
     id: "ship-ongkir-25",
     title: "Gratis Ongkir s/d Rp25.000",
     subtitle: "Min. belanja Rp150.000",
@@ -20,13 +40,56 @@ export const shippingVouchers: Voucher[] = [
     savingLabel: "Hemat s/d Rp25rb",
     conditions: { minSubtotal: 150_000 },
   },
+  {
+    id: "ship-ongkir-35",
+    title: "Gratis Ongkir s/d Rp35.000",
+    subtitle: "Tanpa minimum belanja, Jawa–Bali",
+    type: "shipping",
+    enabled: true,
+    savingLabel: "Hemat s/d Rp35rb",
+    validTo: "2025-12-31",
+    conditions: { regions: ["Jawa-Bali"] },
+  },
+  {
+    id: "ship-ongkir-100",
+    title: "Gratis Ongkir s/d Rp100.000",
+    subtitle: "Tanpa minimum belanja, Luar Jawa",
+    type: "shipping",
+    enabled: true,
+    savingLabel: "Hemat s/d Rp100rb",
+    validTo: "2025-12-31",
+    conditions: { regions: ["Luar Jawa"] },
+  },
 ];
 
+/* ============================ PROMO VOUCHERS =========================== */
+/* Catatan:
+   - Semua diskon persen akan dihitung dari subtotal yang dipilih.
+   - Batas maksimum (cap) dibaca dari teks 'Maks diskon Rp…' pada subtitle/savingLabel.
+*/
 export const promoVouchers: Voucher[] = [
+  {
+    id: "promo-05",
+    title: "Diskon 5% semua produk",
+    subtitle: "Maks diskon Rp10.000 • Tanpa minimum belanja",
+    type: "promo",
+    enabled: true,
+    savingLabel: "Hemat s/d Rp10rb",
+    validTo: "2025-12-31",
+  },
+  {
+    id: "promo-08",
+    title: "Diskon 8% semua produk",
+    subtitle: "Maks diskon Rp15.000 • Tanpa minimum belanja",
+    type: "promo",
+    enabled: false,
+    savingLabel: "Hemat s/d Rp15rb",
+    validTo: "2025-12-31",
+  },
   {
     id: "promo-10",
     title: "Diskon 10% produk skincare",
-    subtitle: "Maks diskon Rp20.000",
+    subtitle: "Maks diskon Rp20.000 • Tanpa minimum belanja",
     type: "promo",
     enabled: true,
     savingLabel: "Hemat s/d Rp20rb",
@@ -34,12 +97,50 @@ export const promoVouchers: Voucher[] = [
     conditions: { minSelectedItems: 1 },
   },
   {
-    id: "promo-20",
-    title: "Diskon 20% untuk pembelian paket",
-    subtitle: "Min. belanja Rp500.000 & khusus paket",
+    id: "promo-12",
+    title: "Diskon 12% semua produk",
+    subtitle: "Maks diskon Rp30.000 • Tanpa minimum belanja",
     type: "promo",
     enabled: true,
-    savingLabel: "Hemat s/d Rp50rb",
-    conditions: { minSubtotal: 500_000, requirePackage: true },
+    savingLabel: "Hemat s/d Rp30rb",
+    validTo: "2025-12-31",
+  },
+  {
+    id: "promo-15",
+    title: "Diskon 15% khusus member",
+    subtitle: "Maks diskon Rp40.000 • Tanpa minimum belanja",
+    type: "promo",
+    enabled: true,
+    savingLabel: "Hemat s/d Rp40rb",
+    validTo: "2025-12-31",
+    conditions: { minSelectedItems: 1 },
+  },
+  {
+    id: "promo-18-weekend",
+    title: "Diskon 18% Weekend Sale",
+    subtitle: "Maks diskon Rp60.000 • Tanpa minimum belanja",
+    type: "promo",
+    enabled: true,
+    savingLabel: "Hemat s/d Rp60rb",
+    validTo: "2025-12-31",
+  },
+  {
+    id: "promo-25-paket",
+    title: "Diskon 25% untuk pembelian paket",
+    subtitle: "Maks diskon Rp120.000 • Tanpa minimum belanja",
+    type: "promo",
+    enabled: true,
+    savingLabel: "Hemat s/d Rp120rb",
+    validTo: "2025-12-31",
+    conditions: { requirePackage: true },
+  },
+  {
+    id: "promo-30-app",
+    title: "Diskon 30% khusus pembelian via aplikasi",
+    subtitle: "Maks diskon Rp150.000 • Tanpa minimum belanja",
+    type: "promo",
+    enabled: true,
+    savingLabel: "Hemat s/d Rp150rb",
+    validTo: "2025-12-31",
   },
 ];

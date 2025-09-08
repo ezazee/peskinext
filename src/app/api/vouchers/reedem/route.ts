@@ -1,5 +1,4 @@
-import type { Voucher, VoucherConditions } from "@shared/types/types"; // ganti import
-
+import type { Voucher, VoucherConditions } from "@shared/types/types";
 import { NextResponse } from "next/server";
 
 export type CartCtxDTO = {
@@ -18,7 +17,7 @@ export type RedeemResponseDTO = {
   voucher?: Voucher; // enabled sudah disesuaikan
 };
 
-// mock DB tetap sama…
+// Mock DB contoh (boleh tambah kode lain di sini)
 const mockCodeDB: Record<string, Omit<Voucher, "enabled">> = {
   RAHASIA50: {
     id: "srv-promo-rahasia50",
@@ -49,6 +48,7 @@ const mockCodeDB: Record<string, Omit<Voucher, "enabled">> = {
 function evaluateVoucher(v: Omit<Voucher, "enabled">, ctx: CartCtxDTO) {
   const c: VoucherConditions = v.conditions ?? {};
   const nowMs = (ctx.now ? new Date(ctx.now) : new Date()).getTime();
+
   if (v.validTo) {
     const end = new Date(v.validTo).getTime();
     if (Number.isFinite(end) && nowMs > end)
@@ -64,6 +64,7 @@ function evaluateVoucher(v: Omit<Voucher, "enabled">, ctx: CartCtxDTO) {
       eligible: false,
       reason: `Min. belanja Rp${c.minSubtotal.toLocaleString("id-ID")}`,
     };
+
   if (
     typeof c.minSelectedItems === "number" &&
     ctx.selectedCount < c.minSelectedItems
@@ -72,10 +73,13 @@ function evaluateVoucher(v: Omit<Voucher, "enabled">, ctx: CartCtxDTO) {
       eligible: false,
       reason: `Pilih minimal ${c.minSelectedItems} produk`,
     };
+
   if (c.regions?.length && ctx.regionTag && !c.regions.includes(ctx.regionTag))
     return { eligible: false, reason: `Hanya untuk ${c.regions.join(", ")}` };
+
   if (c.requirePackage && !ctx.hasPackage)
     return { eligible: false, reason: "Hanya berlaku untuk pembelian paket" };
+
   return { eligible: true };
 }
 
@@ -89,12 +93,16 @@ export async function POST(req: Request) {
         reason: "Kode tidak valid.",
       });
     }
+
     const base = mockCodeDB[code];
     if (!base) {
+      // Kode tidak terdaftar di list → found:false (biar UI bisa tampilkan pesan “kode tidak ditemukan”)
       return NextResponse.json<RedeemResponseDTO>({ found: false });
     }
+
     const { eligible, reason } = evaluateVoucher(base, body.ctx);
     const voucher: Voucher = { ...base, enabled: eligible };
+
     return NextResponse.json<RedeemResponseDTO>({
       found: true,
       eligible,
@@ -102,7 +110,7 @@ export async function POST(req: Request) {
       voucher,
     });
   } catch {
-    // tetap balas JSON agar fetch tidak melempar network error
+    // Tetap balas JSON supaya fetch() tidak melempar network error saat dev
     return NextResponse.json<RedeemResponseDTO>(
       { found: false, reason: "Server error" },
       { status: 200 }

@@ -1,63 +1,94 @@
-// File: src/features/cart/desktop/SummaryCard.tsx
 "use client";
 
+import { useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { formatRupiah } from "@shared/libs/format";
 import type { Voucher, VoucherSelection } from "@shared/types/types";
 
-/* ---------- helper hitung diskon ---------- */
-function promoDiscountFromId(id: string, subtotal: number): number {
-  switch (id) {
-    case "promo-10": return Math.min(Math.round(subtotal * 0.1), 20_000);
-    case "promo-20": return Math.min(Math.round(subtotal * 0.2), 50_000);
-    case "srv-promo-rahasia50": return Math.min(Math.round(subtotal * 0.5), 100_000);
-    default: return 0;
+/* ================= Parser & util ================= */
+
+function parseRupiahFlexible(text?: string): number {
+  if (!text) return 0;
+  const s = text.replace(/\s+/g, " ").trim().toLowerCase();
+
+  let m = s.match(/(?:rp)?\s*([\d.]+)\s*(rb|ribu|k|jt|juta)?/i);
+  if (m) {
+    const base = parseInt(m[1].replace(/\./g, ""), 10) || 0;
+    const suf = (m[2] || "").toLowerCase();
+    if (suf === "rb" || suf === "ribu" || suf === "k") return base * 1_000;
+    if (suf === "jt" || suf === "juta") return base * 1_000_000;
+    return base;
   }
-}
-function shippingDiscountFromId(id: string, shippingFee: number): number {
-  switch (id) {
-    case "ship-ongkir-10": return Math.min(10_000, shippingFee);
-    case "ship-ongkir-25": return Math.min(25_000, shippingFee);
-    case "srv-ship-ongkirxtra": return Math.min(25_000, shippingFee);
-    default: return 0;
+  m = s.match(/(\d+)\s*(rb|ribu|k|jt|juta)/i);
+  if (m) {
+    const n = parseInt(m[1], 10) || 0;
+    const suf = m[2].toLowerCase();
+    return suf === "rb" || suf === "ribu" || suf === "k"
+      ? n * 1_000
+      : n * 1_000_000;
   }
-}
-function guessCap(label?: string): number {
-  if (!label) return 0;
-  const m = label.match(/Rp\s?([\d.]+)/i);
-  if (m?.[1]) return Number(m[1].replace(/\./g, "")) || 0;
-  const m2 = label.match(/Rp\s?(\d+)\s?rb/i);
-  if (m2?.[1]) return (Number(m2[1]) || 0) * 1_000;
   return 0;
 }
-function promoDiscFallback(v: Voucher | undefined, subtotal: number) {
-  if (!v) return 0;
-  return Math.min(Math.round(subtotal * 0.1), guessCap(v.savingLabel));
-}
-function shipDiscFallback(v: Voucher | undefined, fee: number) {
-  if (!v) return 0;
-  return Math.min(guessCap(v.savingLabel), fee);
+
+function parsePercent(text?: string): number | null {
+  if (!text) return null;
+  const m = text.match(/(\d{1,3})\s*%/);
+  return m ? Math.min(100, Math.max(0, parseInt(m[1], 10))) : null;
 }
 
-/* ---------- props ---------- */
+const looksLikeDiscount = (t?: string) =>
+  !!t && /(hemat|potong|s\/d|sd|gratis|ongkir|diskon)/i.test(t);
+
+function computeShippingDiscountFrom(v?: Voucher | null): number {
+  if (!v) return 0;
+  const tryTexts: (string | undefined)[] = [
+    v.savingLabel,
+    v.title,
+    looksLikeDiscount(v.subtitle) ? v.subtitle : undefined,
+  ];
+  for (const t of tryTexts) {
+    const n = parseRupiahFlexible(t);
+    if (n > 0) return n;
+  }
+  return 0;
+}
+
+function computePromoDiscountFrom(
+  v: Voucher | null | undefined,
+  subtotal: number
+): number {
+  if (!v) return 0;
+  const pct =
+    parsePercent(v.title) ??
+    parsePercent(v.subtitle) ??
+    parsePercent(v.savingLabel) ??
+    0;
+  const cap =
+    parseRupiahFlexible(v.subtitle) ||
+    parseRupiahFlexible(v.savingLabel) ||
+    Number.POSITIVE_INFINITY;
+  if (pct <= 0) return 0;
+  const raw = Math.floor((subtotal * pct) / 100);
+  return Math.max(0, Math.min(raw, cap, subtotal));
+}
+
+/* ================= UI ================= */
+
 type Props = {
   subtotal: number;
-  shippingFee?: number;
   canCheckout: boolean;
-
+  shippingFee?: number;
   selected: VoucherSelection;
   shipping: Voucher[];
   promos: Voucher[];
-
-  /** <— opsional. Jika ada, dipakai utk hitung diskon dari kode redeem */
-  redeemedVoucher?: Voucher | null;
+  redeemedVoucher: Voucher | null; // kode voucher hasil redeem (bisa tidak ada di list)
 };
 
 export default function SummaryCard({
   subtotal,
-  shippingFee = 0,
   canCheckout,
+  shippingFee = 0,
   selected,
   shipping,
   promos,
@@ -66,81 +97,122 @@ export default function SummaryCard({
   const router = useRouter();
   const disabled = !canCheckout;
 
-  const selectedShipping = selected.shippingId
-    ? shipping.find((v) => v.id === selected.shippingId)
-    : undefined;
-  const selectedPromo = selected.promoId
-    ? promos.find((v) => v.id === selected.promoId)
-    : undefined;
+  const { shippingDiscount, promoDiscountList, promoDiscountCode, grandTotal } =
+    useMemo(() => {
+      /* --- SHIPPING --- (list atau kode) */
+      let ship: Voucher | null = null;
+      if (selected.shippingId) {
+        ship =
+          shipping.find((x) => x.id === selected.shippingId) ??
+          (redeemedVoucher?.type === "shipping" &&
+          redeemedVoucher.id === selected.shippingId
+            ? redeemedVoucher
+            : null);
+      }
+      if (!ship && selected.code && redeemedVoucher?.type === "shipping") {
+        // user hanya memasukkan kode ongkir
+        ship = redeemedVoucher;
+      }
+      const shipDiscRaw = computeShippingDiscountFrom(ship);
+      // kalau ingin hanya mengurangi biaya ongkir, batasi dengan shippingFee:
+      // const shippingDiscount = Math.min(shipDiscRaw, shippingFee);
+      const shippingDiscount = shipDiscRaw;
 
-  const discPromoFromList =
-    selectedPromo?.id
-      ? promoDiscountFromId(selectedPromo.id, subtotal) ||
-        promoDiscFallback(selectedPromo, subtotal)
-      : 0;
+      /* --- PROMO LIST --- */
+      const promoFromList = selected.promoId
+        ? promos.find((x) => x.id === selected.promoId) ?? null
+        : null;
+      const promoDiscountList = computePromoDiscountFrom(
+        promoFromList,
+        subtotal
+      );
 
-  const discShipFromList =
-    selectedShipping?.id
-      ? shippingDiscountFromId(selectedShipping.id, shippingFee) ||
-        shipDiscFallback(selectedShipping, shippingFee)
-      : 0;
+      /* --- PROMO KODE (TIDAK ADA DI LIST) --- */
+      const codeIsPromoNotInList =
+        !!selected.code &&
+        redeemedVoucher?.type === "promo" &&
+        !promos.some((p) => p.id === redeemedVoucher.id);
 
-  let discPromoFromCode = 0;
-  let discShipFromCode = 0;
-  if (selected.code && redeemedVoucher) {
-    if (redeemedVoucher.type === "promo") {
-      discPromoFromCode =
-        promoDiscountFromId(redeemedVoucher.id, subtotal) ||
-        promoDiscFallback(redeemedVoucher, subtotal);
-    } else if (redeemedVoucher.type === "shipping") {
-      discShipFromCode =
-        shippingDiscountFromId(redeemedVoucher.id, shippingFee) ||
-        shipDiscFallback(redeemedVoucher, shippingFee);
-    }
-  }
+      const promoDiscountCode = codeIsPromoNotInList
+        ? computePromoDiscountFrom(redeemedVoucher, subtotal)
+        : 0;
 
-  const totalPromoDisc = discPromoFromList + discPromoFromCode;
-  const totalShipDisc = Math.min(discShipFromList + discShipFromCode, shippingFee);
-  const netShipping = Math.max(0, shippingFee - totalShipDisc);
-  const grandTotal = Math.max(0, subtotal - totalPromoDisc + netShipping);
-  const savedTotal = totalPromoDisc + totalShipDisc;
+      /* --- GRAND TOTAL --- */
+      const totalDisc = Math.min(
+        subtotal,
+        Math.max(0, shippingDiscount) +
+          Math.max(0, promoDiscountList) +
+          Math.max(0, promoDiscountCode)
+      );
+      const grandTotal = Math.max(0, subtotal - totalDisc);
 
-  const logos = [
+      return {
+        shippingDiscount,
+        promoDiscountList,
+        promoDiscountCode,
+        grandTotal,
+      };
+    }, [subtotal, shippingFee, selected, shipping, promos, redeemedVoucher]);
+
+  const logos: ReadonlyArray<{
+    src: string;
+    alt: string;
+    w: number;
+    h: number;
+  }> = [
     { src: "/images/paymentlogo/bca.svg", alt: "BCA", w: 62, h: 22 },
     { src: "/images/paymentlogo/mandiri.png", alt: "Mandiri", w: 70, h: 20 },
     { src: "/images/paymentlogo/kredivo.png", alt: "Kredivo", w: 72, h: 22 },
     { src: "/images/paymentlogo/ovo.png", alt: "OVO", w: 44, h: 22 },
     { src: "/images/paymentlogo/qris.png", alt: "QRIS", w: 56, h: 22 },
-  ] as const;
+  ];
+
+  const totalSaving = shippingDiscount + promoDiscountList + promoDiscountCode;
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4">
       <h3 className="font-semibold mb-2">Detail pesanan</h3>
 
-      <Row label="Subtotal" value={formatRupiah(subtotal)} />
-      {totalPromoDisc > 0 && (
-        <Row label="Diskon promo" value={`- ${formatRupiah(totalPromoDisc)}`} dim />
+      <div className="flex justify-between text-sm text-gray-600">
+        <span>Subtotal</span>
+        <span className="font-semibold text-gray-900">
+          {formatRupiah(subtotal)}
+        </span>
+      </div>
+
+      {shippingDiscount > 0 && (
+        <div className="mt-1 flex justify-between text-sm text-emerald-700">
+          <span>Diskon ongkir</span>
+          <span>- {formatRupiah(shippingDiscount)}</span>
+        </div>
       )}
 
-      {shippingFee > 0 && (
-        <>
-          <Row label="Ongkir" value={formatRupiah(shippingFee)} />
-          {totalShipDisc > 0 && (
-            <Row label="Diskon ongkir" value={`- ${formatRupiah(totalShipDisc)}`} dim />
-          )}
-        </>
+      {promoDiscountList > 0 && (
+        <div className="mt-1 flex justify-between text-sm text-emerald-700">
+          <span>Diskon promo</span>
+          <span>- {formatRupiah(promoDiscountList)}</span>
+        </div>
       )}
 
-      <div className="h-px my-2 bg-gray-100" />
-      <Row
-        label={<span className="font-semibold">Total</span>}
-        value={<span className="font-semibold">{formatRupiah(grandTotal)}</span>}
-      />
+      {/* >>> Tambahan: Diskon KODE (hanya bila kodenya tidak ada di list) */}
+      {promoDiscountCode > 0 && (
+        <div className="mt-1 flex justify-between text-sm text-emerald-700">
+          <span>Diskon kode</span>
+          <span>- {formatRupiah(promoDiscountCode)}</span>
+        </div>
+      )}
 
-      {savedTotal > 0 && (
-        <p className="mt-1 text-xs text-emerald-700">
-          Kamu hemat <b>{formatRupiah(savedTotal)}</b>
-        </p>
+      <div className="mt-2 h-px bg-gray-200" />
+
+      <div className="mt-2 flex justify-between text-sm text-gray-900">
+        <span>Total</span>
+        <span className="font-bold">{formatRupiah(grandTotal)}</span>
+      </div>
+
+      {totalSaving > 0 && (
+        <div className="mt-1 text-[12px] text-emerald-700">
+          Kamu hemat {formatRupiah(totalSaving)}
+        </div>
       )}
 
       <button
@@ -176,23 +248,6 @@ export default function SummaryCard({
           ))}
         </ul>
       </div>
-    </div>
-  );
-}
-
-function Row({
-  label,
-  value,
-  dim,
-}: {
-  label: React.ReactNode;
-  value: React.ReactNode;
-  dim?: boolean;
-}) {
-  return (
-    <div className={`flex justify-between text-sm ${dim ? "text-emerald-700" : "text-gray-600"}`}>
-      <span>{label}</span>
-      <span className={dim ? "font-medium" : "font-semibold text-gray-900"}>{value}</span>
     </div>
   );
 }

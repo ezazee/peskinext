@@ -1,3 +1,4 @@
+// File: src/features/cart/MobileCart.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -10,18 +11,23 @@ import { ProductGrid } from "@shared/components/layout/header/mobile/product/Pro
 import { productsData } from "@data/products";
 import { promoVouchers, shippingVouchers } from "@data/voucher";
 import { useToast } from "@shared/components/ui/Toaster";
+import { parseRupiahFlexible } from "@shared/helpers/parseRupiahFlexible";
 
-/* ====================== helper (tanpa any) ====================== */
+/* =========================================================================
+ * Utilities: item markers (tanpa any)
+ * ========================================================================= */
 type MinimalProduct = {
   name?: string;
   isPackage?: boolean;
   tags?: ReadonlyArray<string>;
 };
 type LineLike = { selected?: boolean; product?: MinimalProduct };
+
 function isLineLike(v: unknown): v is LineLike {
   if (typeof v !== "object" || v === null) return false;
   const o = v as Record<string, unknown>;
   const p = o.product as unknown;
+
   const productOk =
     p === undefined ||
     (typeof p === "object" &&
@@ -34,10 +40,12 @@ function isLineLike(v: unknown): v is LineLike {
         const okTags = po.tags === undefined || Array.isArray(po.tags);
         return okName && okFlag && okTags;
       })());
+
   return (
     (o.selected === undefined || typeof o.selected === "boolean") && productOk
   );
 }
+
 function computeHasPackage(items: ReadonlyArray<unknown>): boolean {
   return items.some((it) => {
     if (!isLineLike(it) || !it.selected || !it.product) return false;
@@ -50,7 +58,9 @@ function computeHasPackage(items: ReadonlyArray<unknown>): boolean {
   });
 }
 
-/* -------- syarat voucher -------- */
+/* =========================================================================
+ * Voucher rules & decorators
+ * ========================================================================= */
 type VoucherConditions = {
   minSubtotal?: number;
   minSelectedItems?: number;
@@ -74,6 +84,7 @@ function evaluateVoucher(
 ): EvalResult {
   const c = v.conditions ?? {};
   const nowMs = (ctx.now ?? new Date()).getTime();
+
   if (v.validTo) {
     const end = new Date(v.validTo).getTime();
     if (Number.isFinite(end) && nowMs > end)
@@ -84,27 +95,35 @@ function evaluateVoucher(
     if (Number.isFinite(start) && nowMs < start)
       return { enabled: false, reason: "Voucher belum aktif" };
   }
-  if (typeof c.minSubtotal === "number" && ctx.subtotal < c.minSubtotal)
+  if (typeof c.minSubtotal === "number" && ctx.subtotal < c.minSubtotal) {
     return {
       enabled: false,
       reason: `Min. belanja Rp${c.minSubtotal.toLocaleString("id-ID")}`,
     };
+  }
   if (
     typeof c.minSelectedItems === "number" &&
     ctx.selectedCount < c.minSelectedItems
-  )
+  ) {
     return {
       enabled: false,
       reason: `Pilih minimal ${c.minSelectedItems} produk`,
     };
-  if (c.regions?.length && ctx.regionTag && !c.regions.includes(ctx.regionTag))
+  }
+  if (
+    c.regions?.length &&
+    ctx.regionTag &&
+    !c.regions.includes(ctx.regionTag)
+  ) {
     return { enabled: false, reason: `Hanya untuk ${c.regions.join(", ")}` };
+  }
   if (c.requirePackage && !ctx.hasPackage)
     return { enabled: false, reason: "Hanya berlaku untuk pembelian paket" };
   return { enabled: true };
 }
 
 type DecoratedVoucher = Voucher & { _reason?: string };
+
 function decorateVouchers(
   src: Voucher[],
   ctx: {
@@ -125,17 +144,9 @@ function decorateVouchers(
   });
 }
 
-/* -------- parser & kalkulasi potongan -------- */
-function parseRupiahFlexible(text?: string): number {
-  if (!text) return 0;
-  const m1 = text.match(/Rp\s*([\d.]+)/i);
-  if (m1) return parseInt(m1[1].replace(/\./g, ""), 10) || 0;
-  const m2 = text.match(/(\d+)\s*rb/i);
-  if (m2) return (parseInt(m2[1], 10) || 0) * 1_000;
-  const m3 = text.match(/(\d+)\s*jt/i);
-  if (m3) return (parseInt(m3[1], 10) || 0) * 1_000_000;
-  return 0;
-}
+/* =========================================================================
+ * Parsing & discount calculation
+ * ========================================================================= */
 function parsePercent(text?: string): number | null {
   if (!text) return null;
   const m = text.match(/(\d{1,3})\s*%/);
@@ -144,17 +155,22 @@ function parsePercent(text?: string): number | null {
 function pickFirst<T>(...vals: Array<T | null | undefined>): T | undefined {
   return vals.find((v) => v !== null && v !== undefined) as T | undefined;
 }
+const looksLikeDiscount = (t?: string) =>
+  !!t && /(hemat|potong|s\/d|sd|gratis|ongkir|diskon)/i.test(t);
 
+/** Estimasi potongan ongkir (untuk display) */
 function computeShippingDiscountFrom(v: Voucher | null | undefined): number {
   if (!v) return 0;
   const cap =
     pickFirst(
+      parseRupiahFlexible(v.savingLabel),
       parseRupiahFlexible(v.title),
-      parseRupiahFlexible(v.subtitle),
-      parseRupiahFlexible(v.savingLabel)
+      looksLikeDiscount(v.subtitle) ? parseRupiahFlexible(v.subtitle) : 0
     ) ?? 0;
   return Math.max(0, cap);
 }
+
+/** Diskon promo (produk) — inilah yang MENGURANGI TOTAL */
 function computePromoDiscountFrom(
   v: Voucher | null | undefined,
   subtotal: number
@@ -176,6 +192,7 @@ function computePromoDiscountFrom(
   return Math.max(0, Math.min(raw, cap, subtotal));
 }
 
+/* Helpers memilih voucher aktif */
 function resolveSelectedVoucherById(
   id: string | null | undefined,
   lists: ReadonlyArray<Voucher>,
@@ -188,30 +205,9 @@ function resolveSelectedVoucherById(
   return null;
 }
 
-/* NEW: bila id kosong tapi ada code voucher, pakai codeVoucher sesuai tipenya */
-function pickActiveVouchers(
-  selected: VoucherSelection,
-  codeVoucher: Voucher | null,
-  shippingList: ReadonlyArray<Voucher>,
-  promoList: ReadonlyArray<Voucher>
-) {
-  let ship: Voucher | null = null;
-  let pro: Voucher | null = null;
-
-  if (selected.shippingId) {
-    ship = resolveSelectedVoucherById(selected.shippingId, shippingList, codeVoucher);
-  }
-  if (selected.promoId) {
-    pro = resolveSelectedVoucherById(selected.promoId, promoList, codeVoucher);
-  }
-
-  if (!ship && selected.code && codeVoucher?.type === "shipping") ship = codeVoucher;
-  if (!pro && selected.code && codeVoucher?.type === "promo") pro = codeVoucher;
-
-  return { ship, pro };
-}
-
-/* -------- redeem kode (API + fallback) -------- */
+/* =========================================================================
+ * Redeem kode (API + fallback lokal)
+ * ========================================================================= */
 type RedeemResult =
   | { ok: true; voucher: Voucher }
   | { ok: false; reason: string };
@@ -248,7 +244,7 @@ async function redeemWithFallback(
       return { ok: false, reason: json.reason ?? "Syarat tidak terpenuhi" };
     }
   } catch {
-    /* ignore */
+    /* offline/dev fallback */
   }
 
   const DB: Record<string, Omit<Voucher, "enabled">> = {
@@ -266,11 +262,14 @@ async function redeemWithFallback(
   const base = DB[codeUpper];
   if (!base) return { ok: false, reason: "Kode tidak ditemukan" };
   const { enabled, reason } = evaluateVoucher(base, ctx);
-  if (!enabled) return { ok: false, reason: reason ?? "Syarat tidak terpenuhi" };
+  if (!enabled)
+    return { ok: false, reason: reason ?? "Syarat tidak terpenuhi" };
   return { ok: true, voucher: { ...base, enabled: true } };
 }
 
-/* ====================== UI: banner ====================== */
+/* =========================================================================
+ * UI: Banners
+ * ========================================================================= */
 function InfoBanner() {
   return (
     <div className="rounded-xl bg-white border border-gray-200 p-3 flex items-start gap-3">
@@ -304,7 +303,9 @@ function AppliedBanner({ savingText }: { savingText?: string }) {
   );
 }
 
-/* ====================== Component ====================== */
+/* =========================================================================
+ * Component
+ * ========================================================================= */
 export function CartMobile({ initial }: { initial: CartData }) {
   const toast = useToast();
   const { items, counts, totals, actions } = useCartState(initial);
@@ -343,7 +344,7 @@ export function CartMobile({ initial }: { initial: CartData }) {
     [ctx]
   );
 
-  // AUTO RESET + TOAST (aman)
+  /* ---------------- Auto reset voucher saat syarat tidak terpenuhi ---------------- */
   useEffect(() => {
     const messages: string[] = [];
     let changed = false;
@@ -402,6 +403,7 @@ export function CartMobile({ initial }: { initial: CartData }) {
         }
       }
     }
+
     if (changed) {
       setSelectedVoucher(next);
       if (messages.length)
@@ -416,7 +418,7 @@ export function CartMobile({ initial }: { initial: CartData }) {
     ctx.subtotal,
   ]);
 
-  // ringkasan voucher
+  /* ---------------- Ringkasan voucher & total ---------------- */
   const appliedCount = useMemo(
     () =>
       (selectedVoucher.shippingId ? 1 : 0) +
@@ -424,52 +426,112 @@ export function CartMobile({ initial }: { initial: CartData }) {
       (selectedVoucher.code?.trim() ? 1 : 0),
     [selectedVoucher]
   );
+
   const savingText = useMemo(() => {
     const labels: string[] = [];
-    const { ship, pro } = pickActiveVouchers(
-      selectedVoucher,
-      codeVoucher,
-      availableShipping,
-      availablePromos
-    );
-    if (ship?.savingLabel) labels.push(ship.savingLabel);
-    if (pro?.savingLabel) labels.push(pro.savingLabel);
+
+    // shipping aktif (list / kode)
+    let activeShip: Voucher | null = null;
+    if (selectedVoucher.shippingId) {
+      activeShip = resolveSelectedVoucherById(
+        selectedVoucher.shippingId,
+        availableShipping,
+        codeVoucher
+      );
+    } else if (selectedVoucher.code && codeVoucher?.type === "shipping") {
+      activeShip = codeVoucher;
+    }
+    if (activeShip?.savingLabel) labels.push(activeShip.savingLabel);
+
+    // promo aktif list
+    const activePromo = selectedVoucher.promoId
+      ? resolveSelectedVoucherById(
+          selectedVoucher.promoId,
+          availablePromos,
+          codeVoucher
+        )
+      : null;
+    if (activePromo?.savingLabel) labels.push(activePromo.savingLabel);
+
+    // promo dari kode (bila ada)
+    if (
+      selectedVoucher.code &&
+      codeVoucher?.type === "promo" &&
+      codeVoucher.savingLabel
+    ) {
+      labels.push(codeVoucher.savingLabel);
+    }
     return labels.join(" + ");
   }, [selectedVoucher, availableShipping, availablePromos, codeVoucher]);
 
-  /* ========= NEW: kalkulasi final total dengan fallback ke codeVoucher ========= */
-  const { promoDiscount, shippingDiscount, grandTotal } = useMemo(() => {
-    const { ship, pro } = pickActiveVouchers(
-      selectedVoucher,
-      codeVoucher,
+  /* ========= TOTAL: shipping + promo(list) + promo(code-not-in-list) ========= */
+  const { shippingDiscount, promoDiscountList, promoDiscountCode, grandTotal } =
+    useMemo(() => {
+      // --- SHIPPING aktif
+      let activeShip: Voucher | null = null;
+      if (selectedVoucher.shippingId) {
+        activeShip = resolveSelectedVoucherById(
+          selectedVoucher.shippingId,
+          availableShipping,
+          codeVoucher
+        );
+      } else if (selectedVoucher.code && codeVoucher?.type === "shipping") {
+        activeShip = codeVoucher;
+      }
+      const shipDisc = computeShippingDiscountFrom(activeShip);
+
+      // --- PROMO dari LIST
+      const listPromo = selectedVoucher.promoId
+        ? resolveSelectedVoucherById(
+            selectedVoucher.promoId,
+            availablePromos,
+            codeVoucher
+          )
+        : null;
+      const proDiscList = computePromoDiscountFrom(listPromo, totals.subtotal);
+
+      // --- PROMO dari KODE (hanya jika kodenya TIDAK ada di list)
+      const codeIsPromoNotInList =
+        !!selectedVoucher.code &&
+        codeVoucher?.type === "promo" &&
+        !availablePromos.some((p) => p.id === codeVoucher.id);
+      const proDiscCode = codeIsPromoNotInList
+        ? computePromoDiscountFrom(codeVoucher, totals.subtotal)
+        : 0;
+
+      // --- GRAND TOTAL
+      const totalDisc = Math.min(
+        totals.subtotal,
+        Math.max(0, shipDisc) +
+          Math.max(0, proDiscList) +
+          Math.max(0, proDiscCode)
+      );
+      const grand = Math.max(0, totals.subtotal - totalDisc);
+
+      return {
+        shippingDiscount: shipDisc,
+        promoDiscountList: proDiscList,
+        promoDiscountCode: proDiscCode,
+        grandTotal: grand,
+      };
+    }, [
+      selectedVoucher.shippingId,
+      selectedVoucher.promoId,
+      selectedVoucher.code,
       availableShipping,
-      availablePromos
-    );
-
-    const shipDisc = computeShippingDiscountFrom(ship);
-    const proDisc = computePromoDiscountFrom(pro, totals.subtotal);
-
-    const totalDisc = Math.min(
+      availablePromos,
+      codeVoucher,
       totals.subtotal,
-      Math.max(0, shipDisc) + Math.max(0, proDisc)
-    );
-    const grand = Math.max(0, totals.subtotal - totalDisc);
-    return { promoDiscount: proDisc, shippingDiscount: shipDisc, grandTotal: grand };
-  }, [
-    selectedVoucher,
-    availableShipping,
-    availablePromos,
-    codeVoucher,
-    totals.subtotal,
-  ]);
+    ]);
 
-  // redeem handler untuk modal mobile
+  /* ---------------- Redeem handler untuk modal ---------------- */
   async function onRedeemCode(codeUpper: string): Promise<RedeemResult> {
     const res = await redeemWithFallback(codeUpper, ctx);
     if (res.ok) setCodeVoucher(res.voucher);
     return res;
   }
 
+  /* ---------------- Render ---------------- */
   return (
     <div className="pb-36 px-4 pt-3 space-y-3">
       {appliedCount > 0 && hasSelection ? (
@@ -514,7 +576,7 @@ export function CartMobile({ initial }: { initial: CartData }) {
 
       <ProductGrid products={productsData} limit={6} />
 
-      {/* kirim GRAND TOTAL ke bottom bar */}
+      {/* Bottom bar — kirim GRAND TOTAL yang sudah dipotong shipping + promo(list) + promo(code) */}
       <MobileBottomBar
         total={grandTotal}
         hasSelection={hasSelection}
@@ -527,7 +589,7 @@ export function CartMobile({ initial }: { initial: CartData }) {
         voucherLoading={voucherLoading}
       />
 
-      {/* Modal voucher khusus mobile */}
+      {/* Modal voucher (mobile) */}
       <VoucherModalMobile
         open={openVoucher}
         onClose={() => setOpenVoucher(false)}
@@ -537,24 +599,30 @@ export function CartMobile({ initial }: { initial: CartData }) {
         initialSelected={selectedVoucher}
         onRedeemCode={async (upper) => {
           const res = await onRedeemCode(upper);
-          if (!res.ok) toast.error(res.reason ?? "Gagal menerapkan kode", "Voucher");
+          if (!res.ok)
+            toast.error(res.reason ?? "Gagal menerapkan kode", "Voucher");
           return res;
         }}
         onApply={(payload) => {
           const reasons: string[] = [];
           if (payload.shippingId) {
-            const s = availableShipping.find((v) => v.id === payload.shippingId);
-            if (!s?.enabled) reasons.push(`Ongkir: ${s?._reason ?? "Syarat tidak terpenuhi."}`);
+            const s = availableShipping.find(
+              (v) => v.id === payload.shippingId
+            );
+            if (!s?.enabled)
+              reasons.push(
+                `Ongkir: ${s?._reason ?? "Syarat tidak terpenuhi."}`
+              );
           }
           if (payload.promoId) {
             const p = availablePromos.find((v) => v.id === payload.promoId);
-            if (!p?.enabled) reasons.push(`Promo: ${p?._reason ?? "Syarat tidak terpenuhi."}`);
+            if (!p?.enabled)
+              reasons.push(`Promo: ${p?._reason ?? "Syarat tidak terpenuhi."}`);
           }
           if (reasons.length) {
             toast.error(reasons.join("\n"), "Voucher tidak memenuhi syarat");
             return;
           }
-
           setVoucherLoading(true);
           setTimeout(() => {
             setSelectedVoucher(payload);
