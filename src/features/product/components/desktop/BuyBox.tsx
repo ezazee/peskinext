@@ -1,12 +1,13 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AuthActionButton } from "@shared/components/ui/AuthActionButton";
 import { formatRupiah } from "@shared/libs/format";
 import { copyProductLink } from "@shared/libs/clipboard";
 import type { Product, Variant } from "@shared/types/types";
 import { ShareIcon } from "@shared/components/icons";
 import { useToast } from "@shared/components/ui/Toaster";
+import { createCheckoutFromBuyNow } from "@features/checkout/action";
 
 export function BuyBox({
   product,
@@ -23,7 +24,9 @@ export function BuyBox({
 
   const [qty, setQty] = useState(1);
   const [isLoggedIn] = useState(false);
-  const [, setAuthOpen] = useState(false); // hanya pakai setter utk buka modal
+  const [, setAuthOpen] = useState(false);
+
+  const buyNowFormRef = useRef<HTMLFormElement>(null);
 
   const maxQty = Math.max(0, variant.stock);
   const clamp = (n: number) => Math.min(Math.max(1, n), maxQty);
@@ -112,7 +115,14 @@ export function BuyBox({
         <span className="text-2xl font-bold">{formatRupiah(subtotal)}</span>
       </div>
 
+      <form ref={buyNowFormRef} action={createCheckoutFromBuyNow}>
+        <input type="hidden" name="productId" value={product.id} />
+        <input type="hidden" name="variantId" value={variant.id} />
+        <input type="hidden" name="qty" value={qty} />
+      </form>
+
       <div className="mt-4 space-y-2">
+        {/* + Keranjang tetap memanggil handler lokal */}
         <AuthActionButton
           isLoggedIn={isLoggedIn}
           openAuthModal={() => setAuthOpen(true)}
@@ -122,10 +132,11 @@ export function BuyBox({
           + Keranjang
         </AuthActionButton>
 
+        {/* Beli Langsung → submit form ke server action */}
         <AuthActionButton
           isLoggedIn={isLoggedIn}
           openAuthModal={() => setAuthOpen(true)}
-          onClick={() => onBuy(qty)}
+          onClick={() => buyNowFormRef.current?.requestSubmit()}
           className="w-full border cursor-pointer border-primary text-primary py-3 rounded-lg hover:bg-primary/5 font-semibold"
         >
           Beli Langsung

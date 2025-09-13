@@ -1,16 +1,14 @@
+// File: src/features/cart/hooks/useCartState.ts
 "use client";
 
 import { useMemo, useState } from "react";
 import type { CartData, CartItem, Product, Variant } from "@shared/types/types";
 
-/* util: ubah "Rp1.469.000" -> 1469000 */
 function parsePriceString(s?: string): number | undefined {
   if (!s) return undefined;
   const digits = s.replace(/[^\d]/g, "");
   return digits ? Number(digits) : undefined;
 }
-
-/** hitung harga, oldPrice, stok berdasar varian (jika ada) */
 function resolvePricing(p: Product, v?: Variant) {
   const unit =
     typeof v?.price === "number" ? v.price : parsePriceString(p.price) ?? 0;
@@ -19,8 +17,10 @@ function resolvePricing(p: Product, v?: Variant) {
   return { unit, old, stock };
 }
 
-export function useCartState(initial: CartData) {
-  const [items, setItems] = useState<CartItem[]>(initial.items);
+export function useCartState(initial?: CartData) {
+  // ← seed aman walau initial undefined
+  const seed = initial?.items ?? [];
+  const [items, setItems] = useState<CartItem[]>(seed);
 
   const counts = useMemo(() => {
     const itemCount = items.length;
@@ -30,9 +30,8 @@ export function useCartState(initial: CartData) {
   }, [items]);
 
   const totals = useMemo(() => {
-    let subtotal = 0;
-    let compare = 0;
-
+    let subtotal = 0,
+      compare = 0;
     for (const line of items) {
       if (!line.selected) continue;
       const variant = line.product.variants.find(
@@ -49,17 +48,14 @@ export function useCartState(initial: CartData) {
   function toggleSelectAll(checked: boolean) {
     setItems((prev) => prev.map((i) => ({ ...i, selected: checked })));
   }
-
   function toggleItem(lineId: string, checked: boolean) {
     setItems((prev) =>
       prev.map((i) => (i.id === lineId ? { ...i, selected: checked } : i))
     );
   }
-
   function removeItem(lineId: string) {
     setItems((prev) => prev.filter((i) => i.id !== lineId));
   }
-
   function setQty(lineId: string, qty: number) {
     setItems((prev) =>
       prev.map((i) => {

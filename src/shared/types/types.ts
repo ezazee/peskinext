@@ -16,6 +16,7 @@ export interface Variant {
 }
 
 export interface Product {
+  id: string;
   name: string;
   slug: string;
   description: string;
@@ -156,3 +157,58 @@ export type VoucherSelection = {
 export type RedeemResult =
   | { ok: true; voucher: Voucher }
   | { ok: false; reason: string };
+
+
+
+  /* ================= Checkout ================= */
+
+  export type CheckoutSource = "cart" | "buy_now";
+
+export interface CheckoutLine {
+  productId: string;
+  variantId: string;
+  name: string;
+  image: string;
+  qty: number;
+  price: number;    // snapshot per unit
+  weight?: number;  // gram
+}
+
+export interface CheckoutSession {
+  id: string;
+  source: CheckoutSource;
+  userId?: string | null;
+  anonId?: string | null;
+  currency: "IDR";
+  lines: CheckoutLine[];
+  vouchers: string[];
+  subtotal: number;
+  discount: number;
+  shipping: number;
+  grandTotal: number;
+  createdAt: string;
+  expiresAt: string;
+}
+
+
+/* ================= Address ================= */
+
+// src/types/address.ts
+export type AddressItem = {
+  id: string;
+  label: string;
+  recipient: string;
+  phone: string;
+  line1: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  isPrimary: boolean;
+};
+
+export type AddressListEntry = {
+  id: string;
+  label: string;
+  address: string;   // single-line untuk list di modal/header
+  isPrimary: boolean;
+};

@@ -2,7 +2,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -17,16 +17,26 @@ import {
 } from "@shared/components/icons";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
-
-// ⬇️ import AuthAction shared component
 import { AuthAction } from "@features/auth/AuthAction";
+import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
+import type { AddressListEntry } from "@data/index";
+import { Skeleton } from "@shared/components/ui/SkeletonLoading";
+import {
+  startAddressSwitch,
+  useAddressSwitching,
+} from "@features/address/addressSwitchBus";
+
+type OptionForModal = AddressListEntry & {
+  recipient?: string;
+  phone?: string;
+  pinpointed?: boolean;
+};
 
 export const DesktopHeader = () => {
+  const switching = useAddressSwitching();
   const router = useRouter();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-
-  // --- Simulasi Status Login ---
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn] = useState(true);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalView, setAuthModalView] = useState<"login" | "register">(
@@ -35,6 +45,38 @@ export const DesktopHeader = () => {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  // Hydration guard
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // Sumber tunggal data
+  const { primary, addresses, selectPrimary, addAddress } =
+    useAddressBookLocal();
+
+  // Label header: samakan dengan AddressCard (Label • Penerima)
+  const label = useMemo(() => {
+    if (!hydrated || !primary) return "Pilih alamat";
+    const who = primary.recipient ? ` • ${primary.recipient}` : "";
+    return `${primary.label}${who}`;
+  }, [hydrated, primary]);
+
+  // Opsi untuk modal (urutkan primary di atas)
+  const options = useMemo<ReadonlyArray<OptionForModal>>(() => {
+    const list = addresses.map<OptionForModal>((a) => ({
+      id: a.id,
+      label: a.label,
+      address: `${a.line1}, ${a.city}, ${a.province} ${a.postalCode}`,
+      isPrimary: primary ? a.id === primary.id : a.isPrimary,
+      recipient: a.recipient,
+      phone: a.phone,
+      pinpointed: true,
+    }));
+    return [...list].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+  }, [addresses, primary]);
+
+  // tutup overlay search saat klik luar
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -60,9 +102,26 @@ export const DesktopHeader = () => {
         onClose={() => setIsAuthModalOpen(false)}
         initialView={authModalView}
       />
+
       <AddressModal
         isOpen={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}
+        options={hydrated ? options : []}
+        selectedId={hydrated ? primary?.id ?? null : null}
+        onConfirm={(id) => {
+          // tampilkan skeleton beberapa ratus ms (simulasi hitung ongkir/promo)
+          startAddressSwitch(700);
+          selectPrimary(id);
+          setIsAddressModalOpen(false);
+        }}
+        onMakePrimary={(id) => {
+          startAddressSwitch(700);
+          selectPrimary(id);
+          setIsAddressModalOpen(false);
+        }}
+        onAddNew={() => {
+          alert("Tambah alamat belum diimplementasi pada mock ini.");
+        }}
       />
 
       <AnimatePresence>
@@ -119,6 +178,7 @@ export const DesktopHeader = () => {
               />
             </Link>
 
+            {/* Search */}
             <div className="flex-grow relative mx-4" ref={searchContainerRef}>
               <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
                 <SearchIcon />
@@ -157,13 +217,13 @@ export const DesktopHeader = () => {
               </AnimatePresence>
             </div>
 
+            {/* Actions */}
             <div className="flex items-center gap-2 shrink-0">
-              {/* ⬇️ Icon actions selalu tampil. Jika belum login -> buka modal. Jika sudah -> navigate */}
               <AuthAction
                 as="button"
                 className="relative cursor-pointer"
                 isLoggedIn={isLoggedIn}
-                onRequireAuth={() => openAuthModal("login")}
+                onRequireAuth={() => setIsAuthModalOpen(true)}
                 href="/cart"
               >
                 <CartIcon withBadge />
@@ -173,7 +233,7 @@ export const DesktopHeader = () => {
                 as="button"
                 className="cursor-pointer"
                 isLoggedIn={isLoggedIn}
-                onRequireAuth={() => openAuthModal("login")}
+                onRequireAuth={() => setIsAuthModalOpen(true)}
                 href="/notification"
               >
                 <BellIcon />
@@ -182,7 +242,6 @@ export const DesktopHeader = () => {
               <div className="border-l h-8 mx-2" />
 
               {isLoggedIn ? (
-                // Profil singkat saat login
                 <div className="flex items-center gap-3 cursor-pointer p-1 rounded-lg hover:bg-tertiary">
                   <Image
                     src="https://placehold.co/32x32/81D4FA/FFFFFF?text=Z"
@@ -196,17 +255,16 @@ export const DesktopHeader = () => {
                   </span>
                 </div>
               ) : (
-                // CTA auth saat belum login
                 <>
                   <button
                     onClick={() => router.push("/register")}
-                    className="cursor-pointer border border-border-color font-semibold text-primary px-6 py-2 rounded-lg hover:bg-tertiary transition-colors"
+                    className="border border-border-color font-semibold text-primary px-6 py-2 rounded-lg hover:bg-tertiary transition-colors"
                   >
                     Daftar
                   </button>
                   <button
-                    onClick={() => openAuthModal("login")}
-                    className="cursor-pointer bg-primary font-semibold text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="bg-primary font-semibold text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
                   >
                     Masuk
                   </button>
@@ -216,7 +274,7 @@ export const DesktopHeader = () => {
           </div>
         </div>
 
-        {/* --- KONDISI TAMPILAN BERDASARKAN LOGIN --- */}
+        {/* Bar alamat saat LOGIN */}
         {isLoggedIn && (
           <>
             <div className="border-b border-gray-200" />
@@ -227,12 +285,19 @@ export const DesktopHeader = () => {
                   className="flex items-center gap-2 text-sm text-secondary cursor-pointer"
                 >
                   <LocationIcon className="h-4 w-4" />
-                  <span>
-                    Dikirim ke{" "}
-                    <span className="font-bold text-gray-800">
-                      Rumah Garut Reza
+                  {switching ? (
+                    <Skeleton width={160} height={16} className="rounded" />
+                  ) : (
+                    <span className="text-secondary">
+                      Dikirim ke{" "}
+                      <span
+                        className="font-bold text-gray-800"
+                        suppressHydrationWarning
+                      >
+                        {label}
+                      </span>
                     </span>
-                  </span>
+                  )}
                   <ChevronDownIcon className="h-4 w-4" />
                 </button>
               </div>

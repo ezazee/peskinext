@@ -62,11 +62,11 @@ export default function VoucherCard({
             </p>
           </div>
         ) : hasApplied ? (
-          <div className="relative w-full rounded-xl bg-emerald-50 text-emerald-900 px-4 py-3 flex items-start gap-3">
+          <div className="relative w-full rounded-xl bg-sky-50 text-primary px-4 py-3 flex items-start gap-3">
             <div className="shrink-0">
               {bannerIcon ?? <TruckIcon className="text-emerald-800" />}
             </div>
-            <p className="text-sm leading-5">
+            <p className="text-sm font-semibold leading-5">
               Yay, hemat {savingText ?? "promo"}! Yuk, belanja lagi biar hemat
               lebih banyak.
             </p>
@@ -128,7 +128,7 @@ export default function VoucherCard({
               </span>
               {/* badge hemat hanya saat aktif */}
               {!disabled && hasApplied && savingText && (
-                <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-sky-50 text-primary text-xs font-semibold">
                   <span className="-ml-0.5">🏷️</span>
                   {savingText}
                 </span>

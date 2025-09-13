@@ -284,7 +284,7 @@ function InfoBanner() {
 }
 function AppliedBanner({ savingText }: { savingText?: string }) {
   return (
-    <div className="relative rounded-xl bg-emerald-50 text-emerald-900 p-3 flex items-start gap-3 border border-emerald-100">
+    <div className="relative rounded-xl bg-sky-50 text-emerald-900 p-3 flex items-start gap-3 border border-emerald-100">
       <div className="h-8 w-8 rounded-full bg-emerald-100 grid place-items-center shrink-0">
         🏷️
       </div>
@@ -559,18 +559,6 @@ export function CartMobile({ initial }: { initial: CartData }) {
               onRemove={() => actions.removeItem(line.id)}
             />
           ))}
-        </div>
-
-        <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2 text-[12px] text-gray-700 flex items-center justify-between">
-          <span>
-            Masih butuh yang lain? Tambah dari seller ini, mumpung diskon!
-          </span>
-          <button
-            type="button"
-            className="text-primary font-semibold text-[12px]"
-          >
-            Tambah
-          </button>
         </div>
       </div>
 

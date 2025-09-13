@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { formatRupiah } from "@shared/libs/format";
 import type { Voucher, VoucherSelection } from "@shared/types/types";
+import { createCheckoutFromCart } from "@features/checkout/action";
 
 /* ================= Parser & util ================= */
 
@@ -181,14 +182,14 @@ export default function SummaryCard({
       </div>
 
       {shippingDiscount > 0 && (
-        <div className="mt-1 flex justify-between text-sm text-emerald-700">
+        <div className="mt-1 flex justify-between text-sm text-primary">
           <span>Diskon ongkir</span>
           <span>- {formatRupiah(shippingDiscount)}</span>
         </div>
       )}
 
       {promoDiscountList > 0 && (
-        <div className="mt-1 flex justify-between text-sm text-emerald-700">
+        <div className="mt-1 flex justify-between text-sm text-primary">
           <span>Diskon promo</span>
           <span>- {formatRupiah(promoDiscountList)}</span>
         </div>
@@ -196,7 +197,7 @@ export default function SummaryCard({
 
       {/* >>> Tambahan: Diskon KODE (hanya bila kodenya tidak ada di list) */}
       {promoDiscountCode > 0 && (
-        <div className="mt-1 flex justify-between text-sm text-emerald-700">
+        <div className="mt-1 flex justify-between text-sm text-primary">
           <span>Diskon kode</span>
           <span>- {formatRupiah(promoDiscountCode)}</span>
         </div>
@@ -210,24 +211,24 @@ export default function SummaryCard({
       </div>
 
       {totalSaving > 0 && (
-        <div className="mt-1 text-[12px] text-emerald-700">
+        <div className="mt-1 text-[12px] text-primary">
           Kamu hemat {formatRupiah(totalSaving)}
         </div>
       )}
 
-      <button
-        type="button"
-        aria-disabled={disabled}
-        disabled={disabled}
-        onClick={() => !disabled && router.push("/checkout")}
-        className={`mt-3 w-full h-11 rounded-lg transition text-white ${
-          disabled
-            ? "bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none"
-            : "bg-primary hover:bg-secondary cursor-pointer"
-        }`}
-      >
-        Checkout
-      </button>
+      <form action={createCheckoutFromCart} className="mt-3">
+        <button
+          type="submit"
+          disabled={disabled}
+          className={`w-full h-11 rounded-lg transition text-white ${
+            disabled
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none"
+              : "bg-primary hover:bg-secondary cursor-pointer"
+          }`}
+        >
+          Checkout
+        </button>
+      </form>
 
       <div className="mt-4 pt-3">
         <p className="text-center text-xs text-gray-500">

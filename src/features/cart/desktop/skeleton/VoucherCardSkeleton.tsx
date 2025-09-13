@@ -22,7 +22,7 @@ export default function VoucherCardSkeleton({
             <Skeleton.Text lines={2} widths={["80%", "60%"]} />
           </div>
         ) : (
-          <div className="rounded-xl px-4 py-3 flex items-start gap-3 bg-emerald-50">
+          <div className="rounded-xl px-4 py-3 flex items-start gap-3 bg-sky-50">
             <Skeleton.Circle size={28} />
             <Skeleton.Text lines={2} widths={["70%", "50%"]} />
             <Skeleton.Circle size={28} />

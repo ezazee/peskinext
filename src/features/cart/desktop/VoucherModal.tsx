@@ -161,7 +161,7 @@ export default function VoucherModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="text-primary text-sm font-semibold"
+                className="text-primary text-sm cursor-pointer font-semibold"
               >
                 Sembunyikan
               </button>
@@ -373,7 +373,7 @@ function SectionList({
                         : v._reason ?? v.subtitle ?? "Tidak memenuhi syarat"}
                     </div>
                     {v.savingLabel && v.enabled && (
-                      <div className="mt-1 inline-flex rounded bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700">
+                      <div className="mt-1 inline-flex rounded bg-sky-50 px-2 py-0.5 text-[11px] text-primary">
                         {v.savingLabel}
                       </div>
                     )}

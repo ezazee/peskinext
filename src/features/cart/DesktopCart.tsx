@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { CartData, Voucher, VoucherSelection } from "@shared/types/types";
+import type { CartData, RedeemResult, Voucher, VoucherSelection } from "@shared/types/types";
 import { useCartState } from "@features/cart/hooks/useCartState";
 import CartItemCard from "./desktop/CartItemCard";
 import VoucherCard from "./desktop/VoucherCard";
@@ -9,6 +9,7 @@ import VoucherModal from "./desktop/VoucherModal";
 import { promoVouchers, shippingVouchers } from "@data/voucher";
 import { useToast } from "@shared/components/ui/Toaster";
 import SummaryCard from "./desktop/SummaryCard";
+import { redeemWithFallback } from "./utils/redeemWithFallback";
 
 /* =====================================================================================
  *  Type guards & helpers (NO any)
@@ -122,80 +123,6 @@ function decorateVouchers(src: Voucher[], ctx: CartCtx): DecoratedVoucher[] {
   });
 }
 
-/* ----- Redeem kode (API + fallback dummy) ----- */
-
-export type RedeemResult =
-  | { ok: true; voucher: Voucher }
-  | { ok: false; reason: string };
-
-async function redeemWithFallback(
-  codeUpper: string,
-  ctx: CartCtx
-): Promise<RedeemResult> {
-  try {
-    const res = await fetch("/api/vouchers/redeem", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        code: codeUpper,
-        ctx: {
-          subtotal: ctx.subtotal,
-          selectedCount: ctx.selectedCount,
-          regionTag: ctx.regionTag,
-          hasPackage: ctx.hasPackage,
-          now: new Date().toISOString(),
-        },
-      }),
-    });
-    if (res.ok) {
-      const json: {
-        found: boolean;
-        eligible?: boolean;
-        reason?: string;
-        voucher?: Voucher;
-      } = await res.json();
-      if (!json.found) return { ok: false, reason: "Kode tidak ditemukan" };
-      if (json.eligible && json.voucher)
-        return { ok: true, voucher: { ...json.voucher, enabled: true } };
-      return { ok: false, reason: json.reason ?? "Syarat tidak terpenuhi" };
-    }
-  } catch {
-    /* ignore -> fallback */
-  }
-
-  const DB: Record<string, Omit<Voucher, "enabled">> = {
-    RAHASIA50: {
-      id: "srv-promo-rahasia50",
-      title: "Diskon 50% Rahasia",
-      subtitle: "Maks diskon Rp100.000",
-      type: "promo",
-      savingLabel: "Hemat s/d Rp100rb",
-      code: "RAHASIA50",
-      validTo: "2025-12-31",
-      conditions: { minSelectedItems: 1, minSubtotal: 100_000 },
-    },
-    ONGKIRXTRA: {
-      id: "srv-ship-ongkirxtra",
-      title: "Gratis Ongkir XTRA",
-      subtitle: "Min. belanja Rp250.000, khusus Jabodetabek",
-      type: "shipping",
-      savingLabel: "Hemat ongkir",
-      code: "ONGKIRXTRA",
-      validTo: "2025-12-31",
-      conditions: {
-        minSubtotal: 250_000,
-        minSelectedItems: 1,
-        regions: ["Jabodetabek"],
-      },
-    },
-  };
-  const base = DB[codeUpper];
-  if (!base) return { ok: false, reason: "Kode tidak ditemukan" };
-  const { enabled, reason } = evaluateVoucher(base, ctx);
-  if (!enabled)
-    return { ok: false, reason: reason ?? "Syarat tidak terpenuhi" };
-  return { ok: true, voucher: { ...base, enabled: true } };
-}
 
 /* =====================================================================================
  *  Component

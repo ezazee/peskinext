@@ -29,10 +29,6 @@ export default function CartDesktopSkeleton({
           </div>
         </div>
 
-        <div className="mb-3 flex items-center gap-3">
-          <div className="rounded-[4px] ring-1 ring-gray-300 h-4 w-4" />
-          <div className="text-sm text-gray-500">Pilih semua produk</div>
-        </div>
 
         <div className="space-y-4">
           {Array.from({ length: itemCount }).map((_, i) => (
