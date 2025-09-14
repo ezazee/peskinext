@@ -3,6 +3,7 @@ import type { Product } from "../shared/types/types";
 export const productsData: Product[] = [
   // --- 7 Produk Satuan ---
   {
+    id: "prod_cica-b5-refreshing-toner",
     name: "CICA-B5 Refreshing Toner",
     slug: "cica-b5-refreshing-toner",
     description:
@@ -36,6 +37,7 @@ export const productsData: Product[] = [
     ],
   },
   {
+    id: "prod_vit-c-tone-up-daycream-spf-50",
     name: "Vit C Tone-Up Daycream SPF 50",
     slug: "vit-c-tone-up-daycream-spf-50",
     description:
@@ -69,6 +71,7 @@ export const productsData: Product[] = [
     ],
   },
   {
+    id: "prod_honey-cleansing-gel",
     name: "Honey Cleansing Gel",
     slug: "honey-cleansing-gel",
     description:
@@ -103,6 +106,7 @@ export const productsData: Product[] = [
     ],
   },
   {
+    id: "prod_pe-prebiotic-pore-ex-facial-pad",
     name: "PE Prebiotic Pore-EX Facial Pad",
     slug: "pe-prebiotic-pore-ex-facial-pad",
     description:
@@ -136,6 +140,7 @@ export const productsData: Product[] = [
     ],
   },
   {
+    id: "prod_hydro-restorative-cream",
     name: "Hydro Restorative Cream",
     slug: "hydro-restorative-cream",
     description:
@@ -169,6 +174,7 @@ export const productsData: Product[] = [
     ],
   },
   {
+    id: "prod_skin-awakening-glow-serum",
     name: "Skin Awakening Glow Serum",
     slug: "skin-awakening-glow-serum",
     description:
@@ -201,6 +207,7 @@ export const productsData: Product[] = [
     ],
   },
   {
+    id: "prod_intimate-feminine-mousse-cleanser",
     name: "Intimate Feminine Mousse Cleanser",
     slug: "intimate-feminine-mousse-cleanser",
     description:
@@ -236,6 +243,7 @@ export const productsData: Product[] = [
 
   // --- 5 Produk Bundle ---
   {
+    id: "prod_paket-basic-glow-honey-cleanser-toner",
     name: "Paket Basic Glow (Honey Cleansing Gel + CICA-B5 Toner)",
     slug: "paket-basic-glow-honey-cleanser-toner",
     description:
@@ -261,31 +269,14 @@ export const productsData: Product[] = [
     type: "bundle",
     isEvent: true,
     variants: [
-      {
-        id: 29,
-        name: "Small Set",
-        price: 288000,
-        oldPrice: 320000,
-        stock: 100,
-      },
-      {
-        id: 30,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 80,
-      },
+      { id: 29, name: "Small Set", price: 288000, oldPrice: 320000, stock: 100 },
+      { id: 30, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 80 },
       { id: 31, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      {
-        id: 32,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 30,
-      },
+      { id: 32, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
     ],
   },
   {
+    id: "prod_paket-bright-glow-serum-daycream",
     name: "Paket Bright Glow (Glow Serum + Vit C Daycream SPF 50)",
     slug: "paket-bright-glow-serum-daycream",
     description: "Set pencerah kulit dengan serum glow dan daycream SPF 50.",
@@ -311,24 +302,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 33, name: "Small Set", price: 288000, oldPrice: 320000, stock: 90 },
-      {
-        id: 34,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 70,
-      },
+      { id: 34, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 70 },
       { id: 35, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      {
-        id: 36,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 30,
-      },
+      { id: 36, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
     ],
   },
   {
+    id: "prod_paket-hydration-shield-cream-toner",
     name: "Paket Hydration Shield (Hydro Cream + CICA-B5 Toner)",
     slug: "paket-hydration-shield-cream-toner",
     description:
@@ -356,24 +336,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 37, name: "Small Set", price: 288000, oldPrice: 320000, stock: 90 },
-      {
-        id: 38,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 70,
-      },
+      { id: 38, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 70 },
       { id: 39, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      {
-        id: 40,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 30,
-      },
+      { id: 40, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
     ],
   },
   {
+    id: "prod_paket-pore-care-pad-cleanser",
     name: "Paket Pore Care (Pore-EX Facial Pad + Honey Cleanser)",
     slug: "paket-pore-care-pad-cleanser",
     description:
@@ -400,24 +369,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 41, name: "Small Set", price: 288000, oldPrice: 320000, stock: 80 },
-      {
-        id: 42,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 60,
-      },
+      { id: 42, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 60 },
       { id: 43, name: "Large Set", price: 750000, oldPrice: 830000, stock: 40 },
-      {
-        id: 44,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 20,
-      },
+      { id: 44, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 20 },
     ],
   },
   {
+    id: "prod_paket-intimate-care-mousse-cream",
     name: "Paket Intimate Care (Feminine Mousse + Hydro Cream)",
     slug: "paket-intimate-care-mousse-cream",
     description:
@@ -445,25 +403,15 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 45, name: "Small Set", price: 288000, oldPrice: 320000, stock: 70 },
-      {
-        id: 46,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 50,
-      },
+      { id: 46, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 50 },
       { id: 47, name: "Large Set", price: 750000, oldPrice: 830000, stock: 30 },
-      {
-        id: 48,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 20,
-      },
+      { id: 48, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 20 },
     ],
   },
-  // --- Bundle Tambahan (menjadi total 20 produk) ---
+
+  // --- Bundle Tambahan ---
   {
+    id: "prod_paket-acne-defense-pad-toner",
     name: "Paket Acne Defense (Pore-EX Pad + CICA-B5 Toner)",
     slug: "paket-acne-defense-pad-toner",
     description:
@@ -493,31 +441,14 @@ export const productsData: Product[] = [
     type: "bundle",
     isEvent: true,
     variants: [
-      {
-        id: 49,
-        name: "Small Set",
-        price: 288000,
-        oldPrice: 320000,
-        stock: 100,
-      },
-      {
-        id: 50,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 80,
-      },
+      { id: 49, name: "Small Set", price: 288000, oldPrice: 320000, stock: 100 },
+      { id: 50, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 80 },
       { id: 51, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      {
-        id: 52,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 30,
-      },
+      { id: 52, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
     ],
   },
   {
+    id: "prod_paket-hydrate-glow-toner-serum",
     name: "Paket Hydrate & Glow (CICA-B5 Toner + Glow Serum)",
     slug: "paket-hydrate-glow-toner-serum",
     description:
@@ -549,24 +480,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 53, name: "Small Set", price: 288000, oldPrice: 320000, stock: 90 },
-      {
-        id: 54,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 70,
-      },
+      { id: 54, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 70 },
       { id: 55, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      {
-        id: 56,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 30,
-      },
+      { id: 56, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
     ],
   },
   {
+    id: "prod_paket-morning-shield-cleanser-daycream",
     name: "Paket Morning Shield (Honey Cleanser + Daycream SPF 50)",
     slug: "paket-morning-shield-cleanser-daycream",
     description:
@@ -597,31 +517,14 @@ export const productsData: Product[] = [
     type: "bundle",
     isEvent: true,
     variants: [
-      {
-        id: 57,
-        name: "Small Set",
-        price: 288000,
-        oldPrice: 320000,
-        stock: 110,
-      },
-      {
-        id: 58,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 85,
-      },
+      { id: 57, name: "Small Set", price: 288000, oldPrice: 320000, stock: 110 },
+      { id: 58, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 85 },
       { id: 59, name: "Large Set", price: 750000, oldPrice: 830000, stock: 55 },
-      {
-        id: 60,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 35,
-      },
+      { id: 60, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 35 },
     ],
   },
   {
+    id: "prod_paket-night-repair-serum-cream",
     name: "Paket Night Repair (Glow Serum + Hydro Cream)",
     slug: "paket-night-repair-serum-cream",
     description:
@@ -653,24 +556,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 61, name: "Small Set", price: 288000, oldPrice: 320000, stock: 95 },
-      {
-        id: 62,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 75,
-      },
+      { id: 62, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 75 },
       { id: 63, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      {
-        id: 64,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 30,
-      },
+      { id: 64, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
     ],
   },
   {
+    id: "prod_paket-3-step-basic-cleanser-toner-cream",
     name: "Paket 3-Step Basic (Cleanser + Toner + Hydro Cream)",
     slug: "paket-3-step-basic-cleanser-toner-cream",
     description: "Langkah dasar harian: bersihkan, tenangkan, lalu lembapkan.",
@@ -701,30 +593,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 65, name: "Small Set", price: 420000, oldPrice: 470000, stock: 80 },
-      {
-        id: 66,
-        name: "Medium Set",
-        price: 760000,
-        oldPrice: 850000,
-        stock: 60,
-      },
-      {
-        id: 67,
-        name: "Large Set",
-        price: 1080000,
-        oldPrice: 1200000,
-        stock: 40,
-      },
-      {
-        id: 68,
-        name: "Family Set",
-        price: 1390000,
-        oldPrice: 1550000,
-        stock: 25,
-      },
+      { id: 66, name: "Medium Set", price: 760000, oldPrice: 850000, stock: 60 },
+      { id: 67, name: "Large Set", price: 1080000, oldPrice: 1200000, stock: 40 },
+      { id: 68, name: "Family Set", price: 1390000, oldPrice: 1550000, stock: 25 },
     ],
   },
   {
+    id: "prod_paket-brightening-power-serum-toner-daycream",
     name: "Paket Brightening Power (Serum + Toner + Daycream)",
     slug: "paket-brightening-power-serum-toner-daycream",
     description:
@@ -758,30 +633,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 69, name: "Small Set", price: 420000, oldPrice: 470000, stock: 75 },
-      {
-        id: 70,
-        name: "Medium Set",
-        price: 760000,
-        oldPrice: 850000,
-        stock: 55,
-      },
-      {
-        id: 71,
-        name: "Large Set",
-        price: 1080000,
-        oldPrice: 1200000,
-        stock: 35,
-      },
-      {
-        id: 72,
-        name: "Family Set",
-        price: 1390000,
-        oldPrice: 1550000,
-        stock: 20,
-      },
+      { id: 70, name: "Medium Set", price: 760000, oldPrice: 850000, stock: 55 },
+      { id: 71, name: "Large Set", price: 1080000, oldPrice: 1200000, stock: 35 },
+      { id: 72, name: "Family Set", price: 1390000, oldPrice: 1550000, stock: 20 },
     ],
   },
   {
+    id: "prod_paket-pore-solution-pad-cleanser-toner",
     name: "Paket Pore Solution (Pad + Cleanser + Toner)",
     slug: "paket-pore-solution-pad-cleanser-toner",
     description:
@@ -813,30 +671,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 73, name: "Small Set", price: 420000, oldPrice: 470000, stock: 70 },
-      {
-        id: 74,
-        name: "Medium Set",
-        price: 760000,
-        oldPrice: 850000,
-        stock: 55,
-      },
-      {
-        id: 75,
-        name: "Large Set",
-        price: 1080000,
-        oldPrice: 1200000,
-        stock: 35,
-      },
-      {
-        id: 76,
-        name: "Family Set",
-        price: 1390000,
-        oldPrice: 1550000,
-        stock: 20,
-      },
+      { id: 74, name: "Medium Set", price: 760000, oldPrice: 850000, stock: 55 },
+      { id: 75, name: "Large Set", price: 1080000, oldPrice: 1200000, stock: 35 },
+      { id: 76, name: "Family Set", price: 1390000, oldPrice: 1550000, stock: 20 },
     ],
   },
   {
+    id: "prod_paket-ultimate-routine-cleanser-toner-serum-cream",
     name: "Paket Ultimate Routine (Cleanser + Toner + Serum + Cream)",
     slug: "paket-ultimate-routine-cleanser-toner-serum-cream",
     description:
@@ -872,30 +713,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 77, name: "Small Set", price: 550000, oldPrice: 620000, stock: 80 },
-      {
-        id: 78,
-        name: "Medium Set",
-        price: 990000,
-        oldPrice: 1100000,
-        stock: 60,
-      },
-      {
-        id: 79,
-        name: "Large Set",
-        price: 1420000,
-        oldPrice: 1600000,
-        stock: 40,
-      },
-      {
-        id: 80,
-        name: "Family Set",
-        price: 1850000,
-        oldPrice: 2100000,
-        stock: 25,
-      },
+      { id: 78, name: "Medium Set", price: 990000, oldPrice: 1100000, stock: 60 },
+      { id: 79, name: "Large Set", price: 1420000, oldPrice: 1600000, stock: 40 },
+      { id: 80, name: "Family Set", price: 1850000, oldPrice: 2100000, stock: 25 },
     ],
   },
   {
+    id: "prod_paket-sun-ready-toner-daycream",
     name: "Paket Sun-Ready (Toner + Daycream SPF 50)",
     slug: "paket-sun-ready-toner-daycream",
     description:
@@ -927,24 +751,13 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 81, name: "Small Set", price: 288000, oldPrice: 320000, stock: 90 },
-      {
-        id: 82,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 70,
-      },
+      { id: 82, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 70 },
       { id: 83, name: "Large Set", price: 750000, oldPrice: 830000, stock: 50 },
-      {
-        id: 84,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 30,
-      },
+      { id: 84, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 30 },
     ],
   },
   {
+    id: "prod_paket-intimate-fresh-mousse-toner",
     name: "Paket Intimate Fresh (Feminine Mousse + CICA-B5 Toner)",
     slug: "paket-intimate-fresh-mousse-toner",
     description:
@@ -975,21 +788,9 @@ export const productsData: Product[] = [
     isEvent: true,
     variants: [
       { id: 85, name: "Small Set", price: 288000, oldPrice: 320000, stock: 70 },
-      {
-        id: 86,
-        name: "Medium Set",
-        price: 520000,
-        oldPrice: 580000,
-        stock: 55,
-      },
+      { id: 86, name: "Medium Set", price: 520000, oldPrice: 580000, stock: 55 },
       { id: 87, name: "Large Set", price: 750000, oldPrice: 830000, stock: 35 },
-      {
-        id: 88,
-        name: "Family Set",
-        price: 980000,
-        oldPrice: 1080000,
-        stock: 20,
-      },
+      { id: 88, name: "Family Set", price: 980000, oldPrice: 1080000, stock: 20 },
     ],
   },
 ];

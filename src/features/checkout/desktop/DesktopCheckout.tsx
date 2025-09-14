@@ -49,7 +49,7 @@ export default function DesktopCheckout({
   const selectedItems = useMemo(() => {
     const chosen = safeItems.filter((i) => i.selected);
     return chosen.length > 0 ? chosen : safeItems;
-  }, [initialCart]); // ⬅️ JANGAN akses .items di dependency array
+  }, [initialCart]);
 
   const subtotal = useMemo(() => {
     let sum = 0;
