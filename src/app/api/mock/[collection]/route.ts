@@ -35,10 +35,13 @@ export function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS });
 }
 
-export function GET(req: NextRequest, { params }: { params: { collection: string } }) {
-  const { collection } = params;
-  const rowsSrc = db[collection];
+export async function GET(
+  req: NextRequest,
+  ctx: { params: Promise<{ collection: string }> }
+) {
+  const { collection } = await ctx.params;
 
+  const rowsSrc = db[collection];
   if (!rowsSrc) {
     return NextResponse.json(
       { error: `Collection '${collection}' not found`, available: Object.keys(db) },

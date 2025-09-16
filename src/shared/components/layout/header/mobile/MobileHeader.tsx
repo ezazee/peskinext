@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   BellIcon,
   CartIcon,
@@ -12,6 +12,15 @@ import { AuthAction } from "@features/auth/AuthAction";
 import SearchOverlay from "../SearchOverlay";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
+import type { AddressListEntry } from "@data/index";
+import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
+import { startAddressSwitch } from "@features/address/addressSwitchBus";
+
+type OptionForModal = AddressListEntry & {
+  recipient?: string;
+  phone?: string;
+  pinpointed?: boolean;
+};
 
 export const MobileHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -28,6 +37,29 @@ export const MobileHeader = () => {
 
   const openAuthModal = () => setIsAuthModalOpen(true);
 
+  // Hydration guard
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  // Sumber tunggal data
+  const { primary, addresses, selectPrimary, addAddress } =
+    useAddressBookLocal();
+
+  const options = useMemo<ReadonlyArray<OptionForModal>>(() => {
+    const list = addresses.map<OptionForModal>((a) => ({
+      id: a.id,
+      label: a.label,
+      address: `${a.line1}, ${a.city}, ${a.province} ${a.postalCode}`,
+      isPrimary: primary ? a.id === primary.id : a.isPrimary,
+      recipient: a.recipient,
+      phone: a.phone,
+      pinpointed: true,
+    }));
+    return [...list].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+  }, [addresses, primary]);
+
   return (
     <>
       <AuthModal
@@ -38,6 +70,22 @@ export const MobileHeader = () => {
       <AddressModal
         isOpen={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}
+        options={hydrated ? options : []}
+        selectedId={hydrated ? primary?.id ?? null : null}
+        onConfirm={(id) => {
+          // tampilkan skeleton beberapa ratus ms (simulasi hitung ongkir/promo)
+          startAddressSwitch(700);
+          selectPrimary(id);
+          setIsAddressModalOpen(false);
+        }}
+        onMakePrimary={(id) => {
+          startAddressSwitch(700);
+          selectPrimary(id);
+          setIsAddressModalOpen(false);
+        }}
+        onAddNew={() => {
+          alert("Tambah alamat belum diimplementasi pada mock ini.");
+        }}
       />
 
       {/* Overlay full-screen terpisah */}

@@ -33,6 +33,7 @@ export interface Product {
   isEvent: boolean;
   type: "single" | "bundle";
   variants: Variant[];
+   weightGr: number;
 }
 
 export interface NavItem {

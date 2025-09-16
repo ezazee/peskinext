@@ -1,8 +1,11 @@
-// src/features/checkout/desktop/SellerCartCard.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import Image from "next/image";
 import type { CartItem, Product, Variant } from "@shared/types/types";
+import type { ShippingOption } from "@data/shipingData";
+import { formatRupiah } from "@shared/libs/format";
+import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 
 type VariantWithImg = Variant & { img?: string };
 type ProductWithImgs = Product & {
@@ -11,21 +14,31 @@ type ProductWithImgs = Product & {
 };
 
 function priceFrom(p: Product, v?: Variant) {
-  const unit =
-    typeof v?.price === "number"
-      ? v.price
-      : Number((p.price || "0").replace(/[^\d]/g, "")) || 0;
-  return unit;
+  return typeof v?.price === "number"
+    ? v.price
+    : Number((p.price || "0").replace(/[^\d]/g, "")) || 0;
 }
 
 function pickImage(p: ProductWithImgs, v?: VariantWithImg): string | undefined {
   return v?.img ?? p.img ?? (Array.isArray(p.images) ? p.images[0] : undefined);
 }
 
-export default function SellerCartCard({ items }: { items: CartItem[] }) {
-  const [serviceLabel] = useState("Standard");
-  const [eta] = useState("10–12 September 2025");
+type Props = {
+  items: CartItem[];
+  /** pilihan ongkir yang sedang dipakai (opsional) */
+  current?: ShippingOption | null;
+  /** true = tampilkan skeleton pada blok ongkir */
+  loading?: boolean;
+  /** buka modal pemilihan ongkir */
+  openShipping?: () => void;
+};
 
+export default function SellerCartCard({
+  items,
+  current,
+  loading,
+  openShipping,
+}: Props) {
   const itemTotal = useMemo(() => {
     return items.reduce((sum, line) => {
       const v = line.product.variants.find((x) => x.id === line.variantId);
@@ -62,7 +75,9 @@ export default function SellerCartCard({ items }: { items: CartItem[] }) {
             <div key={line.id} className="flex gap-4">
               <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100">
                 {img ? (
-                  <img
+                  <Image
+                    width={80}
+                    height={80}
                     src={img}
                     alt={line.product.name}
                     className="h-full w-full object-cover"
@@ -77,9 +92,10 @@ export default function SellerCartCard({ items }: { items: CartItem[] }) {
                 <div className="mt-1 text-xs text-gray-500">
                   Varian: {v?.name ?? line.variantId} • Qty: {line.qty}
                 </div>
+
                 <div className="mt-3 flex items-center justify-between">
                   <div className="text-base font-semibold">
-                    Rp {new Intl.NumberFormat("id-ID").format(unit)}
+                    {formatRupiah(unit)}
                     <span className="ml-2 text-xs font-normal text-gray-500">
                       /produk
                     </span>
@@ -90,33 +106,73 @@ export default function SellerCartCard({ items }: { items: CartItem[] }) {
           );
         })}
 
-        <div className="rounded-xl border border-gray-200/70">
-          <div className="border-t border-gray-200/70 p-4">
+        {/* Blok layanan pengiriman */}
+        <div className="rounded-xl ring-1 ring-gray-100">
+          <div className="p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="text-sm">
-                  <span className="rounded bg-sky-50 px-2 py-0.5 text-primary ring-1 ring-sky-200 text-xs mr-2">
-                    Pilihan terbaik
+                  <span className="font-medium">
+                    {loading ? (
+                      // inline skeleton → render sebagai <span>, aman di dalam <span>
+                      <Skeleton.Block
+                        as="span"
+                        inline
+                        width={140}
+                        height={14}
+                        radius={4}
+                      />
+                    ) : current ? (
+                      `${current.courier} • ${current.service}`
+                    ) : (
+                      "Memuat layanan…"
+                    )}
                   </span>
-                  <span className="font-medium">{serviceLabel}</span>
+
+                  {/* pemisah spasi */}
+                  {" — "}
+
+                  <span className="text-gray-600">
+                    {loading ? (
+                      <Skeleton.Block
+                        as="span"
+                        inline
+                        width={72}
+                        height={12}
+                        radius={4}
+                      />
+                    ) : current ? (
+                      formatRupiah(current.price)
+                    ) : null}
+                  </span>
                 </div>
-                <p className="text-xs text-gray-600 mt-1">Dijamin tiba {eta}</p>
-                <p className="text-xs text-primary">
-                  Gratis ongkir proteksi pengiriman.
-                </p>
+
+                {/* JANGAN pakai <p> kalau di dalamnya ada Skeleton.Text (yang berisi <div>) */}
+                <div className="text-xs text-gray-600 mt-1">
+                  {loading ? (
+                    <Skeleton.Block width="40%" height={16} radius={4} />
+                  ) : current ? (
+                    current.eta
+                  ) : (
+                    "Mengambil estimasi…"
+                  )}
+                </div>
               </div>
-              <button className="text-sm font-medium text-primary cursor-pointer hover:underline">
+
+              <button
+                onClick={openShipping}
+                className="text-sm font-medium text-primary cursor-pointer hover:underline"
+              >
                 Ubah
               </button>
             </div>
           </div>
         </div>
 
+        {/* Total per toko */}
         <div className="flex items-center justify-end gap-3 text-sm">
           <span>Total</span>
-          <span className="font-semibold">
-            Rp {new Intl.NumberFormat("id-ID").format(itemTotal)}
-          </span>
+          <span className="font-semibold">{formatRupiah(itemTotal)}</span>
         </div>
       </div>
     </div>

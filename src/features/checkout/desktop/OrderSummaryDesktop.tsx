@@ -1,11 +1,47 @@
+// src/features/checkout/desktop/OrderSummaryDesktop.tsx
 "use client";
 
-import { totals } from "@data/checkoutMock";
 import Image from "next/image";
+import * as React from "react";
 
 const fmt = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
 
-export default function OrderSummaryDesktop() {
+type Props = {
+  itemsCount: number;
+  subtotal: number;
+  /** Ongkir dari layanan yang dipilih (sebelum diskon) */
+  shippingFee?: number;
+  /** Diskon ongkir (boleh kirim nilai mentah; di-cap di sini juga) */
+  shippingDiscount?: number;
+  /** Diskon promo dari list */
+  promoDiscountList?: number;
+  /** Diskon promo dari kode yang tidak ada di list */
+  promoDiscountCode?: number;
+  /** Total akhir yang sudah dihitung di parent */
+  grandTotal: number;
+};
+
+export default function OrderSummaryDesktop({
+  itemsCount,
+  subtotal,
+  shippingFee = 0,
+  shippingDiscount = 0,
+  promoDiscountList = 0,
+  promoDiscountCode = 0,
+  grandTotal,
+}: Props) {
+  // --- Cap diskon ongkir agar tidak melebihi ongkir ---
+  const shippingDiscountCapped = Math.min(
+    Math.max(0, shippingDiscount),
+    shippingFee
+  );
+  const shippingAfter = Math.max(0, shippingFee - shippingDiscountCapped);
+
+  const totalDiscount =
+    Math.max(0, shippingDiscountCapped) +
+    Math.max(0, promoDiscountList) +
+    Math.max(0, promoDiscountCode);
+
   const logos: ReadonlyArray<{
     src: string;
     alt: string;
@@ -18,59 +54,86 @@ export default function OrderSummaryDesktop() {
     { src: "/images/paymentlogo/ovo.png", alt: "OVO", w: 44, h: 22 },
     { src: "/images/paymentlogo/qris.png", alt: "QRIS", w: 56, h: 22 },
   ];
+
   return (
     <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
-      <h3 className="font-semibold mb-3">Detail pembayaran</h3>
+      <h3 className="font-semibold mb-3">Detail pesanan</h3>
 
       <div className="space-y-2 text-sm">
+        <Row label={`Subtotal (${itemsCount} produk)`} value={fmt(subtotal)} />
+
+        {/* Ongkir: tampil "Gratis" jika after=0, dan coret harga awal jika ada */}
         <Row
-          label={`Total harga (${totals.items} produk)`}
-          value={fmt(totals.subtotal)}
-        />
-        <Row
-          label="Ongkos kirim"
+          label="Ongkir"
           value={
-            totals.shipping === 0 ? (
+            shippingAfter === 0 ? (
               <span>
-                <span className="mr-2 text-gray-400 line-through">
-                  {fmt(totals.shippingBefore)}
-                </span>
+                {shippingFee > 0 && (
+                  <span className="mr-2 text-gray-400 line-through">
+                    {fmt(shippingFee)}
+                  </span>
+                )}
                 <span className="text-primary font-medium">Gratis</span>
               </span>
             ) : (
-              fmt(totals.shipping)
+              fmt(shippingAfter)
             )
           }
         />
-        <Row
-          label="Biaya penanganan"
-          value={<span className="text-primary font-medium">Gratis</span>}
-        />
-        <Row label="Biaya platform" value={fmt(totals.platformFee)} />
 
-        <hr className="my-2 border-gray-200/70" />
+        {/* Diskon-diskon */}
+        {shippingDiscountCapped > 0 && (
+          <Row
+            label="Diskon ongkir"
+            value={
+              <span className="text-primary">
+                - {fmt(shippingDiscountCapped)}
+              </span>
+            }
+          />
+        )}
+
+        {promoDiscountList > 0 && (
+          <Row
+            label="Diskon promo"
+            value={
+              <span className="text-primary">- {fmt(promoDiscountList)}</span>
+            }
+          />
+        )}
+
+        {promoDiscountCode > 0 && (
+          <Row
+            label="Diskon kode"
+            value={
+              <span className="text-primary">- {fmt(promoDiscountCode)}</span>
+            }
+          />
+        )}
+
+        <div className="my-2 h-px bg-gray-200/70" />
 
         <Row
-          label="Total pembayaran"
-          value={
-            <span className="font-semibold">{fmt(totals.grandTotal)}</span>
-          }
+          label="Total"
+          value={<span className="font-semibold">{fmt(grandTotal)}</span>}
         />
-        <div className="text-xs text-gray-600">
-          Poin yang didapat:{" "}
-          <span className="font-medium">{totals.points}</span>
-        </div>
+
+        {totalDiscount > 0 && (
+          <div className="text-xs text-primary">
+            Kamu hemat {fmt(totalDiscount)}
+          </div>
+        )}
       </div>
 
       <button
         type="button"
         className="mt-4 w-full rounded-xl px-5 py-3 font-medium bg-primary text-white hover:bg-secondary transition-colors cursor-pointer active:scale-[.99]"
       >
-        Bayar Sekarang
+        Checkout
       </button>
 
       <div className="mt-4 pt-3">
-        <p className="text-center text-xs text-gray-500 mb-5">
+        <p className="text-center text-xs text-gray-500">
           Pembayaranmu aman di website kami.
         </p>
         <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">

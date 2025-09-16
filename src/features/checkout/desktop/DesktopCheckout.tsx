@@ -1,13 +1,14 @@
 // src/features/checkout/desktop/DesktopCheckout.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   CartData,
   Voucher,
   VoucherSelection,
   VoucherConditions,
 } from "@shared/types/types";
+
 import AddressCard from "./AddressCard";
 import SellerCartCard from "./SellerCartCard";
 import PaymentMethodsDesktop from "./PaymentMethodsDesktop";
@@ -22,6 +23,15 @@ import {
   type CartCtx,
 } from "@features/cart/utils/redeemWithFallback";
 
+import ShippingModal from "./ShippingModal";
+import {
+  buildMockShippingData,
+  type ShippingDetailData,
+  type ShippingOption,
+} from "@data/shipingData";
+import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
+
+/* ---------------- helpers voucher ---------------- */
 type VoucherWithConditions = Voucher & { conditions?: VoucherConditions };
 type DecoratedVoucher = Voucher & { _reason?: string };
 function decorateVouchers(src: Voucher[], ctx: CartCtx): DecoratedVoucher[] {
@@ -36,21 +46,80 @@ function decorateVouchers(src: Voucher[], ctx: CartCtx): DecoratedVoucher[] {
   });
 }
 
-// ⬇️ initialCart dibuat OPSIONAL dan diberi default agar selalu defined
+function parseRupiahFlexible(text?: string): number {
+  if (!text) return 0;
+  const s = text.replace(/\s+/g, " ").trim().toLowerCase();
+  let m = s.match(/(?:rp)?\s*([\d.]+)\s*(rb|ribu|k|jt|juta)?/i);
+  if (m) {
+    const base = parseInt(m[1].replace(/\./g, ""), 10) || 0;
+    const suf = (m[2] || "").toLowerCase();
+    if (["rb", "ribu", "k"].includes(suf)) return base * 1_000;
+    if (["jt", "juta"].includes(suf)) return base * 1_000_000;
+    return base;
+  }
+  m = s.match(/(\d+)\s*(rb|ribu|k|jt|juta)/i);
+  if (m) {
+    const n = parseInt(m[1], 10) || 0;
+    const suf = m[2].toLowerCase();
+    return ["rb", "ribu", "k"].includes(suf) ? n * 1_000 : n * 1_000_000;
+  }
+  return 0;
+}
+function parsePercent(text?: string): number | null {
+  if (!text) return null;
+  const m = text.match(/(\d{1,3})\s*%/);
+  return m ? Math.min(100, Math.max(0, parseInt(m[1], 10))) : null;
+}
+const looksLikeDisc = (t?: string) =>
+  !!t && /(hemat|potong|s\/d|sd|gratis|ongkir|diskon)/i.test(t);
+
+function computeShippingDiscountFrom(v?: Voucher | null): number {
+  if (!v) return 0;
+  const tryTexts: (string | undefined)[] = [
+    v.savingLabel,
+    v.title,
+    looksLikeDisc(v.subtitle) ? v.subtitle : undefined,
+  ];
+  for (const t of tryTexts) {
+    const n = parseRupiahFlexible(t);
+    if (n > 0) return n;
+  }
+  return 0;
+}
+function computePromoDiscountFrom(
+  v: Voucher | null | undefined,
+  subtotal: number
+): number {
+  if (!v) return 0;
+  const pct =
+    parsePercent(v.title) ??
+    parsePercent(v.subtitle) ??
+    parsePercent(v.savingLabel) ??
+    0;
+  const cap =
+    parseRupiahFlexible(v.subtitle) ||
+    parseRupiahFlexible(v.savingLabel) ||
+    Number.POSITIVE_INFINITY;
+  if (pct <= 0) return 0;
+  const raw = Math.floor((subtotal * pct) / 100);
+  return Math.max(0, Math.min(raw, cap, subtotal));
+}
+
+/* ---------------- component ---------------- */
 export default function DesktopCheckout({
   initialCart = { items: [] },
 }: {
   initialCart?: CartData;
 }) {
-  // Aman walau initialCart belum dikirim: selalu kerjakan dari array aman
+  // items (fallback semua qty>0)
   const safeItems = (initialCart?.items ?? []).filter((i) => i.qty > 0);
-
-  // Kalau ada yang selected, pakai itu. Kalau tidak ada, pakai semua supaya tidak kosong.
   const selectedItems = useMemo(() => {
     const chosen = safeItems.filter((i) => i.selected);
     return chosen.length > 0 ? chosen : safeItems;
-  }, [initialCart]);
+  }, [safeItems]);
+  const itemsCount = selectedItems.length;
 
+  // subtotal
   const subtotal = useMemo(() => {
     let sum = 0;
     for (const line of selectedItems) {
@@ -64,7 +133,44 @@ export default function DesktopCheckout({
     return sum;
   }, [selectedItems]);
 
-  const selectedCount = selectedItems.length;
+  // alamat untuk tujuan shipping
+  const { primary } = useAddressBookLocal();
+  const destinationLabel = primary ? `${primary.label} ${primary.city}` : "Alamat tujuan";
+  const totalWeightGr = 800;
+
+  // data shipping + pilihan + modal
+  const [shipData, setShipData] = useState<ShippingDetailData | null>(null);
+  const [shipSelected, setShipSelected] = useState<ShippingOption | null>(null);
+  const [shipLoading, setShipLoading] = useState(true);
+  const [openShip, setOpenShip] = useState(false);
+
+  useEffect(() => {
+    const d = buildMockShippingData({
+      origin: "Kota Administrasi Jakarta Pusat",
+      destination: destinationLabel,
+      weightGr: totalWeightGr,
+    });
+    setShipData(d);
+  }, [destinationLabel, totalWeightGr]);
+
+  useEffect(() => {
+    if (!shipData) return;
+    setShipLoading(true);
+    const t = setTimeout(() => {
+      const all = shipData.groups.flatMap((g) => g.items);
+      const cheapest = all.reduce<ShippingOption | null>(
+        (best, cur) => (!best || cur.price < best.price ? cur : best),
+        null
+      );
+      setShipSelected((prev) => prev ?? cheapest ?? null);
+      setShipLoading(false);
+    }, 450);
+    return () => clearTimeout(t);
+  }, [shipData]);
+
+  const openShipping = () => setOpenShip(true);
+
+  // voucher
   const regionTag = "Jabodetabek";
   const hasPackage = false;
 
@@ -78,8 +184,8 @@ export default function DesktopCheckout({
   const [codeVoucher, setCodeVoucher] = useState<Voucher | null>(null);
 
   const ctx = useMemo<CartCtx>(
-    () => ({ subtotal, selectedCount, regionTag, hasPackage }),
-    [subtotal, selectedCount, regionTag, hasPackage]
+    () => ({ subtotal, selectedCount: itemsCount, regionTag, hasPackage }),
+    [subtotal, itemsCount, regionTag, hasPackage]
   );
 
   const availableShipping = useMemo(
@@ -119,17 +225,89 @@ export default function DesktopCheckout({
     return res;
   }
 
+  // ---- summary (fee + discounts + total) ----
+  const shippingFee = shipSelected?.price ?? 0;
+
+  const {
+    shippingDiscount,
+    promoDiscountList,
+    promoDiscountCode,
+    grandTotal,
+  } = useMemo(() => {
+    // SHIPPING DISCOUNT
+    let shipVoucher: Voucher | null = null;
+    if (selectedVoucher.shippingId) {
+      shipVoucher =
+        availableShipping.find((x) => x.id === selectedVoucher.shippingId) ??
+        (codeVoucher?.type === "shipping" &&
+        codeVoucher.id === selectedVoucher.shippingId
+          ? codeVoucher
+          : null);
+    }
+    if (!shipVoucher && selectedVoucher.code && codeVoucher?.type === "shipping") {
+      shipVoucher = codeVoucher;
+    }
+    const shippingDiscountRaw = computeShippingDiscountFrom(shipVoucher);
+
+    // cap diskon ongkir agar tidak melebihi harga ongkir
+    const shippingDiscCapped = Math.min(
+      shipSelected?.price ?? 0,
+      Math.max(0, shippingDiscountRaw)
+    );
+
+    // PROMO DISCOUNTS
+    const promoFromList = selectedVoucher.promoId
+      ? availablePromos.find((x) => x.id === selectedVoucher.promoId) ?? null
+      : null;
+    const promoDiscountList = computePromoDiscountFrom(promoFromList, subtotal);
+
+    const codeIsPromoNotInList =
+      !!selectedVoucher.code &&
+      codeVoucher?.type === "promo" &&
+      !availablePromos.some((p) => p.id === codeVoucher.id);
+    const promoDiscountCode = codeIsPromoNotInList
+      ? computePromoDiscountFrom(codeVoucher, subtotal)
+      : 0;
+
+    // GRAND TOTAL: subtotal + ongkir - (semua diskon)
+    const totalDisc =
+      shippingDiscCapped +
+      Math.max(0, promoDiscountList) +
+      Math.max(0, promoDiscountCode);
+
+    const grandTotal = Math.max(
+      0,
+      subtotal + (shipSelected?.price ?? 0) - totalDisc
+    );
+
+    return {
+      shippingDiscount: shippingDiscCapped,
+      promoDiscountList,
+      promoDiscountCode,
+      grandTotal,
+    };
+  }, [
+    subtotal,
+    selectedVoucher,
+    availableShipping,
+    availablePromos,
+    codeVoucher,
+    shipSelected?.price,
+  ]);
+
   return (
     <>
       <div className="max-w-screen-xl mx-auto px-4 md:px-0 my-6 grid grid-cols-12 gap-6">
         {/* LEFT */}
         <section className="col-span-12 lg:col-span-8 space-y-6">
+          <div className="rounded-2xl border border-gray-200/70 bg-white"><AddressCard /></div>
           <div className="rounded-2xl border border-gray-200/70 bg-white">
-            <AddressCard />
-          </div>
-          <div className="rounded-2xl border border-gray-200/70 bg-white">
-            {/* ⬇️ items kini selalu array aman */}
-            <SellerCartCard items={selectedItems} />
+            <SellerCartCard
+              items={selectedItems}
+              current={shipSelected}
+              loading={shipLoading}
+              openShipping={openShipping}
+            />
           </div>
         </section>
 
@@ -138,24 +316,34 @@ export default function DesktopCheckout({
           <div className="space-y-6 lg:sticky lg:top-20">
             <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
               <VoucherCard
-                selectable={selectedCount > 0}
+                selectable={itemsCount > 0}
                 onOpen={() => setOpenVoucher(true)}
                 loading={voucherLoading}
                 appliedCount={appliedCount}
                 savingText={savingText}
               />
             </div>
+
             <div className="rounded-2xl border border-gray-200/70 bg-white">
               <PaymentMethodsDesktop />
             </div>
-            <div className="rounded-2xl border border-gray-200/70 bg-white">
-              <OrderSummaryDesktop />
+
+            <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
+              <OrderSummaryDesktop
+                itemsCount={itemsCount}
+                subtotal={subtotal}
+                shippingFee={shippingFee}
+                shippingDiscount={shippingDiscount}
+                promoDiscountList={promoDiscountList}
+                promoDiscountCode={promoDiscountCode}
+                grandTotal={grandTotal}
+              />
             </div>
           </div>
         </aside>
       </div>
 
-      {/* Voucher Modal */}
+      {/* MODALS */}
       <VoucherModal
         open={openVoucher}
         onClose={() => setOpenVoucher(false)}
@@ -174,6 +362,7 @@ export default function DesktopCheckout({
             !payload.promoId ||
             availablePromos.some((v) => v.id === payload.promoId && v.enabled);
           if (!shipOk || !promoOk) return;
+
           setVoucherLoading(true);
           setTimeout(() => {
             setSelectedVoucher(payload);
@@ -182,6 +371,19 @@ export default function DesktopCheckout({
           }, 220);
         }}
       />
+
+      {shipData && (
+        <ShippingModal
+          open={openShip}
+          onClose={() => setOpenShip(false)}
+          data={shipData}
+          selectedId={shipSelected?.id ?? null}
+          onConfirm={(opt) => {
+            setShipSelected(opt);
+            setOpenShip(false);
+          }}
+        />
+      )}
     </>
   );
 }

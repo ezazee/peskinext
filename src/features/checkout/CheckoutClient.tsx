@@ -15,6 +15,6 @@ export default function CheckoutClient({ initialCart }: { initialCart: CartData 
   if (!mounted) return <CheckoutSkeletonShell />;
 
   return isMobile
-    ? <MobileCheckout />
+    ? <MobileCheckout initialCart={initialCart} />
     : <DesktopCheckout initialCart={initialCart} />;
 }
