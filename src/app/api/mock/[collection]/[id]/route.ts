@@ -1,3 +1,4 @@
+// src/app/api/mock/[collection]/[id]/route.ts
 import { NextResponse } from 'next/server';
 import * as raw from '../../../../../data';
 
@@ -10,6 +11,7 @@ const CORS: Record<string, string> = {
 };
 
 type CollectionMap = Record<string, ReadonlyArray<unknown>>;
+
 const db: CollectionMap = Object.fromEntries(
   Object.entries(raw).filter(([, v]) => Array.isArray(v))
 ) as CollectionMap;
@@ -25,6 +27,7 @@ function pickId(it: unknown): string | undefined {
     const v = it[k];
     if (typeof v === 'string' || typeof v === 'number') return String(v);
   }
+  // fallback: cari key yang diakhiri "id"
   const guess = Object.keys(it).find((k) => /id$/i.test(k));
   if (!guess) return undefined;
   const val = it[guess];
@@ -35,8 +38,17 @@ export function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS });
 }
 
-export function GET(_req: Request, { params }: { params: { collection: string; id: string } }) {
-  const { collection, id } = params;
+// ✅ Perbaikan: gunakan parameter kedua sebagai "context", lalu ambil context.params di dalam fungsi
+type RouteContext = {
+  params: {
+    collection: string;
+    id: string;
+  };
+};
+
+export async function GET(_req: Request, context: RouteContext) {
+  const { collection, id } = context.params;
+
   const rows = db[collection];
   if (!rows) {
     return NextResponse.json(
@@ -44,6 +56,7 @@ export function GET(_req: Request, { params }: { params: { collection: string; i
       { status: 404, headers: CORS }
     );
   }
+
   const item = rows.find((x) => pickId(x) === id);
   if (!item) {
     return NextResponse.json(
@@ -51,5 +64,6 @@ export function GET(_req: Request, { params }: { params: { collection: string; i
       { status: 404, headers: CORS }
     );
   }
+
   return NextResponse.json(item, { headers: CORS });
 }
