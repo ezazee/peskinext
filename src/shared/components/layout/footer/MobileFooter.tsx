@@ -1,27 +1,37 @@
-import type { NavItem } from "@shared/types/types";
-import MobileAppOffer from "./MobileAppOffer";
+"use client";
 
-export const MobileFooter = ({ navItems }: { navItems: NavItem[] }) => (
-  <>
-    {/* <MobileAppOffer /> */}
-    <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center py-1 z-[10]">
-      {navItems.map((item) => (
-        <a
-          key={item.name}
-          href="#"
-          className="flex flex-col items-center p-2 rounded-lg hover:bg-tertiary"
-        >
-          <item.icon active={item.active} />
-          <span
-            className={`text-xs mt-1 ${
-              item.active ? "text-primary font-semibold" : "text-secondary"
-            }`}
-          >
-            {item.name}
-          </span>
-        </a>
-      ))}
-    </footer>
-    <div className="h-36 md:hidden"></div>
-  </>
-);
+import type { NavItem } from "@data/index";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+export const MobileFooter = ({ navItems }: { navItems: NavItem[] }) => {
+  const pathname = usePathname();
+
+  return (
+    <>
+      <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center py-1 z-[10]">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className="flex flex-col items-center p-2 rounded-lg hover:bg-tertiary"
+            >
+              <item.icon active={isActive} />
+              <span
+                className={`text-xs mt-1 ${
+                  isActive ? "text-primary font-semibold" : "text-secondary"
+                }`}
+              >
+                {item.name}
+              </span>
+            </Link>
+          );
+        })}
+      </footer>
+      <div className="h-36 md:hidden" />
+    </>
+  );
+};

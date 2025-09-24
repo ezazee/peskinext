@@ -33,11 +33,12 @@ export interface Product {
   isEvent: boolean;
   type: "single" | "bundle";
   variants: Variant[];
-   weightGr: number;
+  weightGr: number;
 }
 
 export interface NavItem {
   name: string;
+  href: string;
   icon: ComponentType<{ active?: boolean }>;
   active?: boolean;
 }
@@ -159,11 +160,9 @@ export type RedeemResult =
   | { ok: true; voucher: Voucher }
   | { ok: false; reason: string };
 
+/* ================= Checkout ================= */
 
-
-  /* ================= Checkout ================= */
-
-  export type CheckoutSource = "cart" | "buy_now";
+export type CheckoutSource = "cart" | "buy_now";
 
 export interface CheckoutLine {
   productId: string;
@@ -171,8 +170,8 @@ export interface CheckoutLine {
   name: string;
   image: string;
   qty: number;
-  price: number;    // snapshot per unit
-  weight?: number;  // gram
+  price: number; // snapshot per unit
+  weight?: number; // gram
 }
 
 export interface CheckoutSession {
@@ -190,7 +189,6 @@ export interface CheckoutSession {
   createdAt: string;
   expiresAt: string;
 }
-
 
 /* ================= Address ================= */
 
@@ -210,6 +208,6 @@ export type AddressItem = {
 export type AddressListEntry = {
   id: string;
   label: string;
-  address: string;   // single-line untuk list di modal/header
+  address: string; // single-line untuk list di modal/header
   isPrimary: boolean;
 };
