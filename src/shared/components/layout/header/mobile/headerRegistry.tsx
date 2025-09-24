@@ -10,6 +10,7 @@ import { MobileHeader } from "./MobileHeader";
 // Helper deteksi path
 const isProductDetail = (p: string) => /^\/product\/[^/]+$/.test(p);
 const isCart = (p: string) => p === "/cart";
+const iNotifications = (p: string) => p.startsWith("/notification");
 const isShipping = (p: string) => p.startsWith("/shipping");
 const isProfile = (p: string) => p.startsWith("/profile");
 const isAuth = (p: string) => p.startsWith("/auth");
@@ -25,6 +26,7 @@ export function useResolveMobileHeader(): ReactNode {
 
     // contoh halaman lain:
     if (isCart(pathname)) return <MobileHeaderDetail />;
+    if (iNotifications(pathname)) return <MobileHeaderDetail />;
     if (isShipping(pathname)) return <MobileHeaderDetail />;
     if (isProfile(pathname)) return <MobileHeaderDetail />;
     if (isAuth(pathname)) return <MobileHeaderDetail />;

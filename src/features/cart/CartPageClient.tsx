@@ -18,7 +18,6 @@ export default function CartPageClient({ initial, loading = false }: Props) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // Saat belum mounted atau masih loading → tampilkan skeleton versi responsif
   if (!mounted || loading) {
     return (
       <>

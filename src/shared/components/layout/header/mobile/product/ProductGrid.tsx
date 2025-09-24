@@ -3,7 +3,6 @@ import { ProductCard } from "./ProductCard";
 
 type Props = {
   products: Product[];
-  /** Batas jumlah produk yang ditampilkan. Opsional. */
   limit?: number;
 };
 

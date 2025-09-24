@@ -43,7 +43,7 @@ export const MobileHeader = () => {
   useEffect(() => setHydrated(true), []);
 
   // sumber data alamat
-  const { primary, addresses, selectPrimary, addAddress } = useAddressBookLocal();
+  const { primary, addresses, selectPrimary } = useAddressBookLocal();
 
   // opsi untuk AddressModal
   const options = useMemo<ReadonlyArray<OptionForModal>>(() => {
@@ -61,11 +61,10 @@ export const MobileHeader = () => {
 
   // === LABEL DINAMIS DI PILL ===
   // contoh: "Rumah Garut Reza" (label + recipient). Kalau mau label + kota: ganti recipient -> city.
-const pillLabel = useMemo(() => {
-  if (!hydrated || !primary) return "Pilih alamat";
-  return `${primary.label} ${primary.city}`;
-}, [hydrated, primary]);
-
+  const pillLabel = useMemo(() => {
+    if (!hydrated || !primary) return "Pilih alamat";
+    return `${primary.label} ${primary.city}`;
+  }, [hydrated, primary]);
 
   return (
     <>
@@ -150,8 +149,12 @@ const pillLabel = useMemo(() => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="font-bold text-base-text">Hai, Selamat Datang!</p>
-                  <p className="text-xs text-subtle-text">Login Untuk Melakukan Transaksi</p>
+                  <p className="font-bold text-base-text">
+                    Hai, Selamat Datang!
+                  </p>
+                  <p className="text-xs text-subtle-text">
+                    Login Untuk Melakukan Transaksi
+                  </p>
                 </div>
               </div>
               <button

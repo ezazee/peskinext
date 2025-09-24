@@ -8,22 +8,14 @@ function toCssSize(v?: Size) {
 }
 
 export type SkeletonProps = {
-  /** width & height: contoh 120, "100%", "2rem" */
   width?: Size;
   height?: Size;
-  /** border radius: contoh 8, "9999px" */
   radius?: Size;
-  /** aktifkan shimmer (default true) */
   shimmer?: boolean;
-  /** className tambahan */
   className?: string;
-  /** ARIA label (untuk screen reader), default "Memuat..." */
   ariaLabel?: string;
-  /** render sebagai element lain */
   as?: keyof React.JSX.IntrinsicElements;
-  /** inline-block? default block */
   inline?: boolean;
-  /** children opsional (jarang diperlukan) */
   children?: React.ReactNode;
 };
 
@@ -54,7 +46,7 @@ export function Skeleton({
         "skeleton-base",
         shimmer ? "skeleton-shimmer" : "animate-pulse",
         inline ? "inline-block" : "block",
-        "rounded", // default rounded
+        "rounded",
         className,
       ].join(" ")}
       style={style}

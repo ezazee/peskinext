@@ -465,7 +465,7 @@ export function CartMobile({ initial }: { initial: CartData }) {
   }, [selectedVoucher, availableShipping, availablePromos, codeVoucher]);
 
   /* ========= TOTAL: shipping + promo(list) + promo(code-not-in-list) ========= */
-  const { shippingDiscount, promoDiscountList, promoDiscountCode, grandTotal } =
+  const { grandTotal } =
     useMemo(() => {
       // --- SHIPPING aktif
       let activeShip: Voucher | null = null;
