@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { formatRupiah } from "@shared/libs/format";
 import type { Voucher, VoucherSelection } from "@shared/types/types";
 import { createCheckoutFromCart } from "@features/checkout/action";
@@ -83,7 +82,7 @@ type Props = {
   selected: VoucherSelection;
   shipping: Voucher[];
   promos: Voucher[];
-  redeemedVoucher: Voucher | null; // kode voucher hasil redeem (bisa tidak ada di list)
+  redeemedVoucher: Voucher | null;
 };
 
 export default function SummaryCard({
@@ -95,7 +94,6 @@ export default function SummaryCard({
   promos,
   redeemedVoucher,
 }: Props) {
-  const router = useRouter();
   const disabled = !canCheckout;
 
   const { shippingDiscount, promoDiscountList, promoDiscountCode, grandTotal } =

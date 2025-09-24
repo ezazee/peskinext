@@ -60,6 +60,16 @@ export const shippingVouchers: Voucher[] = [
     validTo: "2025-12-31",
     conditions: { regions: ["Luar Jawa"] },
   },
+  {
+    id: "ship-ongkir-1000",
+    title: "Gratis Ongkir Serebu",
+    subtitle: "Tanpa minimum belanja, khusus Jabodetabek",
+    type: "shipping",
+    enabled: true,
+    savingLabel: "Hemat s/d serebu",
+    validTo: "2025-12-31",
+    conditions: { regions: ["Jabodetabek"] },
+  },
 ];
 
 /* ============================ PROMO VOUCHERS =========================== */

@@ -14,8 +14,8 @@ import SellerCartCard from "./SellerCartCard";
 import PaymentMethodsDesktop from "./PaymentMethodsDesktop";
 import OrderSummaryDesktop from "./OrderSummaryDesktop";
 
-import VoucherCard from "@features/cart/desktop/VoucherCard";
-import VoucherModal from "@features/cart/desktop/VoucherModal";
+import VoucherCard from "@features/checkout/desktop/VoucherCard";
+import VoucherModal from "@features/checkout/desktop/VoucherModal";
 import { promoVouchers, shippingVouchers } from "@data/voucher";
 import { evaluateVoucher } from "@features/cart/lib/voucher";
 import {

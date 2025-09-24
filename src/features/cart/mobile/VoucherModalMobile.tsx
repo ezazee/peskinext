@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, easeInOut } from "framer-motion";
 import { BrandCheckbox } from "@shared/components/ui/BrandCheckbox";
-import VoucherModalSkeleton from "../desktop/skeleton/VoucherModal.skeleton";
+import VoucherModalSkeleton from "../../checkout/desktop/skeleton/VoucherModal.skeleton";
 import { useToast } from "@shared/components/ui/Toaster";
 import type {
   Voucher,

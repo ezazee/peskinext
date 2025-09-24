@@ -1,3 +1,4 @@
+// src/shared/components/layout/header/mobile/MobileHeader.tsx
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -24,11 +25,11 @@ type OptionForModal = AddressListEntry & {
 
 export const MobileHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  // kunci scroll hanya untuk modal auth & address
+  // lock scroll saat modal auth/address
   useEffect(() => {
     const shouldLock = isAuthModalOpen || isAddressModalOpen;
     document.body.classList.toggle("overflow-hidden", shouldLock);
@@ -39,14 +40,12 @@ export const MobileHeader = () => {
 
   // Hydration guard
   const [hydrated, setHydrated] = useState(false);
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
+  useEffect(() => setHydrated(true), []);
 
-  // Sumber tunggal data
-  const { primary, addresses, selectPrimary, addAddress } =
-    useAddressBookLocal();
+  // sumber data alamat
+  const { primary, addresses, selectPrimary, addAddress } = useAddressBookLocal();
 
+  // opsi untuk AddressModal
   const options = useMemo<ReadonlyArray<OptionForModal>>(() => {
     const list = addresses.map<OptionForModal>((a) => ({
       id: a.id,
@@ -60,6 +59,14 @@ export const MobileHeader = () => {
     return [...list].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
   }, [addresses, primary]);
 
+  // === LABEL DINAMIS DI PILL ===
+  // contoh: "Rumah Garut Reza" (label + recipient). Kalau mau label + kota: ganti recipient -> city.
+const pillLabel = useMemo(() => {
+  if (!hydrated || !primary) return "Pilih alamat";
+  return `${primary.label} ${primary.city}`;
+}, [hydrated, primary]);
+
+
   return (
     <>
       <AuthModal
@@ -67,14 +74,14 @@ export const MobileHeader = () => {
         onClose={() => setIsAuthModalOpen(false)}
         initialView="login"
       />
+
       <AddressModal
         isOpen={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}
         options={hydrated ? options : []}
         selectedId={hydrated ? primary?.id ?? null : null}
         onConfirm={(id) => {
-          // tampilkan skeleton beberapa ratus ms (simulasi hitung ongkir/promo)
-          startAddressSwitch(700);
+          startAddressSwitch(700); // tampilkan skeleton di halaman
           selectPrimary(id);
           setIsAddressModalOpen(false);
         }}
@@ -88,7 +95,6 @@ export const MobileHeader = () => {
         }}
       />
 
-      {/* Overlay full-screen terpisah */}
       <SearchOverlay
         open={isSearchFocused}
         onClose={() => setIsSearchFocused(false)}
@@ -136,19 +142,16 @@ export const MobileHeader = () => {
                 className="flex cursor-pointer items-center gap-2 bg-tertiary px-3 py-1.5 rounded-full text-sm font-semibold text-base-text"
               >
                 <LocationIcon className="h-4 w-4 text-green-500" />
-                <span>Rumah Garut Reza</span>
+                {/* penting: suppressHydrationWarning supaya tidak muncul warning saat label berubah setelah mount */}
+                <span suppressHydrationWarning>{pillLabel}</span>
               </button>
             </div>
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="font-bold text-base-text">
-                    Hai, Selamat Datang!
-                  </p>
-                  <p className="text-xs text-subtle-text">
-                    Login Untuk Melakukan Transaksi
-                  </p>
+                  <p className="font-bold text-base-text">Hai, Selamat Datang!</p>
+                  <p className="text-xs text-subtle-text">Login Untuk Melakukan Transaksi</p>
                 </div>
               </div>
               <button

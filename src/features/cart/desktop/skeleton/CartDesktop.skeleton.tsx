@@ -2,7 +2,7 @@
 
 import CartItemCardSkeleton from "./CartItemSkeleton";
 import SummaryCardSkeleton from "./SummaryCardSkeleton";
-import VoucherCardSkeleton from "./VoucherCardSkeleton";
+import VoucherCardSkeleton from "../../../checkout/desktop/skeleton/VoucherCardSkeleton";
 
 type Props = {
   /** varian tampilan voucher saat loading */

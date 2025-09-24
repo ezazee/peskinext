@@ -13,6 +13,7 @@ import type {
 
 import { AddressModal } from "@shared/components/ui/AddressModal";
 import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
+import PaymentMethodsMobile from "./PaymentMethodsMobile";
 
 import AddressCardMobile from "./AddressCardMobile";
 import SellerCartCardMobile from "./SellerCartCardMobile";
@@ -22,7 +23,7 @@ import ShippingModal from "@features/checkout/desktop/ShippingModal";
 import { buildMockShippingData } from "@data/shipingData";
 import type { ShippingDetailData, ShippingOption } from "@data/shipingData";
 
-import VoucherModal from "@features/cart/desktop/VoucherModal";
+import VoucherModal from "@features/checkout/desktop/VoucherModal";
 import { promoVouchers, shippingVouchers } from "@data/voucher";
 import { evaluateVoucher } from "@features/cart/lib/voucher";
 import {
@@ -179,6 +180,8 @@ export default function MobileCheckout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primary?.id]);
 
+  const [paymentId, setPaymentId] = useState<string>("qris"); // default QRIS
+
   /* voucher */
   const selectedCount = itemsCount;
   const regionTag = "Jabodetabek";
@@ -294,6 +297,8 @@ export default function MobileCheckout({
             </span>
           </button>
         </section>
+
+        <PaymentMethodsMobile selectedId={paymentId} onChange={setPaymentId} />
 
         <OrderSummaryMobile
           itemsCount={itemsCount}

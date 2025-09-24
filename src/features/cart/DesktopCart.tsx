@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { CartData, RedeemResult, Voucher, VoucherSelection } from "@shared/types/types";
+import type { CartData, Voucher, VoucherSelection } from "@shared/types/types";
 import { useCartState } from "@features/cart/hooks/useCartState";
 import CartItemCard from "./desktop/CartItemCard";
-import VoucherCard from "./desktop/VoucherCard";
-import VoucherModal from "./desktop/VoucherModal";
 import { promoVouchers, shippingVouchers } from "@data/voucher";
 import { useToast } from "@shared/components/ui/Toaster";
 import SummaryCard from "./desktop/SummaryCard";
-import { redeemWithFallback } from "./utils/redeemWithFallback";
 
 /* =====================================================================================
  *  Type guards & helpers (NO any)
@@ -123,7 +120,6 @@ function decorateVouchers(src: Voucher[], ctx: CartCtx): DecoratedVoucher[] {
   });
 }
 
-
 /* =====================================================================================
  *  Component
  * ===================================================================================== */
@@ -136,8 +132,6 @@ export function CartDesktop({ initial }: { initial: CartData }) {
   const regionTag = "Jabodetabek";
   const hasPackage = useMemo(() => computeHasPackage(items), [items]);
 
-  const [openVoucher, setOpenVoucher] = useState(false);
-  const [voucherLoading, setVoucherLoading] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<VoucherSelection>({
     shippingId: null,
     promoId: null,
@@ -227,38 +221,6 @@ export function CartDesktop({ initial }: { initial: CartData }) {
     ctx.subtotal,
   ]);
 
-  const appliedCount = useMemo(
-    () =>
-      (selectedVoucher.shippingId ? 1 : 0) +
-      (selectedVoucher.promoId ? 1 : 0) +
-      (selectedVoucher.code?.trim() ? 1 : 0),
-    [selectedVoucher]
-  );
-
-  const savingText = useMemo(() => {
-    const labels: string[] = [];
-    if (selectedVoucher.shippingId) {
-      const s = availableShipping.find(
-        (v) => v.id === selectedVoucher.shippingId
-      );
-      if (s?.savingLabel) labels.push(s.savingLabel);
-    }
-    if (selectedVoucher.promoId) {
-      const p = availablePromos.find((v) => v.id === selectedVoucher.promoId);
-      if (p?.savingLabel) labels.push(p.savingLabel);
-    }
-    if (selectedVoucher.code && codeVoucher?.savingLabel)
-      labels.push(codeVoucher.savingLabel);
-    return labels.join(" + ");
-  }, [selectedVoucher, availableShipping, availablePromos, codeVoucher]);
-
-  // helper: redeem yang mengembalikan RedeemResult (bukan boolean biasa)
-  async function redeemVoucher(codeUpper: string): Promise<RedeemResult> {
-    const res = await redeemWithFallback(codeUpper, ctx);
-    if (res.ok) setCodeVoucher(res.voucher);
-    return res;
-  }
-
   return (
     <>
       <div className="max-w-screen-xl mx-auto px-4 md:px-0 my-6 grid grid-cols-12 gap-6">
@@ -288,13 +250,6 @@ export function CartDesktop({ initial }: { initial: CartData }) {
         {/* RIGHT */}
         <aside className="col-span-4">
           <div className="sticky top-20 space-y-4">
-            <VoucherCard
-              selectable={hasSelection}
-              onOpen={() => setOpenVoucher(true)}
-              loading={voucherLoading}
-              appliedCount={appliedCount}
-              savingText={hasSelection ? savingText || undefined : undefined}
-            />
             <SummaryCard
               subtotal={totals.subtotal}
               shippingFee={0}
@@ -307,43 +262,6 @@ export function CartDesktop({ initial }: { initial: CartData }) {
           </div>
         </aside>
       </div>
-
-      {/* MODAL */}
-      <VoucherModal
-        open={openVoucher}
-        onClose={() => setOpenVoucher(false)}
-        loading={voucherLoading}
-        shipping={availableShipping}
-        promos={availablePromos}
-        initialSelected={selectedVoucher}
-        onRedeemCode={async (codeUpper) => {
-          const res = await redeemVoucher(codeUpper);
-          if (!res.ok)
-            toast.error(res.reason ?? "Gagal memproses voucher", "Voucher");
-          return res; // <- Kembalikan RedeemResult, sesuai tipe prop
-        }}
-        onApply={(payload) => {
-          const shipOk =
-            !payload.shippingId ||
-            availableShipping.some(
-              (v) => v.id === payload.shippingId && v.enabled
-            );
-          const promoOk =
-            !payload.promoId ||
-            availablePromos.some((v) => v.id === payload.promoId && v.enabled);
-          if (!shipOk || !promoOk) {
-            toast.error("Voucher tidak memenuhi syarat.");
-            return;
-          }
-          setVoucherLoading(true);
-          setTimeout(() => {
-            setSelectedVoucher(payload);
-            setVoucherLoading(false);
-            setOpenVoucher(false);
-            toast.success("Voucher diterapkan.");
-          }, 250);
-        }}
-      />
     </>
   );
 }
