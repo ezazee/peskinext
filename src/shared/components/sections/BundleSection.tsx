@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { productsData } from '@data/products';
 import { ProductCard } from '../layout/header/mobile/product/ProductCard';
 import { ChevronLeftIcon, ChevronRightIcon } from '../icons';
+import Link from 'next/link';
 
 // Filter data untuk hanya menampilkan produk bundle
 const bundleProducts = productsData.filter(product => product.type === 'bundle');
@@ -30,9 +31,9 @@ export const BundleSection = () => {
                 <h2 className="text-xl font-bold text-base-text">
                   Product Bundle PE Skinpro
                 </h2>
-                <a href="#" className="text-primary font-semibold hover:underline text-sm">
+                <Link href="/all-product" className="text-primary font-semibold hover:underline text-sm">
                     Lihat semua
-                </a>
+                </Link>
             </div>
             <div className="flex gap-4">
                 {/* Kartu Promo Kiri (hanya di desktop) */}

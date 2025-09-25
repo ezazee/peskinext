@@ -15,26 +15,6 @@ export interface Variant {
   stock: number;
 }
 
-export interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  ingredients: string[];
-  howToUse: string[];
-  category: string;
-  sku: string;
-  price: string;
-  oldPrice?: string;
-  img: string;
-  imgHover: string;
-  galleryImages: string[];
-  isFlashSale: boolean;
-  isEvent: boolean;
-  type: "single" | "bundle";
-  variants: Variant[];
-  weightGr: number;
-}
 
 export interface NavItem {
   name: string;
@@ -210,4 +190,60 @@ export type AddressListEntry = {
   label: string;
   address: string; // single-line untuk list di modal/header
   isPrimary: boolean;
+};
+
+
+
+/* ================= PRODUCT ================= */
+
+export type PriceString = string;
+
+export interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  ingredients: string[];
+  howToUse: string[];
+  category: string;
+  sku: string;
+  price: string;
+  oldPrice?: string;
+  img: string;
+  imgHover: string;
+  galleryImages: string[];
+  isFlashSale: boolean;
+  isEvent: boolean;
+  type: "single" | "bundle";
+  variants: Variant[];
+  weightGr: number;
+}
+
+export type BundleVariant = {
+  id: number;
+  name: string;
+  price: number;
+  oldPrice: number;
+  stock: number;
+};
+
+export type BundleProduct = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  img: string;
+  imgHover?: string;
+  price: PriceString;
+  oldPrice?: PriceString;
+  isFlashSale?: boolean;
+  isEvent?: boolean;
+  type: "bundle";
+  weightGr?: number;
+  variants?: BundleVariant[];
+  galleryImages?: string[];
+  sku?: string;
+  category?: string;
+  ingredients?: string[];
+  howToUse?: string[];
 };

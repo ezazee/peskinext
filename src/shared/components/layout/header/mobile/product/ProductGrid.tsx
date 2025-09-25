@@ -1,28 +1,33 @@
 import type { Product } from "@shared/types/types";
 import { ProductCard } from "./ProductCard";
+import Link from "next/link";
 
 type Props = {
-  products: Product[];
+  products: ReadonlyArray<Product>;
   limit?: number;
 };
 
-export const ProductGrid = ({ products, limit }: Props) => {
-  // jika limit tidak diberikan -> tampilkan semua
-  const count =
-    typeof limit === "number" && Number.isFinite(limit)
-      ? Math.max(0, Math.floor(limit))
-      : products.length;
-
-  const list = products.slice(0, count);
+export const ProductGrid = ({ products, limit = 8 }: Props) => {
+  const safeLimit = Math.max(0, Math.floor(limit));
+  const list = products.slice(0, safeLimit);
 
   return (
-    <div className="mt-0 md:mt-8 p-4 md:p-0 bg-white">
-      <h2 className="text-lg font-bold mb-4">Rekomendasi untuk Anda</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+    <section className="mt-0 bg-white p-4 md:mt-8 md:p-0">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-bold">Rekomendasi untuk Anda</h2>
+        <Link
+          href="/all-product"
+          className="text-sm font-medium text-sky-700 hover:underline"
+        >
+          Lihat semua
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4">
         {list.map((prod) => (
           <ProductCard key={prod.slug} product={prod} />
         ))}
       </div>
-    </div>
+    </section>
   );
 };

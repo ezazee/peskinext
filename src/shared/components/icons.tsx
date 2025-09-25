@@ -189,7 +189,7 @@ export const FeedIcon = ({ active = false }: { active?: boolean }) => (
     />
   </svg>
 );
-export const PromoIcon = ({ active = false }: { active?: boolean }) => (
+export const AllProduct = ({ active = false }: { active?: boolean }) => (
   <svg
     className={`h-6 w-6 ${active ? "text-primary" : "text-secondary"}`}
     fill="none"
@@ -197,10 +197,29 @@ export const PromoIcon = ({ active = false }: { active?: boolean }) => (
     stroke="currentColor"
     strokeWidth="2"
   >
+    {/* Badan Kotak */}
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"
+      d="M20 12v8a2 2 0 01-2 2H6a2 2 0 01-2-2v-8"
+    />
+    {/* Tutup Kotak */}
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4 12V9a2 2 0 012-2h12a2 2 0 012 2v3"
+    />
+    {/* Pita Vertikal */}
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 22V7"
+    />
+    {/* Simpul Pita di Atas */}
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7"
     />
   </svg>
 );
