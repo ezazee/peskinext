@@ -1,4 +1,3 @@
-// File: src/app/components/Header/DekstopHeader.tsx
 "use client";
 
 import Image from "next/image";
@@ -26,16 +25,58 @@ import {
   useAddressSwitching,
 } from "@features/address/addressSwitchBus";
 
+// >>> NEW: pakai mock data account
+import { accountData } from "@data/account";
+
 type OptionForModal = AddressListEntry & {
   recipient?: string;
   phone?: string;
   pinpointed?: boolean;
 };
 
+function MenuItem({
+  href,
+  label,
+  onDone,
+  asButton = false,
+  danger = false,
+}: {
+  href?: string;
+  label: string;
+  onDone?: () => void;
+  asButton?: boolean;
+  danger?: boolean;
+}) {
+  const content = (
+    <div
+      className={`flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg transition-colors ${
+        danger
+          ? "text-red-600 hover:bg-red-50 active:bg-red-100 font-medium"
+          : "text-gray-800 hover:bg-gray-50 active:bg-gray-100"
+      }`}
+    >
+      <span className="text-sm">{label}</span>
+      {!danger && (
+        <ChevronDownIcon className="h-3.5 w-3.5 rotate-[-90deg] text-gray-400" />
+      )}
+    </div>
+  );
+
+  if (asButton) return content;
+
+  return (
+    <Link href={href ?? "#"} role="menuitem" onClick={onDone} className="block">
+      {content}
+    </Link>
+  );
+}
+
 export const DesktopHeader = () => {
   const switching = useAddressSwitching();
   const router = useRouter();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  // login mock – tetap true untuk sekarang
   const [isLoggedIn] = useState(true);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -51,9 +92,11 @@ export const DesktopHeader = () => {
     setHydrated(true);
   }, []);
 
-  // Sumber tunggal data
-  const { primary, addresses, selectPrimary, addAddress } =
-    useAddressBookLocal();
+  // >>> NEW: sumber user dari mock data (strict, tanpa any)
+  const user = accountData.profile;
+
+  // Sumber tunggal data alamat
+  const { primary, addresses, selectPrimary } = useAddressBookLocal();
 
   // Label header: samakan dengan AddressCard (Label • Penerima)
   const label = useMemo(() => {
@@ -95,6 +138,28 @@ export const DesktopHeader = () => {
     setIsAuthModalOpen(true);
   };
 
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const userWrapRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // close on outside click
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      const t = e.target as Node;
+      if (
+        menuOpen &&
+        userWrapRef.current &&
+        !userWrapRef.current.contains(t) &&
+        menuRef.current &&
+        !menuRef.current.contains(t)
+      ) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [menuOpen]);
+
   return (
     <>
       <AuthModal
@@ -109,7 +174,6 @@ export const DesktopHeader = () => {
         options={hydrated ? options : []}
         selectedId={hydrated ? primary?.id ?? null : null}
         onConfirm={(id) => {
-          // tampilkan skeleton beberapa ratus ms (simulasi hitung ongkir/promo)
           startAddressSwitch(700);
           selectPrimary(id);
           setIsAddressModalOpen(false);
@@ -133,6 +197,21 @@ export const DesktopHeader = () => {
             transition={{ duration: 0.3 }}
             className="fixed inset-0 bg-black/50 z-40"
             onClick={() => setIsSearchFocused(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            key="user-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 bg-black/60 z-40"
+            onClick={() => setMenuOpen(false)}
+            aria-hidden
           />
         )}
       </AnimatePresence>
@@ -242,17 +321,130 @@ export const DesktopHeader = () => {
               <div className="border-l h-8 mx-2" />
 
               {isLoggedIn ? (
-                <div className="flex items-center gap-3 cursor-pointer p-1 rounded-lg hover:bg-tertiary">
-                  <Image
-                    src="https://placehold.co/32x32/81D4FA/FFFFFF?text=Z"
-                    alt="User"
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                  />
-                  <span className="font-semibold text-sm text-gray-700">
-                    zeniwa
-                  </span>
+                <div
+                  ref={userWrapRef}
+                  className="relative"
+                  onMouseEnter={() => setMenuOpen(true)}
+                  onMouseLeave={() => setMenuOpen(false)}
+                >
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded={menuOpen}
+                    onClick={() => setMenuOpen((v) => !v)}
+                    onKeyDown={(e) => e.key === "Escape" && setMenuOpen(false)}
+                    className="group flex items-center gap-3 rounded-full pl-1 pr-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 hover:bg-tertiary transition-colors"
+                  >
+                    <span className="relative inline-flex">
+                      <Image
+                        src={user.avatarUrl}
+                        alt={user.name}
+                        width={40}
+                        height={40}
+                        className="rounded-full w-10 h-10 object-cover ring-1 ring-black/5"
+                        onError={(e) => {
+                          const el = e.currentTarget;
+                          el.style.display = "none";
+                        }}
+                      />
+                      {/* Fallback inisial jika img gagal */}
+                      <span
+                        aria-hidden
+                        className="absolute inset-0 hidden items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-semibold text-xs"
+                      >
+                        {user.name
+                          .split(" ")
+                          .map((s) => s[0])
+                          .slice(0, 2)
+                          .join("")}
+                      </span>
+                    </span>
+                    <span className="font-medium text-sm text-gray-800 group-hover:text-gray-900 max-w-[180px] truncate">
+                      {user.name}
+                    </span>
+                    <ChevronDownIcon className="h-4 w-4 text-gray-500 group-hover:text-gray-700" />
+                  </button>
+
+                  <AnimatePresence>
+                    {menuOpen && (
+                      <motion.div
+                        ref={menuRef}
+                        role="menu"
+                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                        transition={{ duration: 0.14, ease: "easeOut" }}
+                        // Lebar besar agar terasa "sampai cart"
+                        className="absolute right-0 mt-2 w-[580px] max-w-[calc(100vw-2rem)] z-[60]"
+                      >
+                        <div className="rounded-2xl border border-black/5 bg-white/90 backdrop-blur-md shadow-[0_8px_40px_-12px_rgba(0,0,0,0.25)] overflow-hidden">
+                          {/* Header user */}
+                          <div className="p-4 flex items-center gap-3">
+                            <Image
+                              src={user.avatarUrl}
+                              alt={user.name}
+                              width={56}
+                              height={56}
+                              className="rounded-full w-14 h-14 object-cover ring-1 ring-black/5"
+                            />
+                            <div className="min-w-0">
+                              <div className="font-semibold leading-5 text-gray-900 truncate">
+                                {user.name}
+                              </div>
+                              <div className="text-sm text-gray-500 truncate">
+                                {user.email}
+                              </div>
+                            </div>
+                            <div className="ml-auto hidden md:flex items-center gap-2">
+                              <Link
+                                href="/account"
+                                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                                onClick={() => setMenuOpen(false)}
+                              >
+                                Lihat Profil
+                              </Link>
+                            </div>
+                          </div>
+
+                          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+                          {/* Isi menu */}
+                          <div className="grid grid-cols-2">
+                            <div className="p-2">
+                              <MenuItem
+                                href="/account"
+                                label="Akun Saya"
+                                onDone={() => setMenuOpen(false)}
+                              />
+                              <MenuItem
+                                href="/account/orders"
+                                label="Daftar Transaksi"
+                                onDone={() => setMenuOpen(false)}
+                              />
+                            </div>
+
+                            <div className="p-2 border-l border-gray-100">
+                              <MenuItem
+                                href="/account/address"
+                                label="Alamat"
+                                onDone={() => setMenuOpen(false)}
+                              />
+                              <button
+                                type="button"
+                                className="w-full text-left cursor-pointer"
+                                onClick={() => {
+                                  setMenuOpen(false);
+                                  // TODO: handle logout
+                                }}
+                              >
+                                <MenuItem label="Keluar" asButton danger />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ) : (
                 <>

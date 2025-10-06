@@ -15,7 +15,6 @@ export interface Variant {
   stock: number;
 }
 
-
 export interface NavItem {
   name: string;
   href: string;
@@ -192,8 +191,6 @@ export type AddressListEntry = {
   isPrimary: boolean;
 };
 
-
-
 /* ================= PRODUCT ================= */
 
 export type PriceString = string;
@@ -247,3 +244,22 @@ export type BundleProduct = {
   ingredients?: string[];
   howToUse?: string[];
 };
+
+/* ================= Account ================= */
+export type IconName =
+  | "address"
+  | "orderHistory"
+  | "logout";
+
+export interface AccountProfile {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  email: string;
+  phone: string;
+  birthDate?: string;
+}
+
+export interface AccountData {
+  profile: AccountProfile;
+}

@@ -2,11 +2,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SearchOverlay from "../SearchOverlay";
-import { CartIcon, ChevronLeftIcon, SearchIcon } from "@shared/components/icons";
+import {
+  CartIcon,
+  ChevronLeftIcon,
+  SearchIcon,
+} from "@shared/components/icons";
+import { AuthAction } from "@features/auth/AuthAction";
 
 export default function MobileHeaderDetail() {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isLoggedIn] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalView, setAuthModalView] = useState<"login" | "register">(
+    "login"
+  );
+
+  const openAuthModal = (view: "login" | "register") => {
+    setAuthModalView(view);
+    setIsAuthModalOpen(true);
+  };
 
   return (
     <>
@@ -38,7 +53,15 @@ export default function MobileHeaderDetail() {
               <SearchIcon />
             </button>
             <div className="cursor-pointer">
+              <AuthAction
+                as="button"
+                className="relative cursor-pointer"
+                isLoggedIn={isLoggedIn}
+                onRequireAuth={() => setIsAuthModalOpen(true)}
+                href="/cart"
+              >
                 <CartIcon withBadge />
+              </AuthAction>
             </div>
           </div>
         </div>
