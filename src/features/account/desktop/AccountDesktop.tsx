@@ -1,79 +1,50 @@
 "use client";
 
-import type { AccountData } from "@shared/types/types";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IconByName } from "../IconMap";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { accountData } from "@data/account";
+import { Skeleton } from "@shared/components/ui/SkeletonLoading";
+import AccountSidebar from "../AccountSidebar";
 
-export default function AccountDesktop({ data }: { data: AccountData }) {
-  const { profile } = data;
+export default function AccountDesktop() {
   const router = useRouter();
+  const { profile } = accountData;
+
+  // skeleton ringan saat hydration
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
 
   return (
-    <div className="grid grid-cols-[260px_1fr] gap-6">
-      {/* Sidebar kiri */}
-      <aside className="bg-white border rounded-xl p-4">
-        {/* Header user */}
-        <button onClick={() => router.push(`/account`)} className="w-full text-left cursor-pointer">
-          <div className="flex items-center gap-3 mb-6">
-            <Image
-              width={48}
-              height={48}
-              src={profile.avatarUrl}
-              alt={profile.name}
-              className="w-12 h-12 rounded-full object-cover"
-            />
-            <div>
-              <div className="font-semibold text-sm">{profile.name}</div>
-              <div className="text-xs text-gray-500 truncate">
-                {profile.email}
-              </div>
-            </div>
-          </div>
-        </button>
+    <div className="grid grid-cols-[260px_1fr] gap-6 items-stretch">
+      <AccountSidebar
+        profile={{
+          name: profile.name,
+          email: profile.email,
+          avatarUrl: profile.avatarUrl,
+        }}
+        onLogout={() => alert("Logout belum diimplementasi (mock).")}
+      />
 
-        {/* Menu singkat */}
-        <nav className="space-y-1">
-          <SideRow
-            label="List Alamat"
-            href="/account/address"
-            icon={<IconByName name="address" />}
-          />
-          <SideRow
-            label="Transaksi"
-            href="/transaction"
-            icon={<IconByName name="orderHistory" />}
-          />
-          <SideRow
-            label="Logout"
-            href="#"
-            icon={<IconByName name="logout" />}
-            danger
-            onClick={() => {
-              alert("Logout belum diimplementasi (mock).");
-            }}
-          />
-        </nav>
-      </aside>
-
-      {/* Panel kanan */}
-      <main className="bg-white border rounded-xl p-6">
+      <main className="bg-white border rounded-xl p-6 h-full">
         <h2 className="text-lg font-semibold mb-4">Biodata Diri</h2>
+
         <div className="grid grid-cols-[220px_1fr] gap-6">
-          {/* Foto */}
+          {/* Foto & aksi */}
           <div>
-            <Image
-              width={220}
-              height={220}
-              src={profile.avatarUrl}
-              alt={profile.name}
-              className="w-[220px] h-[220px] object-cover rounded-lg"
-            />
-            <button
-              className="w-full mt-3 border rounded-md py-2 font-medium hover:bg-gray-50"
-              onClick={() => router.push(`/account/edit/${profile.id}`)}
-            >
+            {hydrated ? (
+              <Image
+                src={profile.avatarUrl}
+                alt={profile.name}
+                width={220}
+                height={220}
+                className="w-[220px] h-[220px] object-cover rounded-lg"
+              />
+            ) : (
+              <Skeleton.Block width={220} height={220} radius={12} />
+            )}
+            <button className="w-full mt-3 border rounded-md py-2 font-medium hover:bg-gray-50">
               Pilih Foto
             </button>
             <p className="text-xs text-gray-500 mt-2">
@@ -81,70 +52,51 @@ export default function AccountDesktop({ data }: { data: AccountData }) {
             </p>
           </div>
 
-          {/* Informasi */}
-          <div className="space-y-4">
-            <Field label="Nama" value={profile.name} />
-            <Field label="Email" value={profile.email} />
-            <Field label="Nomor HP" value={profile.phone ?? "-"} />
+          {/* Info ringkas */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18 }}
+            className="space-y-3"
+          >
+            <Field label="Nama" value={profile.name} loading={!hydrated} />
+            <Field label="Email" value={profile.email} loading={!hydrated} />
+            <Field label="Nomor HP" value={profile.phone} loading={!hydrated} />
 
-            <div className="pt-4">
+            <div className="pt-2">
               <button
-                className="rounded-lg cursor-pointer w-full bg-sky-200 hover:bg-sky-300 transition-colors"
+                className="w-full h-11 rounded-lg bg-sky-200/70 hover:bg-sky-200 font-semibold"
                 onClick={() => router.push(`/account/edit/${profile.id}`)}
               >
-                <div className="p-3 flex items-center justify-center">
-                  <span className="font-semibold text-sm">Edit Profile</span>
-                </div>
+                Edit Profile
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       </main>
     </div>
   );
 }
 
-function SideRow({
+function Field({
   label,
-  href,
-  icon,
-  danger = false,
-  onClick,
+  value,
+  loading,
 }: {
   label: string;
-  href: string;
-  icon: React.ReactNode;
-  danger?: boolean;
-  onClick?: () => void;
+  value: string;
+  loading?: boolean;
 }) {
-  const baseClass =
-    "flex items-center gap-2 px-3 py-2.5 rounded-md text-sm cursor-pointer hover:bg-gray-50 transition-colors";
-  const colorClass = danger ? "text-red-600 hover:bg-red-50" : "text-gray-700";
-
-  if (onClick) {
+  if (loading) {
     return (
-      <button
-        onClick={onClick}
-        className={`${baseClass} ${colorClass} w-full text-left`}
-      >
-        {icon}
-        <span>{label}</span>
-      </button>
+      <div className="grid grid-cols-[180px_1fr] items-center gap-3 py-2 border-b">
+        <Skeleton width={80} height={14} radius={6} />
+        <Skeleton width="50%" height={14} radius={6} />
+      </div>
     );
   }
-
   return (
-    <Link href={href} className={`${baseClass} ${colorClass}`}>
-      {icon}
-      <span>{label}</span>
-    </Link>
-  );
-}
-
-function Field(props: { label: string; value: string }) {
-  const { label, value } = props;
-  return (
-    <div className="grid grid-cols-[180px_1fr_auto] items-center gap-3 py-2 border-b border-gray-100">
+    <div className="grid grid-cols-[180px_1fr] items-center gap-3 py-2 border-b">
       <div className="text-sm text-gray-500">{label}</div>
       <div className="text-sm">{value}</div>
     </div>

@@ -17,6 +17,9 @@ const isAuth = (p: string) => p.startsWith("/auth");
 const isProfileEdit = (p: string) => /^\/account\/edit\/[^/]+$/.test(p);
 const isHome = (p: string) => p === "/" || p === "";
 
+// List Alamat Account
+const isAddress = (p: string) => /^\/account\/address/.test(p);
+
 // Resolver: tentukan header apa untuk pathname tertentu
 export function useResolveMobileHeader(): ReactNode {
   const pathname = usePathname() || "/";
@@ -31,6 +34,9 @@ export function useResolveMobileHeader(): ReactNode {
     if (isShipping(pathname)) return <MobileHeaderDetail />;
     if (isProfile(pathname)) return <MobileHeaderDetail />;
     if (isAuth(pathname)) return <MobileHeaderDetail />;
+
+    // List Alamat Account
+    if (isAddress(pathname)) return <MobileHeaderDetail />;
 
     return <MobileHeader />;
   }, [pathname]);

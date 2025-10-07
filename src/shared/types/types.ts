@@ -249,7 +249,8 @@ export type BundleProduct = {
 export type IconName =
   | "address"
   | "orderHistory"
-  | "logout";
+  | "logout"
+  | "user";
 
 export interface AccountProfile {
   id: string;

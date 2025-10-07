@@ -29,7 +29,7 @@ export default function AccountClient({ data }: { data: AccountData }) {
       ) : loading ? (
         <AccountDesktopSkeleton />
       ) : (
-        <AccountDesktop data={data} />
+        <AccountDesktop />
       )}
     </div>
   );

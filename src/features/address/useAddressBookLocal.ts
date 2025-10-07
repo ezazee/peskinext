@@ -1,4 +1,4 @@
-// File: src/features/address/useAddressBookLocal.ts
+// src/features/address/useAddressBookLocal.ts
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,16 +7,19 @@ import { addressBook as seedAddresses } from "@data/address";
 
 const LS_KEY = "addr_book_v1";
 const BUS = "addrbook:changed";
-const DATA_VERSION = 2; // ← bump: paksa re-seed dari daftar yang kamu kasih
+const DATA_VERSION = 2;
 
 type State = { addresses: AddressItem[]; primaryId: string | null };
 type Persisted = { v: number; state: State };
-
 type BusPayload = { state: State; eid: number };
 
 function coerceSeed(): State {
-  const primaryFromSeed = seedAddresses.find((a) => a.isPrimary)?.id ?? seedAddresses[0]?.id ?? null;
-  const normalized = seedAddresses.map((a) => ({ ...a, isPrimary: a.id === primaryFromSeed }));
+  const primaryFromSeed =
+    seedAddresses.find((a) => a.isPrimary)?.id ?? seedAddresses[0]?.id ?? null;
+  const normalized = seedAddresses.map((a) => ({
+    ...a,
+    isPrimary: a.id === primaryFromSeed,
+  }));
   return { addresses: normalized, primaryId: primaryFromSeed };
 }
 
@@ -37,13 +40,17 @@ function isAddressItem(a: unknown): a is AddressItem {
 }
 
 function sanitize(input: State | null | undefined): State {
-  const base: State = input && Array.isArray(input.addresses) ? input : coerceSeed();
+  const base: State =
+    input && Array.isArray(input.addresses) ? input : coerceSeed();
   const addrs = base.addresses.filter(isAddressItem);
   const primaryId =
     base.primaryId && addrs.some((a) => a.id === base.primaryId)
       ? base.primaryId
       : addrs[0]?.id ?? null;
-  const normalized = addrs.map((a) => ({ ...a, isPrimary: a.id === primaryId }));
+  const normalized = addrs.map((a) => ({
+    ...a,
+    isPrimary: a.id === primaryId,
+  }));
   return { addresses: normalized, primaryId };
 }
 
@@ -53,30 +60,34 @@ function readFromLS(): State {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return coerceSeed();
     const parsed = JSON.parse(raw) as Persisted;
-    if (!parsed || typeof parsed.v !== "number" || parsed.v !== DATA_VERSION) {
-      // versi beda → re-seed dengan data terbaru
+    if (!parsed || typeof parsed.v !== "number" || parsed.v !== DATA_VERSION)
       return coerceSeed();
-    }
     return sanitize(parsed.state);
   } catch {
     return coerceSeed();
   }
 }
 
-function writeToLS(state: State) {
+function writeToLS(state: State): void {
   try {
     const payload: Persisted = { v: DATA_VERSION, state: sanitize(state) };
     localStorage.setItem(LS_KEY, JSON.stringify(payload));
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
-// Emit setelah commit
+// --- event bus kecil ---
 let EID = 0;
-function scheduleEmit(payload: BusPayload) {
+function scheduleEmit(payload: BusPayload): void {
   setTimeout(() => {
     try {
-      window.dispatchEvent(new CustomEvent<BusPayload>(BUS, { detail: payload }));
-    } catch { /* ignore */ }
+      window.dispatchEvent(
+        new CustomEvent<BusPayload>(BUS, { detail: payload })
+      );
+    } catch {
+      /* ignore */
+    }
   }, 0);
 }
 
@@ -95,7 +106,6 @@ export function useAddressBookLocal() {
   const suppressNextEmitRef = useRef(false);
   const lastEidRef = useRef(0);
 
-  // persist & broadcast post-commit
   useEffect(() => {
     writeToLS(state);
     if (suppressNextEmitRef.current) {
@@ -106,13 +116,12 @@ export function useAddressBookLocal() {
     scheduleEmit({ state, eid });
   }, [state]);
 
-  // sync antar-tab & intra-tab
   useEffect(() => {
-    function onStorage(e: StorageEvent) {
+    function onStorage(e: StorageEvent): void {
       if (e.key !== LS_KEY) return;
       setState(readFromLS());
     }
-    function onBus(e: Event) {
+    function onBus(e: Event): void {
       const ce = e as CustomEvent<BusPayload>;
       const detail = ce.detail;
       if (!detail) return;
@@ -131,7 +140,9 @@ export function useAddressBookLocal() {
 
   const primary = useMemo<AddressItem | null>(() => {
     const id = state.primaryId;
-    return state.addresses.find((a) => a.id === id) ?? state.addresses[0] ?? null;
+    return (
+      state.addresses.find((a) => a.id === id) ?? state.addresses[0] ?? null
+    );
   }, [state]);
 
   const listEntries = useMemo<ReadonlyArray<AddressListEntry>>(
@@ -139,24 +150,91 @@ export function useAddressBookLocal() {
     [state.addresses]
   );
 
-  function updateState(mutate: (prev: State) => State) {
+  function updateState(mutate: (prev: State) => State): void {
     setState((prev) => sanitize(mutate(prev)));
   }
 
-  function selectPrimary(id: string) {
+  function selectPrimary(id: string): void {
     updateState((prev) => {
       if (!prev.addresses.some((a) => a.id === id)) return prev;
-      const addresses = prev.addresses.map((a) => ({ ...a, isPrimary: a.id === id }));
+      const addresses = prev.addresses.map((a) => ({
+        ...a,
+        isPrimary: a.id === id,
+      }));
       return { addresses, primaryId: id };
     });
   }
 
-  // Biarkan ada, tapi kamu nggak usah pakai untuk mock ini
-  function addAddress(_input: Omit<AddressItem, "id" | "isPrimary">, _makePrimary = false) {
-    // sengaja dikosongin untuk mock ini
+  // === CRUD ===
+
+  // CREATE: terima AddressItem penuh (dari form create)
+  function addAddress(input: AddressItem, makePrimary = false): void {
+    updateState((prev) => {
+      const willPrimary =
+        makePrimary || input.isPrimary || prev.primaryId === null;
+      const nextPrimaryId = willPrimary ? input.id : prev.primaryId;
+
+      const normalizedExisting = willPrimary
+        ? prev.addresses.map((a) => ({ ...a, isPrimary: false }))
+        : prev.addresses;
+
+      const newItem: AddressItem = { ...input, isPrimary: willPrimary };
+
+      return {
+        addresses: [...normalizedExisting, newItem],
+        primaryId: nextPrimaryId,
+      };
+    });
   }
 
-  function resetToSeed() {
+  // UPDATE: patch sebagian field; jika isPrimary -> set primary
+  function updateAddress(
+    id: string,
+    patch: Partial<Omit<AddressItem, "id">>
+  ): void {
+    updateState((prev) => {
+      if (!prev.addresses.some((a) => a.id === id)) return prev;
+
+      const willPrimary = patch.isPrimary === true;
+      const nextAddresses = prev.addresses.map((a) =>
+        a.id === id
+          ? { ...a, ...patch, isPrimary: willPrimary ? true : a.isPrimary }
+          : a
+      );
+
+      const finalAddresses = willPrimary
+        ? nextAddresses.map((a) =>
+            a.id === id ? a : { ...a, isPrimary: false }
+          )
+        : nextAddresses;
+
+      const nextPrimaryId = willPrimary ? id : prev.primaryId;
+
+      return { addresses: finalAddresses, primaryId: nextPrimaryId };
+    });
+  }
+
+  // DELETE
+  function removeAddress(id: string): void {
+    updateState((prev) => {
+      const remaining = prev.addresses.filter((a) => a.id !== id);
+      if (remaining.length === 0) return { addresses: [], primaryId: null };
+
+      // jika yang dihapus adalah primary -> set yang pertama jadi primary
+      const removedWasPrimary = prev.primaryId === id;
+      const nextPrimaryId = removedWasPrimary
+        ? remaining[0].id
+        : prev.primaryId;
+
+      const normalized = remaining.map((a) => ({
+        ...a,
+        isPrimary: a.id === nextPrimaryId,
+      }));
+      return { addresses: normalized, primaryId: nextPrimaryId };
+    });
+  }
+
+  function resetToSeed(): void {
     setState(coerceSeed());
   }
 
@@ -165,7 +243,9 @@ export function useAddressBookLocal() {
     addresses: state.addresses,
     listEntries,
     selectPrimary,
-    addAddress,   // tidak dipakai di UI mock
-    resetToSeed,  // berguna kalau mau paksa balik ke seed
+    addAddress,
+    updateAddress, // <-- sekarang tersedia
+    removeAddress, // <-- jika butuh hapus di halaman edit
+    resetToSeed,
   };
 }

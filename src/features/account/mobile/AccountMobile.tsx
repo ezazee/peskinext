@@ -3,13 +3,14 @@
 import type { AccountData } from "@shared/types/types";
 import Image from "next/image";
 import Link from "next/link";
+import { IconByName } from "@features/account/IconMap";
 
 export default function AccountMobile({ data }: { data: AccountData }) {
   const { profile } = data;
 
   return (
     <div className="pb-20">
-      {/* Header akun – klik menuju halaman akun/profil */}
+      {/* Header akun */}
       <Link
         href={`/account/edit/${profile.id}`}
         className="block px-4 pt-4 pb-3 bg-white shadow-sm active:bg-gray-50 rounded-lg mx-4 mt-4"
@@ -33,14 +34,24 @@ export default function AccountMobile({ data }: { data: AccountData }) {
         </div>
       </Link>
 
-      {/* Menu ringkas 3 item */}
+      {/* Menu ringkas */}
       <section className="mx-1 mt-3">
-        <div className="bg-white rounded-lg overflow-hidden">
-          <Row href="/account/address" label="List Alamat" />
-          <Row href="/transaction" label="Transaksi" />
+        <div className="bg-white rounded-lg overflow-hidden divide-y divide-gray-100/80">
+          <Row href="/account" label="Akun" icon={<IconByName name="user" />} />
+          <Row
+            href="/account/address"
+            label="List Alamat"
+            icon={<IconByName name="address" />}
+          />
+          <Row
+            href="/account/transaction"
+            label="Transaksi"
+            icon={<IconByName name="orderHistory" />}
+          />
           <Row
             href="#"
             label="Logout"
+            icon={<IconByName name="logout" />}
             danger
             onClick={() => alert("Logout mock")}
           />
@@ -50,15 +61,17 @@ export default function AccountMobile({ data }: { data: AccountData }) {
   );
 }
 
-/* ---- UI ---- */
+/* ---- UI row ---- */
 function Row({
   href,
   label,
+  icon,
   danger = false,
   onClick,
 }: {
   href?: string;
   label: string;
+  icon: React.ReactNode;
   danger?: boolean;
   onClick?: () => void;
 }) {
@@ -68,6 +81,9 @@ function Row({
 
   const content = (
     <>
+      <span className="w-5 h-5 flex items-center justify-center text-gray-500">
+        {icon}
+      </span>
       <span className={`flex-1 text-sm ${color}`}>{label}</span>
       <span className={danger ? "text-red-300" : "text-gray-300"} aria-hidden>
         ›
