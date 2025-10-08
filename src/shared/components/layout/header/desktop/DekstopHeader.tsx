@@ -250,7 +250,7 @@ export const DesktopHeader = () => {
           <div className="flex items-center gap-6 py-3">
             <Link href="/">
               <Image
-                src="/logo.png"
+                src="/Logo.png"
                 alt="PE Skinpro Logo"
                 width={60}
                 height={40}
