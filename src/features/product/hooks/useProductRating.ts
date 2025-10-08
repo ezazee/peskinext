@@ -65,6 +65,7 @@ export function useProductRating(key: Key, seed?: AggregateRating) {
       abortRef.current?.abort();
       document.removeEventListener("visibilitychange", onVis);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cacheKey, key.sku, key.slug, seed]);
 
   return {

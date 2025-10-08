@@ -13,7 +13,7 @@ export function BuyBox({
   product,
   variant,
   onAdd,
-  onBuy,
+  // onBuy,
 }: {
   product: Product;
   variant: Variant;

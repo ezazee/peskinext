@@ -70,6 +70,7 @@ export function useProductReviews(key: Key, page = 1, pageSize = 10) {
       mounted = false;
       abortRef.current?.abort();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key.sku, key.slug, page, pageSize]);
 
   return {

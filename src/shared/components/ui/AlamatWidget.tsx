@@ -23,8 +23,7 @@ export const LocationWidget = ({ variant }: LocationWidgetProps) => {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   // Alamat lokal (localStorage)
-  const { primary, listEntries, selectPrimary, addAddress } =
-    useAddressBookLocal();
+  const { primary, listEntries, selectPrimary } = useAddressBookLocal();
 
   const label = primary ? `${primary.label} ${primary.city}` : "Pilih Alamat";
 
@@ -38,6 +37,7 @@ export const LocationWidget = ({ variant }: LocationWidgetProps) => {
       openAddress();
     } else {
       // Di mobile: kalau login → modal alamat, kalau tidak → modal login
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       isLoggedIn ? openAddress() : openAuth();
     }
   };
@@ -61,21 +61,7 @@ export const LocationWidget = ({ variant }: LocationWidgetProps) => {
           selectPrimary(id);
           setIsAddressModalOpen(false);
         }}
-        onAddNew={() => {
-          // Tambah dummy cepat; ganti dengan navigate ke form add address kalau perlu
-          addAddress(
-            {
-              label: "Alamat Baru",
-              recipient: "Reza",
-              phone: "08xxxxxxxxxx",
-              line1: "Jl. Contoh No. 1",
-              city: "Kota",
-              province: "Provinsi",
-              postalCode: "12345",
-            },
-            true // jadikan primary langsung
-          );
-        }}
+        onAddNew={() => {}}
       />
 
       {variant === "desktop" ? (

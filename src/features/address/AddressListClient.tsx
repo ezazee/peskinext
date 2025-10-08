@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 import type { AddressItem } from "@shared/types/types";
 
@@ -27,7 +26,7 @@ export default function AddressListClient() {
     [addresses]
   );
 
-  const handleRemove = (id: string) => {
+  const handleRemove = () => {
     alert("Hapus alamat belum diimplementasi pada mock ini.");
   };
 

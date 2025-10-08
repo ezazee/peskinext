@@ -30,6 +30,7 @@ export function useShippingQuotes(
   useEffect(() => {
     if (!enable || !params) return;
     run(params);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enable, params?.origin, params?.destination, params?.weightGr]);
 
   const refetch = () => {

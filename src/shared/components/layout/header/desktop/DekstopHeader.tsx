@@ -80,6 +80,7 @@ export const DesktopHeader = () => {
   const [isLoggedIn] = useState(true);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [authModalView, setAuthModalView] = useState<"login" | "register">(
     "login"
   );
@@ -133,10 +134,10 @@ export const DesktopHeader = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const openAuthModal = (view: "login" | "register") => {
-    setAuthModalView(view);
-    setIsAuthModalOpen(true);
-  };
+  // const openAuthModal = (view: "login" | "register") => {
+  //   setAuthModalView(view);
+  //   setIsAuthModalOpen(true);
+  // };
 
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const userWrapRef = useRef<HTMLDivElement>(null);

@@ -151,6 +151,7 @@ export default function SummaryCard({
         promoDiscountCode,
         grandTotal,
       };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [subtotal, shippingFee, selected, shipping, promos, redeemedVoucher]);
 
   const logos: ReadonlyArray<{

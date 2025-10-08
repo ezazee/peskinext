@@ -264,3 +264,43 @@ export interface AccountProfile {
 export interface AccountData {
   profile: AccountProfile;
 }
+
+
+/* ================= Transaction ================= */
+export type TransactionStatus =
+  | "pending"
+  | "paid"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
+export type OrderProductSnapshot = Pick<
+  Product,
+  "id" | "name" | "slug" | "img" | "type" | "weightGr"
+>;
+
+export interface OrderItem {
+  product: OrderProductSnapshot;
+  variantId?: number;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface UserTransaction {
+  id: string;
+  dateISO: string;
+  status: TransactionStatus;
+  items: OrderItem[];
+  total: number;
+  addressId?: string;
+}
+
+export type ShippingOrder = {
+  courier?: string;
+  service?: string;
+  trackingNumber?: string;
+  eta?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
+};

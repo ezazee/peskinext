@@ -13,15 +13,17 @@ export default function MobileHeaderDetail() {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLoggedIn] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [authModalView, setAuthModalView] = useState<"login" | "register">(
     "login"
   );
 
-  const openAuthModal = (view: "login" | "register") => {
-    setAuthModalView(view);
-    setIsAuthModalOpen(true);
-  };
+  // const openAuthModal = (view: "login" | "register") => {
+  //   setAuthModalView(view);
+  //   setIsAuthModalOpen(true);
+  // };
 
   return (
     <>

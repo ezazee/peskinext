@@ -61,6 +61,7 @@ async function getOrSetAnonId(): Promise<string> {
 }
 
 // kalkulasi dummy
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function calc(lines: CheckoutLine[], _voucherCodes: string[] = []) {
   const subtotal = lines.reduce((s, l) => s + l.price * l.qty, 0);
   const discount = 0;
