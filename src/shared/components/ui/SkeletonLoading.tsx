@@ -162,7 +162,6 @@ export function withSkeleton<P>(
   return function Wrapped(props: P & { loading?: boolean }) {
     const { loading, ...rest } = props as P & { loading?: boolean };
     if (loading) return <SkeletonFallback />;
-    // @ts-expect-error rest tanpa loading
     return <Component {...(rest as P)} />;
   };
 }

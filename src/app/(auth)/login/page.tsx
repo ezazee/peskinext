@@ -3,6 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import LoginForm from '@/features/auth/components/LoginForm';
 
 // --- Ikon-ikon untuk Opsi Login ---
 const GoogleIcon = () => (
@@ -49,26 +50,7 @@ const LoginPage = () => {
           </Link>
         </header>
         <main className="flex-grow p-6 overflow-y-auto">
-            <form onSubmit={(e) => e.preventDefault()}>
-                <label htmlFor="mobile-email" className="block text-sm font-medium text-subtle-text mb-1">
-                    Nomor HP atau Email
-                </label>
-                <input 
-                    type="email" 
-                    id="mobile-email"
-                    placeholder="Contoh: 08123456789"
-                    className="w-full border border-border-color rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <div className="text-right mt-2">
-                    <a href="#" className="text-sm font-bold text-primary hover:underline">Butuh bantuan?</a>
-                </div>
-                <button 
-                  type="submit"
-                  className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-lg cursor-not-allowed mt-4"
-                >
-                  Selanjutnya
-                </button>
-            </form>
+            <LoginForm />
             <div className="flex items-center my-6">
                 <div className="flex-grow border-t border-border-color"></div>
                 <span className="mx-4 text-xs text-subtle-text">atau masuk dengan</span>
@@ -112,26 +94,7 @@ const LoginPage = () => {
             </div>
           </div>
           <div className="space-y-4">
-              <form onSubmit={(e) => e.preventDefault()}>
-                  <label htmlFor="email" className="block text-sm font-medium text-subtle-text mb-1">
-                      Nomor HP atau Email
-                  </label>
-                  <input 
-                      type="email" 
-                      id="email"
-                      placeholder="Contoh: 08123456789"
-                      className="w-full border border-border-color rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <div className="text-right mt-2">
-                      <a href="#" className="text-sm font-bold text-primary hover:underline">Butuh bantuan?</a>
-                  </div>
-                  <button 
-                    type="submit"
-                    className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-lg cursor-not-allowed mt-4"
-                  >
-                    Selanjutnya
-                  </button>
-              </form>
+              <LoginForm />
               <div className="flex items-center">
                   <div className="flex-grow border-t border-border-color"></div>
                   <span className="mx-4 text-xs text-subtle-text">atau masuk dengan</span>

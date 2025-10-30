@@ -4,6 +4,7 @@
 import { ArrowLeftIcon, GoogleIcon } from "@shared/components/icons";
 import Image from "next/image";
 import Link from "next/link";
+import RegisterForm from "@/features/auth/components/RegisterForm";
 
 const RegisterPage = () => {
   return (
@@ -20,28 +21,7 @@ const RegisterPage = () => {
           </Link>
         </header>
         <main className="flex-grow p-4">
-          <form onSubmit={(e) => e.preventDefault()}>
-            <div className="mb-4">
-              <label
-                htmlFor="mobile-email"
-                className="block text-sm font-medium text-subtle-text mb-1"
-              >
-                Nomor HP atau E-mail
-              </label>
-              <input
-                type="email"
-                id="mobile-email"
-                placeholder="Contoh: email@tokopedia.com"
-                className="w-full border border-border-color rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-primary text-white font-bold py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              Daftar
-            </button>
-          </form>
+          <RegisterForm />
           <div className="flex items-center my-6">
             <div className="flex-grow border-t border-border-color"></div>
             <span className="mx-4 text-xs text-subtle-text">atau</span>
@@ -110,33 +90,7 @@ const RegisterPage = () => {
                 <span className="mx-4 text-xs text-subtle-text">atau</span>
                 <div className="flex-grow border-t border-border-color"></div>
               </div>
-              <form onSubmit={(e) => e.preventDefault()}>
-                <input
-                  type="email"
-                  placeholder="Nomor HP atau E-mail"
-                  className="w-full border border-border-color rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <p className="text-xs text-subtle-text mt-2 mb-4">
-                  Contoh: email@tokopedia.com
-                </p>
-                <button
-                  type="submit"
-                  className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-lg cursor-not-allowed"
-                >
-                  Daftar
-                </button>
-              </form>
-              <p className="text-center text-xs text-subtle-text pt-2">
-                Dengan mendaftar, saya menyetujui <br />
-                <a href="#" className="font-bold text-primary">
-                  Syarat & Ketentuan
-                </a>{" "}
-                serta{" "}
-                <a href="#" className="font-bold text-primary">
-                  Kebijakan Privasi
-                </a>
-                .
-              </p>
+              <RegisterForm />
             </div>
           </div>
         </div>

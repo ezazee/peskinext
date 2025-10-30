@@ -227,7 +227,7 @@ export function useAddressBookLocal() {
       // jika yang dihapus adalah primary -> set yang pertama jadi primary
       const removedWasPrimary = prev.primaryId === id;
       const nextPrimaryId = removedWasPrimary
-        ? remaining[0].id
+        ? remaining[0]?.id ?? null
         : prev.primaryId;
 
       const normalized = remaining.map((a) => ({

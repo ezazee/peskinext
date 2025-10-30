@@ -150,7 +150,7 @@ function decorateVouchers(
 function parsePercent(text?: string): number | null {
   if (!text) return null;
   const m = text.match(/(\d{1,3})\s*%/);
-  return m ? Math.min(100, Math.max(0, parseInt(m[1], 10))) : null;
+  return m && m[1] ? Math.min(100, Math.max(0, parseInt(m[1], 10))) : null;
 }
 function pickFirst<T>(...vals: Array<T | null | undefined>): T | undefined {
   return vals.find((v) => v !== null && v !== undefined) as T | undefined;
@@ -588,7 +588,7 @@ export function CartMobile({ initial }: { initial: CartData }) {
         onRedeemCode={async (upper) => {
           const res = await onRedeemCode(upper);
           if (!res.ok)
-            toast.error(res.reason ?? "Gagal menerapkan kode", "Voucher");
+            toast.error("reason" in res ? (res.reason ?? "Gagal menerapkan kode") : "Gagal menerapkan kode", "Voucher");
           return res;
         }}
         onApply={(payload) => {

@@ -78,7 +78,7 @@ export const DesktopHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // login mock – tetap true untuk sekarang
-  const [isLoggedIn] = useState(true);
+  const [isLoggedIn] = useState(false);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

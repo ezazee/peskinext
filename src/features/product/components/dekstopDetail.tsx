@@ -17,13 +17,16 @@ import { DesktopDetailSkeleton } from "./skeleton/DesktopDetailSkeleton";
 import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
 import ProductReview from "../review/productReview";
 import { RatingBadge } from "@features/product/review/RatingBadge";
+import { addToCart } from "@features/cart/cartService";
+import { useToast } from "@shared/components/ui/Toaster";
 
 export default function DesktopDetail({
   product,
   isLoading,
 }: DesktopDetailProps) {
+  const toast = useToast();
   const [open, setOpen] = useState(false);
-  const [variant, setVariant] = useState<Variant>(product.variants[0]);
+  const [variant, setVariant] = useState<Variant>(product.variants[0]!);
   const [selectedShippingId, setSelectedShippingId] = useState<
     string | undefined
   >(undefined);
@@ -147,8 +150,13 @@ export default function DesktopDetail({
           <BuyBox
             product={product}
             variant={variant}
-            onAdd={() => {
-              // TODO: Implement add to cart functionality
+            onAdd={(qty) => {
+              const result = addToCart(product, variant.id, qty);
+              if (result.success) {
+                toast.success(result.message);
+              } else {
+                toast.error(result.message);
+              }
             }}
           />
         </aside>

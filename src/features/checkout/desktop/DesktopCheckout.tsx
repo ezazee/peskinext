@@ -50,7 +50,7 @@ function parseRupiahFlexible(text?: string): number {
   if (!text) return 0;
   const s = text.replace(/\s+/g, " ").trim().toLowerCase();
   let m = s.match(/(?:rp)?\s*([\d.]+)\s*(rb|ribu|k|jt|juta)?/i);
-  if (m) {
+  if (m && m[1]) {
     const base = parseInt(m[1].replace(/\./g, ""), 10) || 0;
     const suf = (m[2] || "").toLowerCase();
     if (["rb", "ribu", "k"].includes(suf)) return base * 1_000;
@@ -58,7 +58,7 @@ function parseRupiahFlexible(text?: string): number {
     return base;
   }
   m = s.match(/(\d+)\s*(rb|ribu|k|jt|juta)/i);
-  if (m) {
+  if (m && m[1] && m[2]) {
     const n = parseInt(m[1], 10) || 0;
     const suf = m[2].toLowerCase();
     return ["rb", "ribu", "k"].includes(suf) ? n * 1_000 : n * 1_000_000;
@@ -68,7 +68,7 @@ function parseRupiahFlexible(text?: string): number {
 function parsePercent(text?: string): number | null {
   if (!text) return null;
   const m = text.match(/(\d{1,3})\s*%/);
-  return m ? Math.min(100, Math.max(0, parseInt(m[1], 10))) : null;
+  return m && m[1] ? Math.min(100, Math.max(0, parseInt(m[1], 10))) : null;
 }
 const looksLikeDisc = (t?: string) =>
   !!t && /(hemat|potong|s\/d|sd|gratis|ongkir|diskon)/i.test(t);

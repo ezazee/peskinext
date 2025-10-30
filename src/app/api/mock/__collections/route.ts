@@ -10,6 +10,6 @@ const db: CollectionMap = Object.fromEntries(
 
 export function GET() {
   const names = Object.keys(db);
-  const counts = Object.fromEntries(names.map((k) => [k, db[k].length]));
+  const counts = Object.fromEntries(names.map((k) => [k, db[k]?.length ?? 0]));
   return NextResponse.json({ collections: names, counts });
 }

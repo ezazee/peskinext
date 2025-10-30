@@ -22,7 +22,7 @@ type Props = {
 
 const etaMinDays = (eta: string): number => {
   const m = eta.match(/(\d+)/);
-  return m ? parseInt(m[1], 10) || 0 : 0;
+  return m && m[1] ? parseInt(m[1], 10) || 0 : 0;
 };
 
 type SortBy = "cheapest" | "fastest";

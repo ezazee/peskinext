@@ -30,6 +30,8 @@ import { copyProductLink } from "@shared/libs/clipboard";
 import { useProductReviews } from "../hooks/useProductReviews";
 import { RatingBadge } from "@features/product/review/RatingBadge";
 import { useToast } from "@shared/components/ui/Toaster";
+import { addToCart } from "@features/cart/cartService";
+import { createCheckoutFromBuyNow } from "@features/checkout/action";
 
 /** adaptor tipe agar tidak pakai `any` */
 type ProductForShipping = Product &
@@ -277,10 +279,19 @@ export default function MobileDetail({
           qty={qty}
           onQtyChange={(n) => setQty(Math.min(Math.max(1, n), maxStock))}
           onAddToCart={() => {
-            // TODO: Implement add to cart functionality
+            const result = addToCart(product, variant.id, qty);
+            if (result.success) {
+              toast.success(result.message);
+            } else {
+              toast.error(result.message);
+            }
           }}
-          onBuyNow={() => {
-            // TODO: Implement buy now functionality
+          onBuyNow={async () => {
+            const formData = new FormData();
+            formData.append("productId", product.id);
+            formData.append("variantId", variant.id.toString());
+            formData.append("qty", qty.toString());
+            await createCheckoutFromBuyNow(formData);
           }}
           max={maxStock}
         />

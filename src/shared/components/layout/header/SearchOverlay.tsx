@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeftIcon, SearchIcon, LocationIcon } from "@shared/components/icons";
 
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export default function SearchOverlay({ open, onClose, onSearch }: Props) {
+  const router = useRouter();
   const [q, setQ] = useState("");
 
   // kunci scroll saat overlay terbuka
@@ -21,15 +23,29 @@ export default function SearchOverlay({ open, onClose, onSearch }: Props) {
     return () => document.body.classList.remove("overflow-hidden");
   }, [open]);
 
+  const handleSearch = () => {
+    if (q.trim()) {
+      router.push(`/search?q=${encodeURIComponent(q.trim())}`);
+      onClose();
+    }
+  };
+
   // tutup pakai ESC
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      if (e.key === "Enter" && onSearch) onSearch(q);
+      if (e.key === "Enter") {
+        if (onSearch) {
+          onSearch(q);
+        } else {
+          handleSearch();
+        }
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, q, onClose, onSearch]);
 
   return (
@@ -62,7 +78,7 @@ export default function SearchOverlay({ open, onClose, onSearch }: Props) {
             </div>
             <button
               className="font-semibold text-primary px-3 cursor-pointer"
-              onClick={() => onSearch?.(q)}
+              onClick={() => (onSearch ? onSearch(q) : handleSearch())}
             >
               Cari
             </button>

@@ -22,7 +22,6 @@ export function BuyBox({
 
   const [qty, setQty] = useState(1);
   const [isLoggedIn] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
 
   const buyNowFormRef = useRef<HTMLFormElement>(null);
 
@@ -123,7 +122,7 @@ export function BuyBox({
         {/* + Keranjang tetap memanggil handler lokal */}
         <AuthActionButton
           isLoggedIn={isLoggedIn}
-          openAuthModal={() => setAuthOpen(true)}
+          openAuthModal={() => {}}
           onClick={() => onAdd(qty)}
           className="w-full bg-primary cursor-pointer text-white py-3 rounded-lg hover:opacity-90 font-semibold"
         >
@@ -133,7 +132,7 @@ export function BuyBox({
         {/* Beli Langsung → submit form ke server action */}
         <AuthActionButton
           isLoggedIn={isLoggedIn}
-          openAuthModal={() => setAuthOpen(true)}
+          openAuthModal={() => {}}
           onClick={() => buyNowFormRef.current?.requestSubmit()}
           className="w-full border cursor-pointer border-primary text-primary py-3 rounded-lg hover:bg-primary/5 font-semibold"
         >

@@ -94,7 +94,7 @@ export default function VoucherModalMobile({
     setRedeemBusy(false);
 
     if (!res.ok) {
-      toast.error(res.reason ?? "Kode tidak valid", "Gagal menerapkan kode");
+      toast.error("reason" in res ? (res.reason ?? "Kode tidak valid") : "Kode tidak valid", "Gagal menerapkan kode");
       return;
     }
 

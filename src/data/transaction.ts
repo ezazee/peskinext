@@ -19,6 +19,7 @@ function item(
   variantId?: number
 ): OrderItem {
   const p = productsData[productIndex];
+  if (!p) throw new Error(`Product with index ${productIndex} not found`);
   const unit = parseIDR(p.price);
   return {
     product: {

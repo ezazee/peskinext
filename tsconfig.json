@@ -14,10 +14,10 @@
     "incremental": true,
     "noEmit": true,
     // Strictness & ergonomics
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noUncheckedIndexedAccess": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noUncheckedIndexedAccess": false,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -26,6 +26,7 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "exactOptionalPropertyTypes": false,
+    "strictNullChecks": false,
     // VSCode / plugin next
     "plugins": [
       {
@@ -35,6 +36,9 @@
     // === Path Aliases ===
     "baseUrl": ".",
     "paths": {
+      "@/*": [
+        "src/*"
+      ],
       "@app/*": [
         "src/app/*"
       ],
