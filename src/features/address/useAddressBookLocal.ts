@@ -78,7 +78,11 @@ function writeToLS(state: State): void {
 }
 
 // --- event bus kecil ---
-let EID = 0;
+// Use timestamp + random for unique event IDs to prevent overflow
+function generateEventId(): number {
+  return Date.now() + Math.random();
+}
+
 function scheduleEmit(payload: BusPayload): void {
   setTimeout(() => {
     try {
@@ -112,7 +116,7 @@ export function useAddressBookLocal() {
       suppressNextEmitRef.current = false;
       return;
     }
-    const eid = ++EID;
+    const eid = generateEventId();
     scheduleEmit({ state, eid });
   }, [state]);
 

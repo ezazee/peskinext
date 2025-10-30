@@ -17,6 +17,7 @@ import {
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
 import { AuthAction } from "@features/auth/AuthAction";
+import { logout } from "@features/auth/action";
 import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 import type { AddressListEntry } from "@data/index";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
@@ -435,7 +436,7 @@ export const DesktopHeader = () => {
                                 className="w-full text-left cursor-pointer"
                                 onClick={() => {
                                   setMenuOpen(false);
-                                  // TODO: handle logout
+                                  logout();
                                 }}
                               >
                                 <MenuItem label="Keluar" asButton danger />

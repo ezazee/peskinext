@@ -13,18 +13,16 @@ export function BuyBox({
   product,
   variant,
   onAdd,
-  // onBuy,
 }: {
   product: Product;
   variant: Variant;
   onAdd: (qty: number) => void;
-  onBuy: (qty: number) => void;
 }) {
   const toast = useToast();
 
   const [qty, setQty] = useState(1);
   const [isLoggedIn] = useState(false);
-  const [, setAuthOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   const buyNowFormRef = useRef<HTMLFormElement>(null);
 

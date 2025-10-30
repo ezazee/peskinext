@@ -276,10 +276,12 @@ export default function MobileDetail({
           subtotal={subtotal}
           qty={qty}
           onQtyChange={(n) => setQty(Math.min(Math.max(1, n), maxStock))}
-          onAddToCart={() =>
-            console.log("Add to cart", product.slug, variant.id, qty)
-          }
-          onBuyNow={() => console.log("Buy now", product.slug, variant.id, qty)}
+          onAddToCart={() => {
+            // TODO: Implement add to cart functionality
+          }}
+          onBuyNow={() => {
+            // TODO: Implement buy now functionality
+          }}
           max={maxStock}
         />
       </div>

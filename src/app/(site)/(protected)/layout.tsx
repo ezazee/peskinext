@@ -13,7 +13,7 @@ export default async function ProtectedLayout({
 
   if (!token) {
     // redirect ke halaman login kalau belum login
-    redirect("/(auth)/login");
+    redirect("/login");
   }
 
   return <>{children}</>;

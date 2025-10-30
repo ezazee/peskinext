@@ -20,10 +20,14 @@ export function useShippingParamsForProduct(
     (product as unknown as MaybeShipFrom).shipFrom ??
     "Kota Administrasi Jakarta Pusat";
 
-  const destination =
-    (typeof window !== "undefined" &&
-      localStorage.getItem("defaultDestination")) ||
-    "Alamatmu";
+  const destination = (() => {
+    if (typeof window === "undefined") return "Alamatmu";
+    try {
+      return localStorage.getItem("defaultDestination") || "Alamatmu";
+    } catch {
+      return "Alamatmu";
+    }
+  })();
 
   const weightGr = useMemo(() => {
     const perItem = (variant as unknown as MaybeWeight).weight ?? 500;

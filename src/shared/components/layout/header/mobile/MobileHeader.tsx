@@ -97,8 +97,7 @@ export const MobileHeader = () => {
       <SearchOverlay
         open={isSearchFocused}
         onClose={() => setIsSearchFocused(false)}
-        onSearch={(q) => {
-          console.log("Search:", q);
+        onSearch={() => {
           setIsSearchFocused(false);
         }}
       />

@@ -1,7 +1,7 @@
 // src/features/shiping/hooks/useShippingQuotes.ts
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import type { ShippingDetailData } from "@shared/types/types";
 import { buildMockShippingData } from "@data/shipingData";
 import type { ShippingQueryParams } from "./useShippingParamsForProduct";
@@ -13,29 +13,74 @@ export function useShippingQuotes(
   const [data, setData] = useState<ShippingDetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  async function run(p: ShippingQueryParams) {
+  const run = useCallback(async (p: ShippingQueryParams, signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
-      await new Promise((r) => setTimeout(r, 600)); // simulasi API
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(resolve, 600); // simulasi API
+
+        // Handle abort
+        if (signal) {
+          signal.addEventListener('abort', () => {
+            clearTimeout(timeout);
+            reject(new Error('Aborted'));
+          });
+        }
+      });
+
+      // Check if aborted before setting data
+      if (signal?.aborted) return;
+
       setData(buildMockShippingData(p));
-    } catch {
+    } catch (err) {
+      // Don't set error if request was aborted
+      if (err instanceof Error && err.message === 'Aborted') return;
       setError("Gagal memuat ongkir");
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
-  }
+  }, []);
 
   useEffect(() => {
-    if (!enable || !params) return;
-    run(params);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enable, params?.origin, params?.destination, params?.weightGr]);
+    if (!enable || !params) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
 
-  const refetch = () => {
-    if (params) run(params);
-  };
+    // Abort previous request if exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller for this request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    run(params, abortController.signal);
+
+    // Cleanup function to abort on unmount or params change
+    return () => {
+      abortController.abort();
+    };
+  }, [enable, params, run]);
+
+  const refetch = useCallback(() => {
+    if (params) {
+      // Abort any ongoing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+      run(params, abortController.signal);
+    }
+  }, [params, run]);
 
   return { data, loading, error, refetch };
 }

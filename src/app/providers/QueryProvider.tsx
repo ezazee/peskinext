@@ -34,17 +34,8 @@ export default function QueryProvider({
       })
   );
 
-  // === OPTIONAL: logger untuk diagnosa; hapus di production ===
+  // Setup react-query focus and online managers
   useEffect(() => {
-    const onFocus = () => console.log("[RQ] focus event (should NOT refetch)");
-    const onVisible = () =>
-      console.log("[RQ] visibilitychange:", document.visibilityState);
-    const onOnline = () => console.log("[RQ] online event");
-
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("online", onOnline);
-
     // pastikan react-query tahu status fokus/online dari browser
     focusManager.setEventListener((handleFocus) => {
       const listener = () => handleFocus();
@@ -64,12 +55,6 @@ export default function QueryProvider({
         window.removeEventListener("offline", listener);
       };
     });
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("online", onOnline);
-    };
   }, []);
 
   return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;

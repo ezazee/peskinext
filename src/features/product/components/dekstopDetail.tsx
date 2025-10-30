@@ -147,12 +147,9 @@ export default function DesktopDetail({
           <BuyBox
             product={product}
             variant={variant}
-            onAdd={(qty) =>
-              console.log("Add to cart", product.slug, variant.id, qty)
-            }
-            onBuy={(qty) =>
-              console.log("Buy now", product.slug, variant.id, qty)
-            }
+            onAdd={() => {
+              // TODO: Implement add to cart functionality
+            }}
           />
         </aside>
 

@@ -31,8 +31,7 @@ export default function MobileHeaderDetail() {
       <SearchOverlay
         open={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        onSearch={(q) => {
-          console.log("Search:", q);
+        onSearch={() => {
           setIsSearchOpen(false);
         }}
       />

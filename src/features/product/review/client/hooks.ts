@@ -26,7 +26,7 @@ export function useReviewSummary(slug: string) {
   return useQuery<Aggregate>({
     queryKey: ["reviews", "summary", slug],
     queryFn: async () => {
-      const res = await fetch(`/api/summary?slug=${encodeURIComponent(slug)}`);
+      const res = await fetch(`/api/reviews/summary?slug=${encodeURIComponent(slug)}`);
       if (!res.ok) throw new Error("Failed to fetch review summary");
       return (await res.json()) as Aggregate;
     },
