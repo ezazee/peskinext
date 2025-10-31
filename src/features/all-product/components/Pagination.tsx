@@ -29,7 +29,7 @@ function PageBtn({
       disabled={disabled}
       onClick={onClick}
       className={[
-        "min-w-8 h-8 rounded-md px-2 text-sm cursor-pointer font-medium transition-colors",
+        "min-w-[32px] h-8 md:min-w-8 md:h-9 rounded-md px-2 text-xs md:text-sm cursor-pointer font-medium transition-colors",
         active
           ? "bg-primary text-white"
           : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200",
@@ -66,7 +66,7 @@ export default function Pagination({
   return (
     <nav
       className={[
-        "mt-6 flex items-center justify-center gap-2",
+        "mt-4 md:mt-6 flex items-center justify-center gap-1 md:gap-2",
         className ?? "",
       ].join(" ")}
       aria-label="Pagination"
@@ -76,12 +76,13 @@ export default function Pagination({
         disabled={current === 1}
         onClick={() => onPageChange(current - 1)}
       >
-        Prev
+        <span className="hidden md:inline">Prev</span>
+        <span className="md:hidden">‹</span>
       </PageBtn>
 
       {pages.map((p, idx) =>
         p === "dots" ? (
-          <span key={`d${idx}`} className="px-2 text-slate-400 select-none">
+          <span key={`d${idx}`} className="px-1 md:px-2 text-slate-400 select-none">
             …
           </span>
         ) : (
@@ -101,7 +102,8 @@ export default function Pagination({
         disabled={current === total}
         onClick={() => onPageChange(current + 1)}
       >
-        Next
+        <span className="hidden md:inline">Next</span>
+        <span className="md:hidden">›</span>
       </PageBtn>
     </nav>
   );

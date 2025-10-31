@@ -16,6 +16,7 @@ export function ProductGallery({
 
   return (
     <div className="sticky top-40 rounded-xl">
+      {/* Gambar utama */}
       <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-white group">
         <div
           className="flex h-full transition-transform duration-500 ease-out"
@@ -28,6 +29,10 @@ export function ProductGallery({
                 alt={`${name} – gambar ${i + 1}`}
                 fill
                 className="object-cover"
+                /* Lebar render: mobile 100vw, desktop ~50vw (kolom kiri) */
+                sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 600px"
+                /* Jadikan slide pertama prioritas jika galeri berada di atas fold */
+                priority={i === 0}
               />
             </div>
           ))}
@@ -55,6 +60,7 @@ export function ProductGallery({
         )}
       </div>
 
+      {/* Thumbnails */}
       <div className="mt-3 grid grid-cols-5 gap-2">
         {images.map((src, i) => (
           <button
@@ -67,7 +73,14 @@ export function ProductGallery({
             }`}
             aria-label={`Pilih gambar ${i + 1}`}
           >
-            <Image src={src} alt={`thumb-${i}`} fill className="object-cover" />
+            <Image
+              src={src}
+              alt={`thumb-${i}`}
+              fill
+              className="object-cover"
+              /* Thumbnail berukuran tetap kecil (≈ 80–96px) */
+              sizes="96px"
+            />
           </button>
         ))}
       </div>

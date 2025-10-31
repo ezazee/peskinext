@@ -33,9 +33,9 @@ export async function redeemVoucher(
 
     const data = await res.json();
     return data as RedeemResponseDTO;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
+  } catch (_error) {
+    if (_error instanceof Error) {
+      throw _error;
     }
     throw new Error("Failed to redeem voucher due to network error");
   }

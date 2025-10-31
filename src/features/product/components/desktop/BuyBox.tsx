@@ -146,10 +146,6 @@ export function BuyBox({
           isLoggedIn={isLoggedIn}
           openAuthModal={onAuthRequired}
           onClick={() => {
-            console.log("=== CLIENT: Buy Now Click ===");
-            console.log("Product ID:", product.id);
-            console.log("Variant ID:", variant.id);
-            console.log("Qty:", qty);
             buyNowFormRef.current?.requestSubmit();
           }}
           className="w-full border cursor-pointer border-primary text-primary py-3 rounded-lg hover:bg-primary/5 font-semibold"

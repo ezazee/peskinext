@@ -314,10 +314,6 @@ export default function MobileDetail({
               setIsAuthModalOpen(true);
               return;
             }
-            console.log("=== CLIENT: Mobile Buy Now ===");
-            console.log("Product ID:", product.id);
-            console.log("Variant ID:", variant.id);
-            console.log("Qty:", qty);
             const formData = new FormData();
             formData.append("productId", product.id);
             formData.append("variantId", variant.id.toString());

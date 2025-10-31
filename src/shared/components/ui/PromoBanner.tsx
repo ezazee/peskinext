@@ -35,40 +35,25 @@ export const PromoBanner = () => {
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.targetTouches[0].clientX;
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.targetTouches[0].clientX;
   };
-
   const handleTouchEnd = () => {
-    if (touchStartX.current - touchEndX.current > swipeThreshold) {
-      goToNext();
-    }
-
-    if (touchEndX.current - touchStartX.current > swipeThreshold) {
+    if (touchStartX.current - touchEndX.current > swipeThreshold) goToNext();
+    if (touchEndX.current - touchStartX.current > swipeThreshold)
       goToPrevious();
-    }
   };
 
   const goToPrevious = useCallback(() => {
-    const isFirstSlide = currentIndex === 0;
-    const newIndex = isFirstSlide ? slides.length - 1 : currentIndex - 1;
-    setCurrentIndex(newIndex);
-  }, [currentIndex]);
-
+    setCurrentIndex((i) => (i === 0 ? slides.length - 1 : i - 1));
+  }, []);
   const goToNext = useCallback(() => {
-    const isLastSlide = currentIndex === slides.length - 1;
-    const newIndex = isLastSlide ? 0 : currentIndex + 1;
-    setCurrentIndex(newIndex);
-  }, [currentIndex]);
-
-  const goToSlide = (slideIndex: number) => {
-    setCurrentIndex(slideIndex);
-  };
+    setCurrentIndex((i) => (i === slides.length - 1 ? 0 : i + 1));
+  }, []);
 
   useEffect(() => {
-    const sliderInterval = setInterval(goToNext, 5000);
-    return () => clearInterval(sliderInterval);
+    const t = setInterval(goToNext, 5000);
+    return () => clearInterval(t);
   }, [goToNext]);
 
   return (
@@ -84,65 +69,75 @@ export const PromoBanner = () => {
           className="hidden md:flex h-full transition-transform ease-out duration-500"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {slides.map((slide) => (
-            <Image
+          {slides.map((slide, i) => (
+            <div
               key={slide.alt + "-desktop"}
-              src={slide.desktopImage}
-              alt={slide.alt}
-              width={1200}
-              height={300}
-              className="w-full h-full object-cover flex-shrink-0"
-              priority={true}
-            />
+              className="relative flex-shrink-0 w-full aspect-[4/1]"
+            >
+              <Image
+                src={slide.desktopImage}
+                alt={slide.alt}
+                fill
+                className="object-cover"
+                /* Desktop aktif hanya di >= md: preload hanya slide pertama desktop */
+                sizes="(max-width: 767px) 0px, 100vw"
+                priority={i === 0}
+              />
+            </div>
           ))}
         </div>
+
         {/* Mobile Slider */}
         <div
           className="md:hidden flex h-full transition-transform ease-out duration-500"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {slides.map((slide) => (
+          {slides.map((slide, i) => (
             <div
               key={slide.alt + "-mobile"}
-              className="relative w-full h-full flex-shrink-0"
+              className="relative w-full flex-shrink-0 aspect-[3/2]"
             >
               <Image
                 src={slide.mobileImage}
                 alt={slide.alt}
-                width={600}
-                height={400}
-                className="w-full h-full object-cover"
-                priority={true}
+                fill
+                className="object-cover"
+                /* Mobile aktif hanya di < md: preload hanya slide pertama mobile */
+                sizes="(max-width: 767px) 100vw, 0px"
+                priority={i === 0}
               />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Navigation Arrows */}
-      <div
-        className="hidden group-hover:md:block absolute top-1/2 -translate-y-1/2 left-5 text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer"
+      {/* Arrows */}
+      <button
+        className="hidden group-hover:md:block absolute top-1/2 -translate-y-1/2 left-5 rounded-full p-2 bg-black/20 text-white"
         onClick={goToPrevious}
+        aria-label="Sebelumnya"
       >
         <ChevronLeftIcon className="h-6 w-6" />
-      </div>
-      <div
-        className="hidden group-hover:md:block absolute top-1/2 -translate-y-1/2 right-5 text-2xl rounded-full p-2 bg-black/20 text-white cursor-pointer"
+      </button>
+      <button
+        className="hidden group-hover:md:block absolute top-1/2 -translate-y-1/2 right-5 rounded-full p-2 bg-black/20 text-white"
         onClick={goToNext}
+        aria-label="Berikutnya"
       >
         <ChevronRightIcon className="h-6 w-6" />
-      </div>
+      </button>
 
-      {/* Navigation Dots */}
+      {/* Dots */}
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex justify-center gap-2">
-        {slides.map((_, slideIndex) => (
-          <div
-            key={slideIndex}
-            onClick={() => goToSlide(slideIndex)}
-            className={`cursor-pointer h-2 rounded-full transition-all duration-300 ${
-              currentIndex === slideIndex ? "w-6 bg-white" : "w-2 bg-white/50"
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentIndex(i)}
+            aria-label={`Slide ${i + 1}`}
+            className={`h-2 rounded-full transition-all ${
+              currentIndex === i ? "w-6 bg-white" : "w-2 bg-white/50"
             }`}
-          ></div>
+          />
         ))}
       </div>
     </div>

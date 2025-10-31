@@ -47,12 +47,17 @@ export default function PromoShowcase({
                 aria-label={b.alt}
                 className="block min-w-full h-full"
               >
+                {/* Wrapper memberi ukuran pasti untuk Image fill */}
                 <div className="relative w-full h-full">
                   <Image
                     src={b.src}
                     alt={b.alt}
                     fill
                     className="object-cover"
+                    // Desktop-only: ambil ~33vw; saat < md (hidden), 0px
+                    sizes="(max-width: 767px) 0px, 33vw"
+                    // Jadikan slide pertama prioritas (umumnya LCP di atas fold)
+                    priority={i === 0}
                   />
                 </div>
               </a>
@@ -107,7 +112,11 @@ export default function PromoShowcase({
                 src={t.src}
                 alt={t.alt}
                 fill
-                className="object-cover transition-transform duration-300"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                // Desktop-only: tiap tile kira-kira 1/3 lebar viewport
+                sizes="(max-width: 767px) 0px, 33vw"
+                // Jika salah satu tile kanan berpotensi LCP di layoutmu,
+                // kamu boleh set priority={i === 0} — tapi sebaiknya cukup 1 gambar priority di halaman.
               />
             </div>
           </a>
@@ -135,6 +144,10 @@ export default function PromoShowcase({
                     alt={b.alt}
                     fill
                     className="object-cover"
+                    // Mobile-only: full width
+                    sizes="(max-width: 767px) 100vw, 0px"
+                    // Tandai slide pertama sebagai priority untuk mobile LCP
+                    priority={i === 0}
                   />
                 </div>
               </a>
@@ -167,7 +180,14 @@ export default function PromoShowcase({
               aria-label={t.alt}
             >
               <div className="relative aspect-video w-full">
-                <Image src={t.src} alt={t.alt} fill className="object-cover" />
+                <Image
+                  src={t.src}
+                  alt={t.alt}
+                  fill
+                  className="object-cover"
+                  // Mobile-only: tiap tile ~ setengah layar
+                  sizes="(max-width: 767px) 50vw, 0px"
+                />
               </div>
             </a>
           ))}

@@ -70,74 +70,132 @@ function SearchContent() {
     });
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-6">
-      {/* Search Header */}
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-base-text">
-              {query ? (
-                <>
-                  Hasil Pencarian untuk &quot;{query}&quot;
-                </>
-              ) : (
-                "Semua Produk"
-              )}
-            </h1>
-            <p className="text-sm text-subtle-text mt-1">
-              Ditemukan {searchResult.total} produk
-            </p>
+    <main className="mx-auto max-w-7xl">
+      {/* Desktop Header */}
+      <div className="hidden md:block px-4 py-6">
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-base-text">
+                {query ? (
+                  <>
+                    Hasil Pencarian untuk &quot;{query}&quot;
+                  </>
+                ) : (
+                  "Semua Produk"
+                )}
+              </h1>
+              <p className="text-sm text-subtle-text mt-1">
+                Ditemukan {searchResult.total} produk
+              </p>
+            </div>
+
+            {/* Sort Options Desktop */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-subtle-text">Urutkan:</span>
+              <SortSelect value={sortKey} onChange={changeSort} />
+            </div>
           </div>
 
-          {/* Sort Options */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-subtle-text">Urutkan:</span>
-            <SortSelect value={sortKey} onChange={changeSort} />
+          {/* No Results Desktop */}
+          {searchResult.total === 0 && query && (
+            <div className="mt-8 text-center py-12">
+              <div className="text-6xl mb-4">🔍</div>
+              <h2 className="text-xl font-semibold text-base-text mb-2">
+                Tidak ada produk ditemukan
+              </h2>
+              <p className="text-subtle-text mb-4">
+                Coba gunakan kata kunci lain atau lihat semua produk
+              </p>
+              <a
+                href="/all-product"
+                className="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Lihat Semua Produk
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Results Grid Desktop */}
+        {searchResult.total > 0 && (
+          <>
+            <BundleDesktop
+              products={pageItems}
+              loading={loading}
+              animKey={animKey}
+            />
+
+            {/* Pagination Desktop */}
+            <Pagination
+              current={safeCurrent}
+              total={totalPages}
+              onPageChange={goToPage}
+            />
+          </>
+        )}
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="md:hidden">
+        {/* Mobile Header - Sticky */}
+        <div className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex-1">
+              <h1 className="text-base font-bold text-base-text truncate">
+                {query ? `"${query}"` : "Semua Produk"}
+              </h1>
+              <p className="text-xs text-subtle-text">
+                {searchResult.total} produk
+              </p>
+            </div>
+
+            {/* Mobile Sort Dropdown */}
+            <div className="ml-3">
+              <SortSelect value={sortKey} onChange={changeSort} />
+            </div>
           </div>
         </div>
 
-        {/* No Results */}
+        {/* No Results Mobile */}
         {searchResult.total === 0 && query && (
-          <div className="mt-8 text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
-            <h2 className="text-xl font-semibold text-base-text mb-2">
-              Tidak ada produk ditemukan
+          <div className="px-4 py-12 text-center">
+            <div className="text-5xl mb-3">🔍</div>
+            <h2 className="text-lg font-semibold text-base-text mb-2">
+              Produk tidak ditemukan
             </h2>
-            <p className="text-subtle-text mb-4">
-              Coba gunakan kata kunci lain atau lihat semua produk
+            <p className="text-sm text-subtle-text mb-4">
+              Coba kata kunci lain
             </p>
             <a
               href="/all-product"
-              className="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:opacity-90 transition-opacity"
+              className="inline-block bg-primary text-white px-5 py-2 rounded-lg text-sm font-semibold"
             >
               Lihat Semua Produk
             </a>
           </div>
         )}
+
+        {/* Results Grid Mobile */}
+        {searchResult.total > 0 && (
+          <div className="px-4 py-4">
+            <BundleMobile
+              products={pageItems}
+              loading={loading}
+              animKey={animKey}
+            />
+
+            {/* Pagination Mobile */}
+            <div className="mt-6">
+              <Pagination
+                current={safeCurrent}
+                total={totalPages}
+                onPageChange={goToPage}
+              />
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Results Grid */}
-      {searchResult.total > 0 && (
-        <>
-          <BundleDesktop
-            products={pageItems}
-            loading={loading}
-            animKey={animKey}
-          />
-          <BundleMobile
-            products={pageItems}
-            loading={loading}
-            animKey={animKey}
-          />
-
-          {/* Pagination */}
-          <Pagination
-            current={safeCurrent}
-            total={totalPages}
-            onPageChange={goToPage}
-          />
-        </>
-      )}
     </main>
   );
 }

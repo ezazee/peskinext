@@ -52,9 +52,8 @@ export const AuthModal = ({
       } else {
         setError(result.error || "Login gagal");
       }
-    } catch (err) {
+    } catch (_err) {
       setError("Terjadi kesalahan saat login");
-      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }

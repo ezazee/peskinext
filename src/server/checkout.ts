@@ -80,10 +80,8 @@ declare global {
 
 const getStore = () => {
   if (!global.__checkoutStore) {
-    console.log("=== INITIALIZING NEW CHECKOUT STORE ===");
     global.__checkoutStore = new Map<string, CheckoutSession>();
   }
-  console.log("Current store size:", global.__checkoutStore.size);
   return global.__checkoutStore;
 };
 const store = getStore();
@@ -92,31 +90,20 @@ export async function createSessionFromCart(
   userId?: string | null,
   cartItemsJson?: string | null
 ) {
-  console.log("=== SERVER: createSessionFromCart ===");
-  console.log("userId:", userId);
-  console.log("cartItemsJson length:", cartItemsJson?.length);
-
   let lines: CheckoutLine[] = [];
 
   // Parse cart items if provided
   if (cartItemsJson) {
     try {
-      console.log("Parsing cart items JSON...");
       const cartItems = JSON.parse(cartItemsJson);
-      console.log("Parsed cart items count:", cartItems?.length);
-      console.log("First item:", JSON.stringify(cartItems?.[0]));
 
       // Convert cart items to checkout lines
       lines = cartItems
-        .filter((item: Record<string, unknown>) => {
-          console.log("Item selected:", item.selected, "productId:", (item.product as Record<string, unknown>)?.id);
-          return item.selected;
-        }) // Only selected items
+        .filter((item: Record<string, unknown>) => item.selected) // Only selected items
         .map((item: Record<string, unknown>) => {
           const product = item.product as Record<string, unknown>;
           const variants = product.variants as Array<Record<string, unknown>>;
           const variant = variants.find((v) => v.id === item.variantId);
-          console.log("Mapping item:", product.id, "variant:", variant?.id, variant?.name);
           return {
             productId: String(product.id),
             variantId: String(item.variantId),
@@ -126,24 +113,16 @@ export async function createSessionFromCart(
             price: Number(variant?.price || 0),
           };
         });
-
-      console.log("Mapped lines count:", lines.length);
-    } catch (error) {
-      console.error("Error parsing cart items:", error);
+    } catch (_error) {
       throw new Error("Invalid cart data");
     }
-  } else {
-    console.error("No cartItemsJson provided");
   }
 
   if (lines.length === 0) {
-    console.error("No items in cart after filtering");
     throw new Error("No items in cart");
   }
 
-  console.log("Calculating totals...");
   const { subtotal, discount, shipping, grandTotal } = calc(lines);
-  console.log("Totals:", { subtotal, discount, shipping, grandTotal });
 
   const id = randomId();
   const anon = userId ? null : await getOrSetAnonId();
@@ -152,7 +131,7 @@ export async function createSessionFromCart(
     id,
     source: "cart",
     userId: userId ?? null,
-    anonId: anon, // string | null (bukan Promise)
+    anonId: anon,
     currency: "IDR",
     lines,
     vouchers: [],
@@ -163,17 +142,8 @@ export async function createSessionFromCart(
     createdAt: new Date().toISOString(),
     expiresAt: fmtNowPlusMinutes(30),
   };
-  console.log("Storing session with ID:", id);
-  console.log("Session object to store:", JSON.stringify(session, null, 2));
+
   store.set(id, session);
-  console.log("Session stored successfully. Store size:", store.size);
-  console.log("Store keys after save:", Array.from(store.keys()));
-
-  // Verify it was saved
-  const verification = store.get(id);
-  console.log("Verification - can retrieve immediately:", !!verification);
-
-  console.log("Session created:", { id, source: session.source, lines: session.lines.length });
   return id;
 }
 
@@ -183,32 +153,19 @@ export async function createSessionFromBuyNow(input: {
   variantId: string;
   qty: number;
 }) {
-  console.log("=== SERVER: createSessionFromBuyNow ===");
-  console.log("Input:", JSON.stringify(input));
-
   // Find the product
-  console.log("Looking for product:", input.productId);
-  console.log("Available products:", productsData.length);
   const product = productsData.find(p => p.id === input.productId);
 
   if (!product) {
-    console.error("ERROR: Product not found:", input.productId);
-    console.error("Available product IDs:", productsData.map(p => p.id));
     throw new Error(`Product not found: ${input.productId}`);
   }
-  console.log("Found product:", product.name);
 
   // Find the variant
-  console.log("Looking for variant:", input.variantId, "type:", typeof input.variantId);
-  console.log("Available variants:", product.variants.map(v => ({ id: v.id, name: v.name })));
   const variant = product.variants.find(v => v.id === Number(input.variantId));
 
   if (!variant) {
-    console.error("ERROR: Variant not found:", input.variantId);
-    console.error("Available variant IDs:", product.variants.map(v => v.id));
     throw new Error(`Variant not found: ${input.variantId}`);
   }
-  console.log("Found variant:", variant.name, "price:", variant.price);
 
   const line: CheckoutLine = {
     productId: input.productId,
@@ -218,21 +175,17 @@ export async function createSessionFromBuyNow(input: {
     qty: input.qty,
     price: variant.price,
   };
-  console.log("Created checkout line:", line);
 
   const { subtotal, discount, shipping, grandTotal } = calc([line]);
-  console.log("Totals:", { subtotal, discount, shipping, grandTotal });
 
-  console.log("Generating session ID...");
   const id = randomId();
   const anon = input.userId ? null : await getOrSetAnonId();
-  console.log("Session ID:", id);
 
   const session: CheckoutSession = {
     id,
     source: "buy_now",
     userId: input.userId ?? null,
-    anonId: anon, // string | null (bukan Promise)
+    anonId: anon,
     currency: "IDR",
     lines: [line],
     vouchers: [],
@@ -243,32 +196,16 @@ export async function createSessionFromBuyNow(input: {
     createdAt: new Date().toISOString(),
     expiresAt: fmtNowPlusMinutes(30),
   };
-  console.log("Storing buy now session with ID:", id);
-  console.log("Session object to store:", JSON.stringify(session, null, 2));
+
   store.set(id, session);
-  console.log("Buy now session stored. Store size:", store.size);
-  console.log("Store keys after save:", Array.from(store.keys()));
-
-  // Verify it was saved
-  const verification = store.get(id);
-  console.log("Verification - can retrieve immediately:", !!verification);
-
-  console.log("Session created:", { id, source: session.source, lines: session.lines.length });
   return id;
 }
 
 export async function getSession(id: string) {
-  console.log("=== SERVER: getSession ===");
-  console.log("Looking for session ID:", id);
-  console.log("Store size:", store.size);
-  console.log("Store keys:", Array.from(store.keys()));
-
   const s = store.get(id);
   if (!s) {
-    console.error("ERROR: Session not found:", id);
     throw new Error("Checkout session not found");
   }
 
-  console.log("Session found:", { id: s.id, source: s.source, lines: s.lines.length });
   return s;
 }

@@ -53,7 +53,6 @@ export function MobileGallery({
       className="relative w-full aspect-square bg-white overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      // penting: biar scroll vertikal tetap jalan, tapi kita ambil gerakan horizontal
       style={{ touchAction: "pan-y" }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -65,7 +64,6 @@ export function MobileGallery({
           dragging ? "duration-0" : "duration-500"
         }`}
         style={{
-          // geser ke index aktif + offset drag saat jari menggeser
           transform: `translateX(calc(-${index * 100}% + ${dragX}px))`,
         }}
       >
@@ -76,7 +74,8 @@ export function MobileGallery({
               alt={`${name} – gambar ${i + 1}`}
               fill
               className="object-cover"
-              priority={i === 0}
+              sizes="(max-width: 767px) 100vw, 0px" // << penting: sizes untuk fill
+              priority={i === 0} // preload hanya slide pertama
             />
           </div>
         ))}
@@ -92,7 +91,7 @@ export function MobileGallery({
         </motion.span>
       )}
 
-      {/* dots (tetap) */}
+      {/* dots */}
       <div className="absolute bottom-6 inset-x-0 flex justify-center gap-1">
         {images.map((_, i) => (
           <button

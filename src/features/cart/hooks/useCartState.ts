@@ -27,7 +27,6 @@ export function useCartState(initial?: CartData) {
   // Save to localStorage whenever items change (except on initial mount)
   useEffect(() => {
     if (isInitialized) {
-      console.log("Saving cart to localStorage:", items.length, "items");
       saveCart({ items });
     } else {
       setIsInitialized(true);
@@ -66,7 +65,6 @@ export function useCartState(initial?: CartData) {
     );
   }
   function removeItem(lineId: string) {
-    console.log("Removing item:", lineId);
     setItems((prev) => prev.filter((i) => i.id !== lineId));
   }
   function setQty(lineId: string, qty: number) {

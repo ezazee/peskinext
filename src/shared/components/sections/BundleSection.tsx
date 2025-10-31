@@ -1,78 +1,98 @@
 // File: src/features/shared/sections/BundleSection.tsx
 "use client";
 
-import React, { useRef } from 'react';
-import Image from 'next/image';
-import { productsData } from '@data/products';
-import { ProductCard } from '../layout/header/mobile/product/ProductCard';
-import { ChevronLeftIcon, ChevronRightIcon } from '../icons';
-import Link from 'next/link';
+import React, { useRef } from "react";
+import Image from "next/image";
+import { productsData } from "@data/products";
+import { ProductCard } from "../layout/header/mobile/product/ProductCard";
+import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
+import Link from "next/link";
 
 // Filter data untuk hanya menampilkan produk bundle
-const bundleProducts = productsData.filter(product => product.type === 'bundle');
+const bundleProducts = productsData.filter(
+  (product) => product.type === "bundle"
+);
 
 export const BundleSection = () => {
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollContainerRef.current) {
-            const scrollAmount = direction === 'left' ? -200 : 200;
-            scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-        }
-    };
-
-    if (bundleProducts.length === 0) {
-        return null;
+  const scroll = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = direction === "left" ? -200 : 200;
+      scrollContainerRef.current.scrollBy({
+        left: scrollAmount,
+        behavior: "smooth",
+      });
     }
+  };
 
-    return (
-        <section className="container mx-auto my-8 px-4 md:px-0">
-             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-base-text">
-                  Product Bundle PE Skinpro
-                </h2>
-                <Link href="/all-product" className="text-primary font-semibold hover:underline text-sm">
-                    Lihat semua
-                </Link>
-            </div>
-            <div className="flex gap-4">
-                {/* Kartu Promo Kiri (hanya di desktop) */}
-                <div className="hidden md:block w-1/5 relative rounded-lg overflow-hidden group">
-                    <a href="#" className="block w-full h-full">
-                        <Image 
-                            src="https://placehold.co/300x500/FBBF24/FFFFFF?text=Promo+Spesial"
-                            alt="Penawaran Spesial"
-                            layout="fill"
-                            objectFit="cover"
-                            className="transition-transform duration-300 group-hover:scale-105"
-                        />
-                    </a>
-                </div>
+  if (bundleProducts.length === 0) {
+    return null;
+  }
 
-                {/* Slider Produk */}
-                <div className="relative w-full md:w-4/5"> {/* <-- PERBAIKAN DI SINI */}
-                    <div ref={scrollContainerRef} className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-                        {bundleProducts.map((product, index) => (
-                            <div key={index} className="w-40 md:w-48 flex-shrink-0">
-                                <ProductCard product={product} />
-                            </div>
-                        ))}
-                    </div>
-                    {/* Tombol panah kiri dan kanan */}
-                    <button 
-                        onClick={() => scroll('left')}
-                        className="absolute top-1/2 -left-3 -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-transform hover:scale-110 hidden md:block"
-                    >
-                        <ChevronLeftIcon />
-                    </button>
-                    <button 
-                        onClick={() => scroll('right')}
-                        className="absolute top-1/2 -right-3 -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-transform hover:scale-110 hidden md:block"
-                    >
-                        <ChevronRightIcon />
-                    </button>
-                </div>
+  return (
+    <section className="container mx-auto my-8 px-4 md:px-0">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-base-text">
+          Product Bundle PE Skinpro
+        </h2>
+        <Link
+          href="/all-product"
+          className="text-sm font-semibold text-primary hover:underline"
+        >
+          Lihat semua
+        </Link>
+      </div>
+
+      {/* biar kedua kolom sama tinggi */}
+      <div className="flex items-stretch gap-4">
+        {/* Banner Promo Kiri (ikut tinggi slider, TANPA aspect/tinggi fixed) */}
+        <div className="relative hidden w-1/5 overflow-hidden rounded-lg md:block md:self-stretch">
+          <a href="#" className="block h-full w-full">
+            <div className="relative h-full w-full">
+              <Image
+                src="https://placehold.co/300x500/FBBF24/FFFFFF?text=Promo+Spesial"
+                alt="Penawaran Spesial"
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                // banner ini hanya tampil ≥ md dan lebarnya ±20% viewport
+                sizes="(max-width: 767px) 0px, 20vw"
+                priority={false}
+              />
             </div>
-        </section>
-    );
+          </a>
+        </div>
+
+        {/* Slider Produk (tinggi alami dari kartu; banner mengikuti) */}
+        <div className="relative w-full md:w-4/5">
+          <div
+            ref={scrollContainerRef}
+            className="no-scrollbar flex items-stretch gap-3 overflow-x-auto pb-4"
+          >
+            {bundleProducts.map((product, index) => (
+              <div key={index} className="w-40 flex-shrink-0 md:w-48">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+
+          {/* Tombol panah kiri dan kanan */}
+          <button
+            onClick={() => scroll("left")}
+            className="absolute -left-3 top-1/2 hidden -translate-y-1/2 rounded-full bg-white p-2 shadow-md transition-transform hover:scale-110 hover:bg-gray-100 md:block"
+            aria-label="Scroll kiri"
+          >
+            <ChevronLeftIcon />
+          </button>
+          <button
+            onClick={() => scroll("right")}
+            className="absolute -right-3 top-1/2 hidden -translate-y-1/2 rounded-full bg-white p-2 shadow-md transition-transform hover:scale-110 hover:bg-gray-100 md:block"
+            aria-label="Scroll kanan"
+          >
+            <ChevronRightIcon />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 };

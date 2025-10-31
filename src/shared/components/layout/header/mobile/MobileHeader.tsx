@@ -31,29 +31,50 @@ export const MobileHeader = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [userProfile, setUserProfile] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    avatarUrl: string;
+  } | null>(null);
 
   // Check login status dynamically
   const checkAuth = async () => {
     const user = await getCurrentUser();
     setIsLoggedIn(!!user);
-  };
-
-  const updateCartCount = () => {
-    setCartCount(getCartItemCount());
+    if (user) {
+      setUserProfile({
+        id: user.id,
+        name: user.name,
+        email: user.email || "",
+        phone: user.phone || "",
+        avatarUrl: "/images/avatar/default-avatar.png",
+      });
+    } else {
+      setUserProfile(null);
+    }
   };
 
   useEffect(() => {
     checkAuth();
-    updateCartCount();
+  }, []);
+
+  useEffect(() => {
+    const userId = userProfile?.id || null;
+    const updateCount = () => {
+      setCartCount(getCartItemCount(userId));
+    };
+
+    updateCount();
 
     // Listen for cart updates
-    const handleCartUpdate = () => updateCartCount();
-    window.addEventListener('cartUpdated', handleCartUpdate);
+    window.addEventListener('cartUpdated', updateCount);
 
     return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate);
+      window.removeEventListener('cartUpdated', updateCount);
     };
-  }, []);
+  }, [userProfile]);
 
   // Callback after successful login
   const handleLoginSuccess = () => {
@@ -129,9 +150,6 @@ export const MobileHeader = () => {
       <SearchOverlay
         open={isSearchFocused}
         onClose={() => setIsSearchFocused(false)}
-        onSearch={() => {
-          setIsSearchFocused(false);
-        }}
       />
 
       <header className="md:hidden bg-white sticky top-0 z-40 p-4 shadow-sm">

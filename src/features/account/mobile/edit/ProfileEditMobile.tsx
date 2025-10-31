@@ -2,8 +2,8 @@
 
 import React from "react";
 import type { AccountProfile } from "@shared/types/types";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Avatar } from "@shared/components/ui/Avatar";
 
 type Props = { initial: AccountProfile };
 
@@ -31,12 +31,10 @@ export default function ProfileEditMobile({ initial }: Props) {
   return (
     <form onSubmit={onSubmit} className="bg-white rounded-lg shadow-sm p-4">
       <div className="flex items-center gap-3">
-        <Image
-          src={form.avatarUrl}
-          alt={form.name}
-          width={56}
-          height={56}
-          className="rounded-full object-cover w-14 h-14"
+        <Avatar
+          name={form.name}
+          avatarUrl={form.avatarUrl}
+          size="lg"
         />
         <div className="text-sm text-gray-600">
           <div className="font-semibold text-gray-900">{form.name}</div>

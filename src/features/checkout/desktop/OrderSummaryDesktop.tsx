@@ -139,14 +139,16 @@ export default function OrderSummaryDesktop({
         <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
           {logos.map((l) => (
             <li key={l.src} className="shrink-0">
-              <Image
-                src={l.src}
-                alt={l.alt}
-                width={l.w}
-                height={l.h}
-                className="object-contain"
-                loading="lazy"
-              />
+              <div className="relative" style={{ width: l.w, height: l.h }}>
+                <Image
+                  src={l.src}
+                  alt={l.alt}
+                  fill
+                  sizes={`${l.w}px`}
+                  className="object-contain"
+                  unoptimized // opsional (bagus untuk SVG)
+                />
+              </div>
             </li>
           ))}
         </ul>

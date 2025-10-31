@@ -6,7 +6,8 @@
       "Bash(ls:*)",
       "Bash(npm run build)",
       "Read(//d/Reza/Data_Kerja/PESkinPro/Code/penew/**)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

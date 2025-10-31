@@ -43,6 +43,26 @@ const DEFAULT_METHODS: ReadonlyArray<PaymentMethod> = [
   },
 ];
 
+// Tambahkan helper kecil di atas default export (atau di file terpisah)
+function PaymentLogo({ src, alt }: { src: string; alt: string }) {
+  const isSvg = src.endsWith(".svg");
+  const targetPx = 20; // h-5 = 20px
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={100} // angka apa saja untuk rasio intrinsik
+      height={100}
+      sizes={`${targetPx}px`} // target lebar render ~ 20px
+      className="object-contain opacity-80"
+      style={{ height: targetPx, width: "auto" }} // << kunci: height + width:auto
+      loading="lazy"
+      unoptimized={isSvg} // SVG tak perlu dioptimasi
+    />
+  );
+}
+
 export default function PaymentMethodsMobile({
   selectedId,
   onChange,
@@ -116,15 +136,7 @@ export default function PaymentMethodsMobile({
                     </div>
 
                     {m.logoSrc ? (
-                      // pakai <img> biasa supaya filenya ringan & simpel di mobile
-                      <Image
-                        width={100}
-                        height={100}
-                        src={m.logoSrc}
-                        alt={m.logoAlt || m.title}
-                        className="h-5 w-auto object-contain opacity-80"
-                        loading="lazy"
-                      />
+                      <PaymentLogo src={m.logoSrc} alt={m.logoAlt || m.title} />
                     ) : null}
                   </div>
                 </label>

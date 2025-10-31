@@ -35,9 +35,9 @@ export function useShippingQuotes(
       if (signal?.aborted) return;
 
       setData(buildMockShippingData(p));
-    } catch (err) {
+    } catch (_err) {
       // Don't set error if request was aborted
-      if (err instanceof Error && err.message === 'Aborted') return;
+      if (_err instanceof Error && _err.message === 'Aborted') return;
       setError("Gagal memuat ongkir");
     } finally {
       if (!signal?.aborted) {

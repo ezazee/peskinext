@@ -1,9 +1,9 @@
 "use client";
 
 import type { AccountData } from "@shared/types/types";
-import Image from "next/image";
 import Link from "next/link";
 import { IconByName } from "@features/account/IconMap";
+import { Avatar } from "@shared/components/ui/Avatar";
 
 export default function AccountMobile({ data }: { data: AccountData }) {
   const { profile } = data;
@@ -17,12 +17,10 @@ export default function AccountMobile({ data }: { data: AccountData }) {
         aria-label="Buka halaman akun"
       >
         <div className="flex items-center gap-3">
-          <Image
-            width={48}
-            height={48}
-            src={profile.avatarUrl}
-            alt={profile.name}
-            className="w-12 h-12 rounded-full object-cover"
+          <Avatar
+            name={profile.name}
+            avatarUrl={profile.avatarUrl}
+            size="lg"
           />
           <div className="flex-1 min-w-0">
             <div className="font-semibold truncate">{profile.name}</div>

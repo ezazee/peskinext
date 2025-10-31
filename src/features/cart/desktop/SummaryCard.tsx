@@ -234,12 +234,7 @@ export default function SummaryCard({
         <form
           action={createCheckoutFromCart}
           className="mt-3"
-          onSubmit={() => {
-            console.log("=== CLIENT: Form Submit ===");
-            console.log("Cart items count:", cartItems.length);
-            console.log("Cart items:", JSON.stringify(cartItems, null, 2));
-            console.log("Selected items:", cartItems.filter((item) => typeof item === 'object' && item !== null && 'selected' in item && item.selected).length);
-          }}
+          onSubmit={() => {}}
         >
           <input
             type="hidden"
@@ -271,18 +266,29 @@ export default function SummaryCard({
           Pembayaranmu aman di website kami.
         </p>
         <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-          {logos.map((l) => (
-            <li key={l.src} className="shrink-0">
-              <Image
-                src={l.src}
-                alt={l.alt}
-                width={l.w}
-                height={l.h}
-                className="object-contain"
-                loading="lazy"
-              />
-            </li>
-          ))}
+          {logos.map((l) => {
+            const isSvg = l.src.endsWith(".svg");
+            return (
+              <li key={l.src} className="shrink-0 leading-none">
+                {/* container dengan ukuran final logo */}
+                <span
+                  className="relative inline-block align-middle"
+                  style={{ width: l.w, height: l.h }}
+                >
+                  <Image
+                    src={l.src}
+                    alt={l.alt}
+                    fill
+                    className="object-contain" // jaga rasio
+                    sizes={`${l.w}px`} // lebar target
+                    unoptimized={isSvg} // SVG: jangan dioptimize (tetap vektor)
+                    loading="lazy"
+                    priority={false}
+                  />
+                </span>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>

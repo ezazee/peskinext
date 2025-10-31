@@ -117,25 +117,22 @@ export const DesktopHeader = () => {
     setCartUserId(userId);
   };
 
-  const updateCartCount = () => {
-    setCartCount(getCartItemCount(currentUserId));
-  };
-
   useEffect(() => {
     checkAuth();
   }, []);
 
   useEffect(() => {
-    updateCartCount();
-
-    // Listen for cart updates
-    const handleCartUpdate = () => {
+    const updateCount = () => {
       setCartCount(getCartItemCount(currentUserId));
     };
-    window.addEventListener('cartUpdated', handleCartUpdate);
+
+    updateCount();
+
+    // Listen for cart updates
+    window.addEventListener('cartUpdated', updateCount);
 
     return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate);
+      window.removeEventListener('cartUpdated', updateCount);
     };
   }, [currentUserId]);
 
@@ -330,15 +327,18 @@ export const DesktopHeader = () => {
 
         <div className="max-w-screen-xl mx-auto px-8">
           <div className="flex items-center gap-6 py-3">
-            <Link href="/">
-              <Image
-                src="/Logo.png"
-                alt="PE Skinpro Logo"
-                width={60}
-                height={40}
-                className="shrink-0"
-              />
-            </Link>
+<Link href="/" className="relative h-10 w-40 shrink-0">
+  <Image
+    src="/Logo.png"
+    alt="PE Skinpro Logo"
+    fill
+    className="object-contain"
+    sizes="(max-width: 768px) 120px, 160px"
+    priority
+  />
+</Link>
+
+
 
             {/* Search */}
             <div className="flex-grow relative mx-4" ref={searchContainerRef}>

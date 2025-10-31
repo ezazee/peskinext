@@ -10,8 +10,7 @@ export async function fetchDefaultAddress(): Promise<UserAddress | null> {
     try {
       const fromLS = localStorage.getItem(LS_KEY);
       if (fromLS) return { cityCode: fromLS };
-    } catch (error) {
-      console.error("Error reading from localStorage:", error);
+    } catch (_error) {
     }
   }
   return { cityCode: "SUB" }; // default awal
@@ -21,8 +20,7 @@ export function saveDefaultAddress(cityCode: string) {
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(LS_KEY, cityCode);
-    } catch (error) {
-      console.error("Error writing to localStorage:", error);
+    } catch (_error) {
     }
   }
 }

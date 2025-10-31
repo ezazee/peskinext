@@ -46,8 +46,7 @@ export function setCurrentUserId(userId: string | null): void {
     } else {
       sessionStorage.removeItem("current_user_id");
     }
-  } catch (error) {
-    console.error("Error setting user ID:", error);
+  } catch (_error) {
   }
 }
 
@@ -66,11 +65,9 @@ export function getCart(userId?: string | null): CartData {
   try {
     const stored = localStorage.getItem(storageKey);
     if (stored) {
-      console.log(`Loading cart for user: ${effectiveUserId || 'guest'}`);
       return JSON.parse(stored);
     }
-  } catch (error) {
-    console.error("Error loading cart:", error);
+  } catch (_error) {
   }
 
   return { items: [] };
@@ -87,12 +84,10 @@ export function saveCart(cart: CartData, userId?: string | null): void {
   const storageKey = getCartStorageKey(effectiveUserId);
 
   try {
-    console.log(`Saving cart for user: ${effectiveUserId || 'guest'}`, cart.items.length, "items");
     localStorage.setItem(storageKey, JSON.stringify(cart));
     // Dispatch event for other components to listen
     window.dispatchEvent(new Event("cartUpdated"));
-  } catch (error) {
-    console.error("Error saving cart:", error);
+  } catch (_error) {
   }
 }
 

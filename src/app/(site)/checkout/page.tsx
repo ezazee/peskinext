@@ -23,19 +23,13 @@ export default async function Page({
   // If we have a session ID, fetch the session
   let checkoutSession = null;
   if (sessionId) {
-    console.log("=== CHECKOUT PAGE: Fetching session ===");
-    console.log("Session ID from URL:", sessionId);
     try {
       checkoutSession = await getSession(sessionId);
-      console.log("Session fetched successfully:", !!checkoutSession);
-    } catch (error) {
-      console.error("=== CHECKOUT PAGE: Error fetching session ===");
-      console.error("Error:", error);
+    } catch (_error) {
       // If session not found or expired, redirect to cart
       redirect("/cart?error=session_expired");
     }
   } else {
-    console.log("=== CHECKOUT PAGE: No session ID in URL ===");
   }
 
   return <CheckoutClient checkoutSession={checkoutSession} />;

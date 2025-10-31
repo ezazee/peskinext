@@ -1,3 +1,4 @@
+// app/(site)/layout.tsx (atau file layout yang sama)
 import BottomNavController from "@shared/components/layout/footer/BottomNavController";
 import { Footer } from "@shared/components/layout/footer/DekstopFooter";
 import HeaderSwitcher from "@shared/components/layout/header/HeaderSwitcher";
@@ -10,9 +11,11 @@ export default function SiteLayout({
 }) {
   return (
     <>
+      <HeaderSwitcher />
+
       <RouteTransition>
-        <HeaderSwitcher />
-        <main>{children}</main>
+        {/* beri padding-top agar konten tidak tertutup header sticky */}
+        <main className="pt-8 md:pt-[30px]">{children}</main>
         <Footer />
         <BottomNavController />
       </RouteTransition>

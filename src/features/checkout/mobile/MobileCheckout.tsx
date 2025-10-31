@@ -124,12 +124,10 @@ export default function MobileCheckout({
   initialCart?: CartData;
   checkoutSession?: CheckoutSession | null;
 }) {
-  console.log("Checkout session:", checkoutSession);
 
   /* Convert checkoutSession.lines to cart items format if session exists */
   const items: CartItem[] = useMemo(() => {
     if (checkoutSession?.lines) {
-      console.log("Using checkout session lines:", checkoutSession.lines);
       // Convert CheckoutLine[] to CartItem[] format
       return checkoutSession.lines.map((line) => ({
         id: `checkout-${line.productId}-${line.variantId}`,
@@ -165,7 +163,6 @@ export default function MobileCheckout({
     }
 
     // Fallback to cart items
-    console.log("Using cart items:", initialCart.items);
     const safeItems = (initialCart?.items ?? []).filter((i) => i.qty > 0);
     const chosen = safeItems.filter((i) => i.selected);
     return chosen.length ? chosen : safeItems;

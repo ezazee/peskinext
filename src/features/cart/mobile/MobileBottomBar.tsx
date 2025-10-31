@@ -111,10 +111,6 @@ export default function MobileBottomBar({
           onClick={() => {
             if (!disabledCheckout) {
               if (isLoggedIn) {
-                console.log("=== CLIENT: Mobile Checkout Click ===");
-                console.log("Cart items count:", cartItems.length);
-                console.log("Cart items:", JSON.stringify(cartItems, null, 2));
-                console.log("Selected items:", cartItems.filter((item) => typeof item === 'object' && item !== null && 'selected' in item && item.selected).length);
                 checkoutFormRef.current?.requestSubmit();
               } else {
                 router.push("/login?callbackUrl=/cart");

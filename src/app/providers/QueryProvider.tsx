@@ -18,13 +18,11 @@ export default function QueryProvider({
       new QueryClient({
         defaultOptions: {
           queries: {
-            // matikan semua auto-refetch saat fokus / reconnect / mount
             refetchOnWindowFocus: false,
             refetchOnReconnect: false,
             refetchOnMount: false,
-            // anggap data selalu fresh (ubah bila perlu)
             staleTime: Infinity,
-            gcTime: 60 * 60 * 1000, // 1 jam
+            gcTime: 60 * 60 * 1000,
             retry: 1,
           },
           mutations: {

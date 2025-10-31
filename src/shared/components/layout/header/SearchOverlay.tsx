@@ -39,8 +39,11 @@ export default function SearchOverlay({ open, onClose, onSearch }: Props) {
   }, [q]);
 
   const handleSearch = () => {
-    if (q.trim()) {
-      router.push(`/search?q=${encodeURIComponent(q.trim())}`);
+    const query = q.trim();
+    if (query) {
+      router.push(`/search?q=${encodeURIComponent(query)}`);
+      setQ(""); // Reset input
+      setSearchSuggestions([]); // Clear suggestions
       onClose();
     }
   };
@@ -92,8 +95,10 @@ export default function SearchOverlay({ open, onClose, onSearch }: Props) {
               />
             </div>
             <button
-              className="font-semibold text-primary px-3 cursor-pointer"
+              type="button"
+              className="font-semibold text-primary px-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => (onSearch ? onSearch(q) : handleSearch())}
+              disabled={q.trim().length < 2}
             >
               Cari
             </button>
