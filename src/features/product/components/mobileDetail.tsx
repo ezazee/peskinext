@@ -1,7 +1,7 @@
 // File: src/features/product/components/mobile/mobileDetail.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { MobileDetailProps, Product, Variant } from "@shared/types/types";
 import { formatRupiah } from "@shared/libs/format";
 import { BusIcon, ChevronRightIcon, ShareIcon } from "@shared/components/icons";
@@ -32,6 +32,8 @@ import { RatingBadge } from "@features/product/review/RatingBadge";
 import { useToast } from "@shared/components/ui/Toaster";
 import { addToCart } from "@features/cart/cartService";
 import { createCheckoutFromBuyNow } from "@features/checkout/action";
+import { getCurrentUser } from "@features/auth/action";
+import { AuthModal } from "@features/auth/components/AuthModal";
 
 /** adaptor tipe agar tidak pakai `any` */
 type ProductForShipping = Product &
@@ -45,6 +47,17 @@ export default function MobileDetail({
   const toast = useToast();
 
   const [open, setOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check auth status
+  useEffect(() => {
+    async function checkAuth() {
+      const user = await getCurrentUser();
+      setIsLoggedIn(!!user);
+    }
+    checkAuth();
+  }, []);
 
   // state
   const [variant, setVariant] = useState<Variant>(product.variants[0]);
@@ -106,6 +119,12 @@ export default function MobileDetail({
 
   return (
     <>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialView="login"
+      />
+
       <div className="md:hidden">
         {/* GALLERY */}
         <MobileGallery
@@ -279,6 +298,10 @@ export default function MobileDetail({
           qty={qty}
           onQtyChange={(n) => setQty(Math.min(Math.max(1, n), maxStock))}
           onAddToCart={() => {
+            if (!isLoggedIn) {
+              setIsAuthModalOpen(true);
+              return;
+            }
             const result = addToCart(product, variant.id, qty);
             if (result.success) {
               toast.success(result.message);
@@ -287,6 +310,14 @@ export default function MobileDetail({
             }
           }}
           onBuyNow={async () => {
+            if (!isLoggedIn) {
+              setIsAuthModalOpen(true);
+              return;
+            }
+            console.log("=== CLIENT: Mobile Buy Now ===");
+            console.log("Product ID:", product.id);
+            console.log("Variant ID:", variant.id);
+            console.log("Qty:", qty);
             const formData = new FormData();
             formData.append("productId", product.id);
             formData.append("variantId", variant.id.toString());

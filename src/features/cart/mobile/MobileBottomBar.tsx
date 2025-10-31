@@ -4,6 +4,8 @@ import { BrandCheckbox } from "@shared/components/ui/BrandCheckbox";
 import { formatRupiah } from "@shared/libs/format";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { createCheckoutFromCart } from "@features/checkout/action";
+import { useRef } from "react";
 
 type Props = {
   total: number;
@@ -17,6 +19,8 @@ type Props = {
   voucherAppliedCount?: number;
   voucherSavingText?: string;
   voucherLoading?: boolean;
+  isLoggedIn?: boolean;
+  cartItems?: unknown[]; // For checkout
 };
 
 export default function MobileBottomBar({
@@ -29,15 +33,28 @@ export default function MobileBottomBar({
   voucherAppliedCount = 0,
   voucherSavingText,
   voucherLoading = false,
+  isLoggedIn = false,
+  cartItems = [],
 }: Props) {
   const router = useRouter();
+  const checkoutFormRef = useRef<HTMLFormElement>(null);
   const disabledVoucher = !hasSelection || voucherLoading;
   const disabledCheckout = !canCheckout;
 
   const hasApplied = voucherAppliedCount > 0;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200">
+    <>
+      {/* Hidden form for checkout */}
+      <form ref={checkoutFormRef} action={createCheckoutFromCart} className="hidden">
+        <input
+          type="hidden"
+          name="cartItems"
+          value={JSON.stringify(cartItems)}
+        />
+      </form>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200">
       {/* Voucher field */}
       <div className="px-4 pt-3">
         <motion.button
@@ -92,7 +109,17 @@ export default function MobileBottomBar({
           aria-disabled={disabledCheckout}
           disabled={disabledCheckout}
           onClick={() => {
-            if (!disabledCheckout) router.push("/checkout");
+            if (!disabledCheckout) {
+              if (isLoggedIn) {
+                console.log("=== CLIENT: Mobile Checkout Click ===");
+                console.log("Cart items count:", cartItems.length);
+                console.log("Cart items:", JSON.stringify(cartItems, null, 2));
+                console.log("Selected items:", cartItems.filter((item) => typeof item === 'object' && item !== null && 'selected' in item && item.selected).length);
+                checkoutFormRef.current?.requestSubmit();
+              } else {
+                router.push("/login?callbackUrl=/cart");
+              }
+            }
           }}
           className={`h-11 px-4 rounded-full cursor-pointer text-white font-semibold
             ${
@@ -101,11 +128,12 @@ export default function MobileBottomBar({
                 : "bg-primary hover:bg-secondary"
             }`}
         >
-          Checkout
+          {isLoggedIn ? "Checkout" : "Login"}
         </button>
       </div>
 
       <div className="h-[env(safe-area-inset-bottom)]" />
     </div>
+    </>
   );
 }

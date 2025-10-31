@@ -1,8 +1,9 @@
 // File: src/features/cart/hooks/useCartState.ts
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { CartData, CartItem, Product, Variant } from "@shared/types/types";
+import { saveCart } from "@features/cart/cartService";
 
 function parsePriceString(s?: string): number | undefined {
   if (!s) return undefined;
@@ -21,6 +22,17 @@ export function useCartState(initial?: CartData) {
   // ← seed aman walau initial undefined
   const seed = initial?.items ?? [];
   const [items, setItems] = useState<CartItem[]>(seed);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Save to localStorage whenever items change (except on initial mount)
+  useEffect(() => {
+    if (isInitialized) {
+      console.log("Saving cart to localStorage:", items.length, "items");
+      saveCart({ items });
+    } else {
+      setIsInitialized(true);
+    }
+  }, [items, isInitialized]);
 
   const counts = useMemo(() => {
     const itemCount = items.length;
@@ -54,6 +66,7 @@ export function useCartState(initial?: CartData) {
     );
   }
   function removeItem(lineId: string) {
+    console.log("Removing item:", lineId);
     setItems((prev) => prev.filter((i) => i.id !== lineId));
   }
   function setQty(lineId: string, qty: number) {

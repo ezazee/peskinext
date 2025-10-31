@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { AuthActionButton } from "@shared/components/ui/AuthActionButton";
 import { formatRupiah } from "@shared/libs/format";
 import { copyProductLink } from "@shared/libs/clipboard";
@@ -8,22 +8,34 @@ import type { Product, Variant } from "@shared/types/types";
 import { ShareIcon } from "@shared/components/icons";
 import { useToast } from "@shared/components/ui/Toaster";
 import { createCheckoutFromBuyNow } from "@features/checkout/action";
+import { getCurrentUser } from "@features/auth/action";
 
 export function BuyBox({
   product,
   variant,
   onAdd,
+  onAuthRequired,
 }: {
   product: Product;
   variant: Variant;
   onAdd: (qty: number) => void;
+  onAuthRequired: () => void;
 }) {
   const toast = useToast();
 
   const [qty, setQty] = useState(1);
-  const [isLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const buyNowFormRef = useRef<HTMLFormElement>(null);
+
+  // Check auth status
+  useEffect(() => {
+    async function checkAuth() {
+      const user = await getCurrentUser();
+      setIsLoggedIn(!!user);
+    }
+    checkAuth();
+  }, []);
 
   const maxQty = Math.max(0, variant.stock);
   const clamp = (n: number) => Math.min(Math.max(1, n), maxQty);
@@ -122,7 +134,7 @@ export function BuyBox({
         {/* + Keranjang tetap memanggil handler lokal */}
         <AuthActionButton
           isLoggedIn={isLoggedIn}
-          openAuthModal={() => {}}
+          openAuthModal={onAuthRequired}
           onClick={() => onAdd(qty)}
           className="w-full bg-primary cursor-pointer text-white py-3 rounded-lg hover:opacity-90 font-semibold"
         >
@@ -132,8 +144,14 @@ export function BuyBox({
         {/* Beli Langsung → submit form ke server action */}
         <AuthActionButton
           isLoggedIn={isLoggedIn}
-          openAuthModal={() => {}}
-          onClick={() => buyNowFormRef.current?.requestSubmit()}
+          openAuthModal={onAuthRequired}
+          onClick={() => {
+            console.log("=== CLIENT: Buy Now Click ===");
+            console.log("Product ID:", product.id);
+            console.log("Variant ID:", variant.id);
+            console.log("Qty:", qty);
+            buyNowFormRef.current?.requestSubmit();
+          }}
           className="w-full border cursor-pointer border-primary text-primary py-3 rounded-lg hover:bg-primary/5 font-semibold"
         >
           Beli Langsung

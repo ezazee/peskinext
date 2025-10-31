@@ -5,25 +5,60 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { QrCodeIcon, XMarkIcon } from "@shared/components/icons";
+import { login } from "../action";
+import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialView?: "login" | "register";
+  onLoginSuccess?: () => void;
 }
 
 export const AuthModal = ({
   isOpen,
   onClose,
   initialView = "login",
+  onLoginSuccess,
 }: AuthModalProps) => {
+  const router = useRouter();
   const [view, setView] = useState(initialView);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       setView(initialView);
+      setError(null);
     }
   }, [isOpen, initialView]);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      const result = await login(formData);
+
+      if (result.success) {
+        onClose();
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
+        router.refresh();
+      } else {
+        setError(result.error || "Login gagal");
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan saat login");
+      console.error("Login error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -69,20 +104,49 @@ export const AuthModal = ({
 
             {/* Body Modal */}
             <div className="px-6 pb-6">
-              <form onSubmit={(e) => e.preventDefault()}>
+              <form onSubmit={handleSubmit}>
+                {error && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                    {error}
+                  </div>
+                )}
+
                 <div className="mb-4">
                   <label
-                    htmlFor="email"
+                    htmlFor="emailOrPhone"
                     className="block text-sm font-medium text-subtle-text mb-1"
                   >
                     Nomor HP atau Email
                   </label>
                   <input
-                    type="email"
-                    id="email"
+                    type="text"
+                    id="emailOrPhone"
+                    name="emailOrPhone"
+                    placeholder="Contoh: user1@example.com"
                     className="w-full border border-border-color rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={isLoading}
                   />
                 </div>
+
+                <div className="mb-4">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-subtle-text mb-1"
+                  >
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Masukkan password"
+                    className="w-full border border-border-color rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+
                 <div className="text-right mb-4">
                   <a
                     href="#"
@@ -91,12 +155,24 @@ export const AuthModal = ({
                     Lupa kata sandi?
                   </a>
                 </div>
+
                 <button
                   type="submit"
-                  className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-lg cursor-not-allowed"
+                  disabled={isLoading}
+                  className={`w-full font-bold py-3 rounded-lg transition-colors ${
+                    isLoading
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      : "bg-primary text-white hover:opacity-90"
+                  }`}
                 >
-                  Selanjutnya
+                  {isLoading ? "Loading..." : "Masuk"}
                 </button>
+
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-xs">
+                  <p className="font-semibold mb-1">Demo Credentials:</p>
+                  <p>Email: <code>user1@example.com</code></p>
+                  <p>Password: <code>password123</code></p>
+                </div>
               </form>
 
               {/* Divider */}

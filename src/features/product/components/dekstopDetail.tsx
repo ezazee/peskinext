@@ -19,6 +19,7 @@ import ProductReview from "../review/productReview";
 import { RatingBadge } from "@features/product/review/RatingBadge";
 import { addToCart } from "@features/cart/cartService";
 import { useToast } from "@shared/components/ui/Toaster";
+import { AuthModal } from "@features/auth/components/AuthModal";
 
 export default function DesktopDetail({
   product,
@@ -30,6 +31,7 @@ export default function DesktopDetail({
   const [selectedShippingId, setSelectedShippingId] = useState<
     string | undefined
   >(undefined);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const estimateQty = 1;
   const { params, origin } = useShippingParamsForProduct(
@@ -64,8 +66,15 @@ export default function DesktopDetail({
   if (isLoading) return <DesktopDetailSkeleton />;
 
   return (
-    <div className="hidden md:block container mx-auto">
-      <div className="grid grid-cols-12 grid-rows-[auto_auto] gap-6">
+    <>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialView="login"
+      />
+
+      <div className="hidden md:block container mx-auto">
+        <div className="grid grid-cols-12 grid-rows-[auto_auto] gap-6">
         {/* Gallery */}
         <section className="col-span-4 row-start-1">
           <ProductGallery
@@ -158,6 +167,7 @@ export default function DesktopDetail({
                 toast.error(result.message);
               }
             }}
+            onAuthRequired={() => setIsAuthModalOpen(true)}
           />
         </aside>
 
@@ -167,9 +177,10 @@ export default function DesktopDetail({
         </section>
       </div>
 
-      <section className="mt-6">
-        <ProductGrid products={productsData} />
-      </section>
-    </div>
+        <section className="mt-6">
+          <ProductGrid products={productsData} />
+        </section>
+      </div>
+    </>
   );
 }

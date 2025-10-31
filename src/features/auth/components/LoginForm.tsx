@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { login } from "../action";
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,6 +16,12 @@ export default function LoginForm() {
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
+
+    // Add callbackUrl from query params if exists
+    const callbackUrl = searchParams.get("callbackUrl");
+    if (callbackUrl) {
+      formData.append("callbackUrl", callbackUrl);
+    }
 
     try {
       const result = await login(formData);

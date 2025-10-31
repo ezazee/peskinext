@@ -1,16 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { accountData } from "@data/account";
+import type { AccountData } from "@shared/types/types";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 import AccountSidebar from "../AccountSidebar";
+import { Avatar } from "@shared/components/ui/Avatar";
 
-export default function AccountDesktop() {
+export default function AccountDesktop({ data }: { data: AccountData }) {
   const router = useRouter();
-  const { profile } = accountData;
+  const { profile } = data;
 
   // skeleton ringan saat hydration
   const [hydrated, setHydrated] = useState(false);
@@ -34,12 +34,11 @@ export default function AccountDesktop() {
           {/* Foto & aksi */}
           <div>
             {hydrated ? (
-              <Image
-                src={profile.avatarUrl}
-                alt={profile.name}
-                width={220}
-                height={220}
-                className="w-[220px] h-[220px] object-cover rounded-lg"
+              <Avatar
+                name={profile.name}
+                avatarUrl={profile.avatarUrl}
+                size="xl"
+                className="w-[220px] h-[220px] text-8xl"
               />
             ) : (
               <Skeleton.Block width={220} height={220} radius={12} />

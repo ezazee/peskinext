@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import LoginForm from '@/features/auth/components/LoginForm';
+import LoginFormWrapper from '@/features/auth/components/LoginFormWrapper';
 
 // --- Ikon-ikon untuk Opsi Login ---
 const GoogleIcon = () => (
@@ -50,7 +50,7 @@ const LoginPage = () => {
           </Link>
         </header>
         <main className="flex-grow p-6 overflow-y-auto">
-            <LoginForm />
+            <LoginFormWrapper />
             <div className="flex items-center my-6">
                 <div className="flex-grow border-t border-border-color"></div>
                 <span className="mx-4 text-xs text-subtle-text">atau masuk dengan</span>
@@ -94,7 +94,7 @@ const LoginPage = () => {
             </div>
           </div>
           <div className="space-y-4">
-              <LoginForm />
+              <LoginFormWrapper />
               <div className="flex items-center">
                   <div className="flex-grow border-t border-border-color"></div>
                   <span className="mx-4 text-xs text-subtle-text">atau masuk dengan</span>

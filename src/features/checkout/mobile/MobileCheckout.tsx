@@ -9,6 +9,7 @@ import type {
   Voucher,
   VoucherSelection,
   VoucherConditions,
+  CheckoutSession,
 } from "@shared/types/types";
 
 import { AddressModal } from "@shared/components/ui/AddressModal";
@@ -118,15 +119,57 @@ function computePromoDiscountFrom(
 /* =================================================== */
 export default function MobileCheckout({
   initialCart = { items: [] },
+  checkoutSession,
 }: {
   initialCart?: CartData;
+  checkoutSession?: CheckoutSession | null;
 }) {
-  /* items selected */
-  const safeItems = (initialCart?.items ?? []).filter((i) => i.qty > 0);
+  console.log("Checkout session:", checkoutSession);
+
+  /* Convert checkoutSession.lines to cart items format if session exists */
   const items: CartItem[] = useMemo(() => {
+    if (checkoutSession?.lines) {
+      console.log("Using checkout session lines:", checkoutSession.lines);
+      // Convert CheckoutLine[] to CartItem[] format
+      return checkoutSession.lines.map((line) => ({
+        id: `checkout-${line.productId}-${line.variantId}`,
+        product: {
+          id: line.productId,
+          name: line.name.split(' - ')[0] || line.name,
+          slug: line.productId,
+          img: line.image,
+          price: `Rp${line.price.toLocaleString('id-ID')}`,
+          variants: [{
+            id: Number(line.variantId),
+            name: line.name.split(' - ')[1] || 'Default',
+            price: line.price,
+            stock: 999
+          }],
+          // Dummy fields required by Product type
+          description: '',
+          ingredients: [],
+          howToUse: [],
+          category: '',
+          sku: '',
+          imgHover: line.image,
+          galleryImages: [line.image],
+          isFlashSale: false,
+          isEvent: false,
+          type: 'single' as const,
+          weightGr: line.weight || 100,
+        },
+        variantId: Number(line.variantId),
+        qty: line.qty,
+        selected: true,
+      }));
+    }
+
+    // Fallback to cart items
+    console.log("Using cart items:", initialCart.items);
+    const safeItems = (initialCart?.items ?? []).filter((i) => i.qty > 0);
     const chosen = safeItems.filter((i) => i.selected);
     return chosen.length ? chosen : safeItems;
-  }, [safeItems]);
+  }, [checkoutSession, initialCart]);
 
   const itemsCount = items.length;
   const subtotal = useMemo(() => {

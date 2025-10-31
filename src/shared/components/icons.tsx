@@ -19,11 +19,11 @@ export const SearchIcon = ({
   </svg>
 );
 
-export const CartIcon = ({ withBadge }: { withBadge?: boolean }) => (
+export const CartIcon = ({ withBadge, count = 0 }: { withBadge?: boolean; count?: number }) => (
   <div className="p-2 rounded-full hover:bg-tertiary relative cursor-pointer">
-    {withBadge && (
-      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold rounded-full h-4 w-4 flex items-center justify-center">
-        1
+    {withBadge && count > 0 && (
+      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
+        {count > 99 ? '99+' : count}
       </span>
     )}
     <svg

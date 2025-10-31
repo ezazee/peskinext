@@ -306,7 +306,7 @@ function AppliedBanner({ savingText }: { savingText?: string }) {
 /* =========================================================================
  * Component
  * ========================================================================= */
-export function CartMobile({ initial }: { initial: CartData }) {
+export function CartMobile({ initial, isLoggedIn = false }: { initial: CartData; isLoggedIn?: boolean }) {
   const toast = useToast();
   const { items, counts, totals, actions } = useCartState(initial);
 
@@ -575,6 +575,8 @@ export function CartMobile({ initial }: { initial: CartData }) {
         voucherAppliedCount={appliedCount}
         voucherSavingText={hasSelection ? savingText || undefined : undefined}
         voucherLoading={voucherLoading}
+        isLoggedIn={isLoggedIn}
+        cartItems={items}
       />
 
       {/* Modal voucher (mobile) */}

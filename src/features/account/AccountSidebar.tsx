@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useSelectedLayoutSegments } from "next/navigation";
 import { IconByName } from "@features/account/IconMap";
+import { Avatar } from "@shared/components/ui/Avatar";
 
 export type AccountSidebarActive = "account" | "address" | "transaction" | "logout";
 
@@ -30,15 +30,13 @@ export default function AccountSidebar({ profile, active, onLogout }: AccountSid
     <aside className="bg-white border rounded-xl p-4 h-fit">
       <Link href="/account" className="block">
         <div className="flex items-center gap-3 mb-6">
-          <Image
-            width={48}
-            height={48}
-            src={profile.avatarUrl}
-            alt={profile.name}
-            className="w-12 h-12 rounded-full object-cover"
+          <Avatar
+            name={profile.name}
+            avatarUrl={profile.avatarUrl}
+            size="lg"
           />
-          <div>
-            <div className="font-semibold text-sm">{profile.name}</div>
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-sm truncate">{profile.name}</div>
             <div className="text-xs text-gray-500 truncate">{profile.email}</div>
           </div>
         </div>

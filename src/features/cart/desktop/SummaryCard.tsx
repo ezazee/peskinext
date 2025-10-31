@@ -83,6 +83,8 @@ type Props = {
   shipping: Voucher[];
   promos: Voucher[];
   redeemedVoucher: Voucher | null;
+  isLoggedIn?: boolean;
+  cartItems?: unknown[]; // For checkout
 };
 
 export default function SummaryCard({
@@ -93,6 +95,8 @@ export default function SummaryCard({
   shipping,
   promos,
   redeemedVoucher,
+  isLoggedIn = false,
+  cartItems = [],
 }: Props) {
   const disabled = !canCheckout;
 
@@ -215,19 +219,52 @@ export default function SummaryCard({
         </div>
       )}
 
-      <form action={createCheckoutFromCart} className="mt-3">
-        <button
-          type="submit"
-          disabled={disabled}
-          className={`w-full h-11 rounded-lg transition text-white ${
+      {!isLoggedIn ? (
+        <a
+          href="/login?callbackUrl=/cart"
+          className={`mt-3 block w-full h-11 rounded-lg transition text-white text-center leading-[2.75rem] ${
             disabled
               ? "bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none"
               : "bg-primary hover:bg-secondary cursor-pointer"
           }`}
         >
-          Checkout
-        </button>
-      </form>
+          Login untuk Checkout
+        </a>
+      ) : (
+        <form
+          action={createCheckoutFromCart}
+          className="mt-3"
+          onSubmit={() => {
+            console.log("=== CLIENT: Form Submit ===");
+            console.log("Cart items count:", cartItems.length);
+            console.log("Cart items:", JSON.stringify(cartItems, null, 2));
+            console.log("Selected items:", cartItems.filter((item) => typeof item === 'object' && item !== null && 'selected' in item && item.selected).length);
+          }}
+        >
+          <input
+            type="hidden"
+            name="cartItems"
+            value={JSON.stringify(cartItems)}
+          />
+          <button
+            type="submit"
+            disabled={disabled}
+            className={`w-full h-11 rounded-lg transition text-white ${
+              disabled
+                ? "bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none"
+                : "bg-primary hover:bg-secondary cursor-pointer"
+            }`}
+          >
+            Checkout
+          </button>
+        </form>
+      )}
+
+      {!isLoggedIn && !disabled && (
+        <p className="mt-2 text-xs text-center text-gray-500">
+          Silakan login terlebih dahulu untuk melanjutkan ke checkout
+        </p>
+      )}
 
       <div className="mt-4 pt-3">
         <p className="text-center text-xs text-gray-500">

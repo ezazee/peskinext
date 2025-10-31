@@ -124,7 +124,7 @@ function decorateVouchers(src: Voucher[], ctx: CartCtx): DecoratedVoucher[] {
  *  Component
  * ===================================================================================== */
 
-export function CartDesktop({ initial }: { initial: CartData }) {
+export function CartDesktop({ initial, isLoggedIn = false }: { initial: CartData; isLoggedIn?: boolean }) {
   const toast = useToast();
   const { items, counts, totals, actions } = useCartState(initial);
   const hasSelection = counts.selectedCount > 0;
@@ -258,6 +258,8 @@ export function CartDesktop({ initial }: { initial: CartData }) {
               shipping={availableShipping}
               promos={availablePromos}
               redeemedVoucher={codeVoucher}
+              isLoggedIn={isLoggedIn}
+              cartItems={items}
             />
           </div>
         </aside>

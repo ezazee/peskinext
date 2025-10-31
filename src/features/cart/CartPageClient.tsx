@@ -11,9 +11,10 @@ import CartMobileSkeleton from "./mobile/skeleton/CartMobile.skeleton";
 type Props = {
   initial: CartData;
   loading?: boolean;
+  isLoggedIn?: boolean;
 };
 
-export default function CartPageClient({ initial, loading = false }: Props) {
+export default function CartPageClient({ initial, loading = false, isLoggedIn = false }: Props) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -33,8 +34,8 @@ export default function CartPageClient({ initial, loading = false }: Props) {
 
   // Data siap
   return isDesktop ? (
-    <CartDesktop initial={initial} />
+    <CartDesktop initial={initial} isLoggedIn={isLoggedIn} />
   ) : (
-    <CartMobile initial={initial} />
+    <CartMobile initial={initial} isLoggedIn={isLoggedIn} />
   );
 }

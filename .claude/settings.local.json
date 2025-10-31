@@ -4,7 +4,9 @@
       "Bash(dir:*)",
       "Bash(move:*)",
       "Bash(ls:*)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Read(//d/Reza/Data_Kerja/PESkinPro/Code/penew/**)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

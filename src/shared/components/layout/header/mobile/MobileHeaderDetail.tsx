@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SearchOverlay from "../SearchOverlay";
 import {
@@ -8,17 +8,43 @@ import {
   SearchIcon,
 } from "@shared/components/icons";
 import { AuthAction } from "@features/auth/AuthAction";
+import { getCurrentUser } from "@features/auth/action";
+import { getCartItemCount } from "@features/cart/cartService";
 
 export default function MobileHeaderDetail() {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [authModalView, setAuthModalView] = useState<"login" | "register">(
     "login"
   );
+
+  // Check login status dynamically
+  const checkAuth = async () => {
+    const user = await getCurrentUser();
+    setIsLoggedIn(!!user);
+  };
+
+  const updateCartCount = () => {
+    setCartCount(getCartItemCount());
+  };
+
+  useEffect(() => {
+    checkAuth();
+    updateCartCount();
+
+    // Listen for cart updates
+    const handleCartUpdate = () => updateCartCount();
+    window.addEventListener('cartUpdated', handleCartUpdate);
+
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, []);
 
   // const openAuthModal = (view: "login" | "register") => {
   //   setAuthModalView(view);
@@ -61,7 +87,7 @@ export default function MobileHeaderDetail() {
                 onRequireAuth={() => setIsAuthModalOpen(true)}
                 href="/cart"
               >
-                <CartIcon withBadge />
+                <CartIcon withBadge count={cartCount} />
               </AuthAction>
             </div>
           </div>

@@ -1,30 +1,9 @@
-"use client";
+import { getCurrentUser } from "@features/auth/action";
+import CartPageWrapper from "@features/cart/CartPageWrapper";
 
-import { useEffect, useState } from "react";
-import { getCart } from "@features/cart/cartService";
-import CartPageClient from "@features/cart/CartPageClient";
-import type { CartData } from "@shared/types/types";
+export default async function CartPage() {
+  // Check if user is logged in
+  const user = await getCurrentUser();
 
-export default function CartPage() {
-  const [cart, setCart] = useState<CartData>({ items: [] });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Load cart from localStorage
-    const loadedCart = getCart();
-    setCart(loadedCart);
-    setLoading(false);
-
-    // Listen for cart updates
-    const handleCartUpdate = () => {
-      setCart(getCart());
-    };
-
-    window.addEventListener("cartUpdated", handleCartUpdate);
-    return () => {
-      window.removeEventListener("cartUpdated", handleCartUpdate);
-    };
-  }, []);
-
-  return <CartPageClient initial={cart} loading={loading} />;
+  return <CartPageWrapper isLoggedIn={!!user} />;
 }

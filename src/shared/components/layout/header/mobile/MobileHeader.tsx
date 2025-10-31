@@ -9,6 +9,8 @@ import {
   SearchIcon,
 } from "@shared/components/icons";
 import { AuthAction } from "@features/auth/AuthAction";
+import { getCurrentUser } from "@features/auth/action";
+import { getCartItemCount } from "@features/cart/cartService";
 
 import SearchOverlay from "../SearchOverlay";
 import { AuthModal } from "@features/auth/components/AuthModal";
@@ -25,9 +27,38 @@ type OptionForModal = AddressListEntry & {
 
 export const MobileHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  // Check login status dynamically
+  const checkAuth = async () => {
+    const user = await getCurrentUser();
+    setIsLoggedIn(!!user);
+  };
+
+  const updateCartCount = () => {
+    setCartCount(getCartItemCount());
+  };
+
+  useEffect(() => {
+    checkAuth();
+    updateCartCount();
+
+    // Listen for cart updates
+    const handleCartUpdate = () => updateCartCount();
+    window.addEventListener('cartUpdated', handleCartUpdate);
+
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, []);
+
+  // Callback after successful login
+  const handleLoginSuccess = () => {
+    checkAuth();
+  };
 
   // lock scroll saat modal auth/address
   useEffect(() => {
@@ -72,6 +103,7 @@ export const MobileHeader = () => {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         initialView="login"
+        onLoginSuccess={handleLoginSuccess}
       />
 
       <AddressModal
@@ -128,7 +160,7 @@ export const MobileHeader = () => {
             openAuthModal={openAuthModal}
             href="/cart"
           >
-            <CartIcon withBadge />
+            <CartIcon withBadge count={cartCount} />
           </AuthAction>
         </div>
 

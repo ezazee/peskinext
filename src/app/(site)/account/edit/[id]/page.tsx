@@ -1,20 +1,32 @@
 // src/app/(site)/account/edit/[id]/page.tsx
-import { accountData } from "@data/account";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@features/auth/action";
 import EditAccountClient from "./client";
 
 type PageProps = { params: Promise<{ id: string }> };
 
 export default async function EditAccountPage({ params }: PageProps) {
+  // Check if user is logged in
+  const user = await getCurrentUser();
+
+  if (!user) {
+    // Redirect to login with callback URL
+    redirect("/login?callbackUrl=/account");
+  }
+
   const { id } = await params;
 
-  // valid jika cocok dengan salah satu dari id yang kita pakai
-  const validIds: string[] = [
-    accountData.profile.id,
-    // @ts-expect-error: publicId opsional di mock (hapus baris ini kalau kamu tidak pakai publicId)
-    accountData.publicId,
-  ].filter(Boolean);
+  // valid jika cocok dengan user ID yang login
+  const exists = id === user.id;
 
-  const exists = validIds.includes(id);
+  const profile = {
+    id: user.id,
+    name: user.name,
+    email: user.email || "",
+    phone: user.phone || "",
+    avatarUrl: "/images/avatar/default-avatar.png",
+    birthDate: user.birthDate,
+  };
 
-  return <EditAccountClient exists={exists} profile={accountData.profile} />;
+  return <EditAccountClient exists={exists} profile={profile} />;
 }

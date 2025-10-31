@@ -17,7 +17,7 @@ import {
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
 import { AuthAction } from "@features/auth/AuthAction";
-import { logout } from "@features/auth/action";
+import { logout, getCurrentUser } from "@features/auth/action";
 import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 import type { AddressListEntry } from "@data/index";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
@@ -25,9 +25,11 @@ import {
   startAddressSwitch,
   useAddressSwitching,
 } from "@features/address/addressSwitchBus";
-
-// >>> NEW: pakai mock data account
-import { accountData } from "@data/account";
+import { searchProducts } from "@features/search/searchService";
+import type { Product } from "@shared/types/types";
+import { useToast } from "@shared/components/ui/Toaster";
+import { getCartItemCount, setCurrentUserId as setCartUserId } from "@features/cart/cartService";
+import { Avatar } from "@shared/components/ui/Avatar";
 
 type OptionForModal = AddressListEntry & {
   recipient?: string;
@@ -75,10 +77,82 @@ function MenuItem({
 export const DesktopHeader = () => {
   const switching = useAddressSwitching();
   const router = useRouter();
+  const toast = useToast();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
 
-  // login mock – tetap true untuk sekarang
-  const [isLoggedIn] = useState(false);
+  // Check login status dynamically
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    avatarUrl: string;
+  } | null>(null);
+
+  const checkAuth = async () => {
+    const user = await getCurrentUser();
+    const userId = user?.id || null;
+    setIsLoggedIn(!!user);
+    setCurrentUserId(userId);
+
+    // Set user profile data
+    if (user) {
+      setUserProfile({
+        id: user.id,
+        name: user.name,
+        email: user.email || "",
+        phone: user.phone || "",
+        avatarUrl: "/images/avatar/default-avatar.png",
+      });
+    } else {
+      setUserProfile(null);
+    }
+
+    // Set user ID for cart service
+    setCartUserId(userId);
+  };
+
+  const updateCartCount = () => {
+    setCartCount(getCartItemCount(currentUserId));
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    updateCartCount();
+
+    // Listen for cart updates
+    const handleCartUpdate = () => {
+      setCartCount(getCartItemCount(currentUserId));
+    };
+    window.addEventListener('cartUpdated', handleCartUpdate);
+
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, [currentUserId]);
+
+  // Callback after successful login
+  const handleLoginSuccess = () => {
+    checkAuth();
+  };
+
+  // Search suggestions effect
+  useEffect(() => {
+    if (searchQuery.trim().length >= 2) {
+      const result = searchProducts(searchQuery);
+      setSearchSuggestions(result.products.slice(0, 5));
+    } else {
+      setSearchSuggestions([]);
+    }
+  }, [searchQuery]);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -94,8 +168,14 @@ export const DesktopHeader = () => {
     setHydrated(true);
   }, []);
 
-  // >>> NEW: sumber user dari mock data (strict, tanpa any)
-  const user = accountData.profile;
+  // >>> User profile dari session (bukan mock data)
+  const user = userProfile || {
+    id: "",
+    name: "Guest",
+    email: "",
+    phone: "",
+    avatarUrl: "/images/avatar/default-avatar.png",
+  };
 
   // Sumber tunggal data alamat
   const { primary, addresses, selectPrimary } = useAddressBookLocal();
@@ -168,6 +248,7 @@ export const DesktopHeader = () => {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         initialView={authModalView}
+        onLoginSuccess={handleLoginSuccess}
       />
 
       <AddressModal
@@ -267,6 +348,14 @@ export const DesktopHeader = () => {
               <input
                 type="text"
                 placeholder="Cari Produk PE"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && searchQuery.trim()) {
+                    router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+                    setIsSearchFocused(false);
+                  }
+                }}
                 className="w-full border border-gray-300 rounded-lg py-2.5 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-primary relative z-50"
                 onFocus={() => setIsSearchFocused(true)}
               />
@@ -277,22 +366,58 @@ export const DesktopHeader = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg border z-50"
+                    className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg border z-50 max-h-96 overflow-y-auto"
                   >
-                    <div className="p-4 flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <SearchIcon className="h-4 w-4 text-secondary" />
-                        <span className="text-sm text-secondary">
-                          Tips & Trik Pencarian
-                        </span>
+                    {searchSuggestions.length > 0 ? (
+                      <div className="py-2">
+                        <div className="px-4 py-2 text-xs text-secondary font-semibold">
+                          Produk yang cocok
+                        </div>
+                        {searchSuggestions.map((product) => (
+                          <Link
+                            key={product.id}
+                            href={`/product/${product.slug}`}
+                            onClick={() => {
+                              setIsSearchFocused(false);
+                              setSearchQuery("");
+                            }}
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
+                          >
+                            <Image
+                              src={product.img}
+                              alt={product.name}
+                              width={40}
+                              height={40}
+                              className="rounded object-cover"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-base-text truncate">
+                                {product.name}
+                              </div>
+                              <div className="text-xs text-secondary truncate">
+                                {product.category}
+                              </div>
+                            </div>
+                            <div className="text-sm font-bold text-primary">
+                              {product.price}
+                            </div>
+                          </Link>
+                        ))}
                       </div>
-                      <a
-                        href="#"
-                        className="text-sm font-bold text-primary hover:underline"
-                      >
-                        Pelajari
-                      </a>
-                    </div>
+                    ) : searchQuery.trim().length >= 2 ? (
+                      <div className="p-4 text-center text-sm text-secondary">
+                        Tidak ada produk yang cocok
+                      </div>
+                    ) : (
+                      <div className="p-4 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <SearchIcon className="h-4 w-4 text-secondary" />
+                          <span className="text-sm text-secondary">
+                            Ketik minimal 2 huruf untuk mencari produk
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -307,7 +432,7 @@ export const DesktopHeader = () => {
                 onRequireAuth={() => setIsAuthModalOpen(true)}
                 href="/cart"
               >
-                <CartIcon withBadge />
+                <CartIcon withBadge count={cartCount} />
               </AuthAction>
 
               <AuthAction
@@ -337,30 +462,12 @@ export const DesktopHeader = () => {
                     onKeyDown={(e) => e.key === "Escape" && setMenuOpen(false)}
                     className="group flex items-center gap-3 rounded-full pl-1 pr-2 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 hover:bg-tertiary transition-colors"
                   >
-                    <span className="relative inline-flex">
-                      <Image
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        width={40}
-                        height={40}
-                        className="rounded-full w-10 h-10 object-cover ring-1 ring-black/5"
-                        onError={(e) => {
-                          const el = e.currentTarget;
-                          el.style.display = "none";
-                        }}
-                      />
-                      {/* Fallback inisial jika img gagal */}
-                      <span
-                        aria-hidden
-                        className="absolute inset-0 hidden items-center justify-center rounded-full bg-gradient-to-br from-sky-400 to-blue-500 text-white font-semibold text-xs"
-                      >
-                        {user.name
-                          .split(" ")
-                          .map((s) => s[0])
-                          .slice(0, 2)
-                          .join("")}
-                      </span>
-                    </span>
+                    <Avatar
+                      name={user.name}
+                      avatarUrl={user.avatarUrl}
+                      size="md"
+                      className="ring-1 ring-black/5"
+                    />
                     <span className="font-medium text-sm text-gray-800 group-hover:text-gray-900 max-w-[180px] truncate">
                       {user.name}
                     </span>
@@ -382,12 +489,11 @@ export const DesktopHeader = () => {
                         <div className="rounded-2xl border border-black/5 bg-white/90 backdrop-blur-md shadow-[0_8px_40px_-12px_rgba(0,0,0,0.25)] overflow-hidden">
                           {/* Header user */}
                           <div className="p-4 flex items-center gap-3">
-                            <Image
-                              src={user.avatarUrl}
-                              alt={user.name}
-                              width={56}
-                              height={56}
-                              className="rounded-full w-14 h-14 object-cover ring-1 ring-black/5"
+                            <Avatar
+                              name={user.name}
+                              avatarUrl={user.avatarUrl}
+                              size="lg"
+                              className="ring-1 ring-black/5"
                             />
                             <div className="min-w-0">
                               <div className="font-semibold leading-5 text-gray-900 truncate">
@@ -434,9 +540,23 @@ export const DesktopHeader = () => {
                               <button
                                 type="button"
                                 className="w-full text-left cursor-pointer"
-                                onClick={() => {
+                                onClick={async () => {
+                                  // Block logout on checkout and cart pages
+                                  const currentPath = window.location.pathname;
+                                  if (currentPath.includes('/checkout') || currentPath.includes('/cart')) {
+                                    toast.error("Tidak bisa logout saat di halaman checkout atau cart");
+                                    setMenuOpen(false);
+                                    return;
+                                  }
+
                                   setMenuOpen(false);
-                                  logout();
+                                  await logout();
+                                  setIsLoggedIn(false);
+                                  setCurrentUserId(null);
+                                  // Clear user ID from session storage
+                                  setCartUserId(null);
+                                  // Reload current page instead of redirecting
+                                  window.location.reload();
                                 }}
                               >
                                 <MenuItem label="Keluar" asButton danger />

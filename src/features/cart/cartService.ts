@@ -2,11 +2,11 @@
 
 import type { CartItem, Product } from "@shared/types/types";
 
-const CART_STORAGE_KEY = "pe_skinpro_cart";
+const CART_STORAGE_KEY_PREFIX = "pe_skinpro_cart";
 
 /**
  * Cart Service for managing cart items in localStorage
- * This is a dummy implementation for development/testing
+ * Each user has their own cart stored separately
  */
 
 export interface CartData {
@@ -14,16 +14,59 @@ export interface CartData {
 }
 
 /**
- * Get cart from localStorage
+ * Get storage key for a specific user (or guest)
  */
-export function getCart(): CartData {
+function getCartStorageKey(userId?: string | null): string {
+  if (userId) {
+    return `${CART_STORAGE_KEY_PREFIX}_${userId}`;
+  }
+  return `${CART_STORAGE_KEY_PREFIX}_guest`;
+}
+
+/**
+ * Get current user ID from session storage (set by auth)
+ */
+function getCurrentUserId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return sessionStorage.getItem("current_user_id");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Set current user ID to session storage
+ */
+export function setCurrentUserId(userId: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (userId) {
+      sessionStorage.setItem("current_user_id", userId);
+    } else {
+      sessionStorage.removeItem("current_user_id");
+    }
+  } catch (error) {
+    console.error("Error setting user ID:", error);
+  }
+}
+
+/**
+ * Get cart from localStorage for specific user
+ */
+export function getCart(userId?: string | null): CartData {
   if (typeof window === "undefined") {
     return { items: [] };
   }
 
+  // Use provided userId or get from session
+  const effectiveUserId = userId ?? getCurrentUserId();
+  const storageKey = getCartStorageKey(effectiveUserId);
+
   try {
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    const stored = localStorage.getItem(storageKey);
     if (stored) {
+      console.log(`Loading cart for user: ${effectiveUserId || 'guest'}`);
       return JSON.parse(stored);
     }
   } catch (error) {
@@ -34,13 +77,18 @@ export function getCart(): CartData {
 }
 
 /**
- * Save cart to localStorage
+ * Save cart to localStorage for specific user
  */
-export function saveCart(cart: CartData): void {
+export function saveCart(cart: CartData, userId?: string | null): void {
   if (typeof window === "undefined") return;
 
+  // Use provided userId or get from session
+  const effectiveUserId = userId ?? getCurrentUserId();
+  const storageKey = getCartStorageKey(effectiveUserId);
+
   try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    console.log(`Saving cart for user: ${effectiveUserId || 'guest'}`, cart.items.length, "items");
+    localStorage.setItem(storageKey, JSON.stringify(cart));
     // Dispatch event for other components to listen
     window.dispatchEvent(new Event("cartUpdated"));
   } catch (error) {
@@ -54,9 +102,10 @@ export function saveCart(cart: CartData): void {
 export function addToCart(
   product: Product,
   variantId: number,
-  qty: number = 1
+  qty: number = 1,
+  userId?: string | null
 ): { success: boolean; message: string } {
-  const cart = getCart();
+  const cart = getCart(userId);
 
   // Check if item already exists
   const existingItemIndex = cart.items.findIndex(
@@ -116,7 +165,7 @@ export function addToCart(
     cart.items.push(newItem);
   }
 
-  saveCart(cart);
+  saveCart(cart, userId);
 
   return {
     success: true,
@@ -127,17 +176,17 @@ export function addToCart(
 /**
  * Remove item from cart
  */
-export function removeFromCart(lineId: string): void {
-  const cart = getCart();
+export function removeFromCart(lineId: string, userId?: string | null): void {
+  const cart = getCart(userId);
   cart.items = cart.items.filter((item) => item.id !== lineId);
-  saveCart(cart);
+  saveCart(cart, userId);
 }
 
 /**
  * Update item quantity
  */
-export function updateCartItemQty(lineId: string, qty: number): void {
-  const cart = getCart();
+export function updateCartItemQty(lineId: string, qty: number, userId?: string | null): void {
+  const cart = getCart(userId);
   const itemIndex = cart.items.findIndex((item) => item.id === lineId);
 
   if (itemIndex >= 0) {
@@ -152,7 +201,7 @@ export function updateCartItemQty(lineId: string, qty: number): void {
         ...item,
         qty: clampedQty,
       };
-      saveCart(cart);
+      saveCart(cart, userId);
     }
   }
 }
@@ -160,8 +209,8 @@ export function updateCartItemQty(lineId: string, qty: number): void {
 /**
  * Toggle item selection
  */
-export function toggleCartItemSelection(lineId: string): void {
-  const cart = getCart();
+export function toggleCartItemSelection(lineId: string, userId?: string | null): void {
+  const cart = getCart(userId);
   const itemIndex = cart.items.findIndex((item) => item.id === lineId);
 
   if (itemIndex >= 0) {
@@ -172,29 +221,29 @@ export function toggleCartItemSelection(lineId: string): void {
       ...item,
       selected: !item.selected,
     };
-    saveCart(cart);
+    saveCart(cart, userId);
   }
 }
 
 /**
  * Clear cart
  */
-export function clearCart(): void {
-  saveCart({ items: [] });
+export function clearCart(userId?: string | null): void {
+  saveCart({ items: [] }, userId);
 }
 
 /**
  * Get cart item count
  */
-export function getCartItemCount(): number {
-  const cart = getCart();
+export function getCartItemCount(userId?: string | null): number {
+  const cart = getCart(userId);
   return cart.items.reduce((total, item) => total + item.qty, 0);
 }
 
 /**
  * Get selected items count
  */
-export function getSelectedItemsCount(): number {
-  const cart = getCart();
+export function getSelectedItemsCount(userId?: string | null): number {
+  const cart = getCart(userId);
   return cart.items.filter((item) => item.selected).length;
 }

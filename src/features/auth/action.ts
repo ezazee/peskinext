@@ -73,6 +73,7 @@ export async function login(formData: FormData): Promise<LoginResult> {
   try {
     const emailOrPhone = formData.get("emailOrPhone") as string;
     const password = formData.get("password") as string;
+    const callbackUrl = formData.get("callbackUrl") as string | null;
 
     if (!emailOrPhone || !password) {
       return {
@@ -105,7 +106,7 @@ export async function login(formData: FormData): Promise<LoginResult> {
 
     return {
       success: true,
-      redirectTo: "/",
+      redirectTo: callbackUrl || "/",
     };
   } catch (error) {
     console.error("Login error:", error);
@@ -189,18 +190,16 @@ export async function register(formData: FormData): Promise<RegisterResult> {
 }
 
 // Logout action
-export async function logout() {
+export async function logout(): Promise<{ success: boolean }> {
   try {
     const store = await cookies();
 
     // Delete session token cookie
     store.delete("session_token");
 
-    // Redirect to home page
-    redirect("/");
+    return { success: true };
   } catch (error) {
     console.error("Error during logout:", error);
-    // Even if there's an error, redirect to home
-    redirect("/");
+    return { success: false };
   }
 }
