@@ -14,7 +14,6 @@ export default function SiteLayout({
       <HeaderSwitcher />
 
       <RouteTransition>
-        {/* beri padding-top agar konten tidak tertutup header sticky */}
         <main className="pt-8 md:pt-[30px]">{children}</main>
         <Footer />
         <BottomNavController />
