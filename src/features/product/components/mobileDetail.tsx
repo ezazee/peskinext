@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import type { MobileDetailProps, Product, Variant } from "@shared/types/types";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 import { BusIcon, ChevronRightIcon, ShareIcon } from "@shared/components/icons";
 import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
 import MobileReviews from "../review/MobileReviews";
@@ -17,7 +17,7 @@ import { Card, Divider, DetailRow } from "@shared/components/ui/Card";
 import { CollapseCard } from "@shared/components/ui/ExpandableCard";
 import { ProductDescriptionCard } from "@shared/components/ui/ProductDescriptionCard";
 
-import { discountPercent } from "@shared/helpers/price";
+import { discountPercent } from "@shared/helpers/pricing";
 import { motion } from "framer-motion";
 import { MobileDetailSkeleton } from "./skeleton/MobileDetailSkeleton";
 

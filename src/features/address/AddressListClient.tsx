@@ -10,7 +10,14 @@ import AddressListSkeletonDesktop from "./skeleton/AddressListSkeletonDesktop";
 import AddressListMobile from "./mobile/AddressListMobile";
 import AddressListDesktop from "./desktop/AddressListDesktop";
 
-export default function AddressListClient() {
+type ProfileData = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+};
+
+export default function AddressListClient({ profile }: { profile: ProfileData }) {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const { addresses, primary, selectPrimary } = useAddressBookLocal();
 
@@ -60,6 +67,7 @@ export default function AddressListClient() {
           primaryId={primary?.id ?? null}
           onSetPrimary={selectPrimary}
           onRemove={handleRemove}
+          profile={profile}
         />
       )}
     </div>

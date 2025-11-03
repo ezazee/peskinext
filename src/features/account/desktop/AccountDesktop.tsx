@@ -1,16 +1,25 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { AccountData } from "@shared/types/types";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 import AccountSidebar from "../AccountSidebar";
 import { Avatar } from "@shared/components/ui/Avatar";
+import { logout } from "@features/auth/action";
 
 export default function AccountDesktop({ data }: { data: AccountData }) {
   const router = useRouter();
   const { profile } = data;
+
+  const handleLogout = async () => {
+    if (confirm("Apakah Anda yakin ingin keluar?")) {
+      await logout();
+      // Force full page reload untuk update header
+      window.location.href = "/";
+    }
+  };
 
   // skeleton ringan saat hydration
   const [hydrated, setHydrated] = useState(false);
@@ -24,7 +33,7 @@ export default function AccountDesktop({ data }: { data: AccountData }) {
           email: profile.email,
           avatarUrl: profile.avatarUrl,
         }}
-        onLogout={() => alert("Logout belum diimplementasi (mock).")}
+        onLogout={handleLogout}
       />
 
       <main className="bg-white border rounded-xl p-6 h-full">

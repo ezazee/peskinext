@@ -17,7 +17,7 @@ export default async function AccountPage() {
     profile: {
       id: user.id,
       name: user.name,
-      avatarUrl: "/images/avatar/default-avatar.jpg",
+      avatarUrl: user.avatarUrl || "/images/avatar/default-avatar.jpg",
       email: user.email || "",
       phone: user.phone || "",
       birthDate: user.birthDate,

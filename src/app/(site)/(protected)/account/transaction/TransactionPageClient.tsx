@@ -21,7 +21,6 @@ import TransactionFiltersDesktop, {
 } from "@features/transaction/desktop/TransactionFiltersDesktop";
 import type { TxFilter } from "@features/transaction/TransactionFilters";
 
-/* pakai 1 bentuk DateFilter yang kompatibel (struktur sama) */
 type DateFilter = MobileDateFilter | DesktopDateFilter;
 
 export default function TransactionPageClient(): JSX.Element {

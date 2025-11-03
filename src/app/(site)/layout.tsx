@@ -3,6 +3,7 @@ import BottomNavController from "@shared/components/layout/footer/BottomNavContr
 import { Footer } from "@shared/components/layout/footer/DekstopFooter";
 import HeaderSwitcher from "@shared/components/layout/header/HeaderSwitcher";
 import RouteTransition from "@shared/components/transition/RouteTransition";
+import { SessionTimeoutProvider } from "@shared/components/SessionTimeoutProvider";
 
 export default function SiteLayout({
   children,
@@ -11,6 +12,7 @@ export default function SiteLayout({
 }) {
   return (
     <>
+      <SessionTimeoutProvider />
       <HeaderSwitcher />
 
       <RouteTransition>

@@ -11,7 +11,7 @@ import type {
 } from "@shared/types/types";
 
 import AddressCard from "./AddressCard";
-import SellerCartCard from "./SellerCartCard";
+import SellerCartCard from "../components/SellerCartCard";
 import PaymentMethodsDesktop from "./PaymentMethodsDesktop";
 import OrderSummaryDesktop from "./OrderSummaryDesktop";
 
@@ -348,6 +348,7 @@ export default function DesktopCheckout({
               current={shipSelected}
               loading={shipLoading}
               openShipping={openShipping}
+              variant="desktop"
             />
           </div>
         </section>

@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { register } from "../action";
 
 export default function RegisterForm() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,8 +18,8 @@ export default function RegisterForm() {
       const result = await register(formData);
 
       if (result.success) {
-        router.push(result.redirectTo || "/");
-        router.refresh();
+        // Force full page reload untuk update header
+        window.location.href = result.redirectTo || "/";
       } else {
         setError(result.error || "Registrasi gagal");
       }

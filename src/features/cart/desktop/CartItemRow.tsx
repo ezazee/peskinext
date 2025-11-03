@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { BrandCheckbox } from "@shared/components/ui/BrandCheckbox";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 import { IconTrash } from "@shared/components/icons";
-import QtyStepper from "./QtyStepper";
+import QtyStepper from "@shared/components/ui/QtyStepper";
 
 type Props = {
   id: string;

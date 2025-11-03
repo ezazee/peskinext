@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 
 export function MobileActionBar({
   subtotal,

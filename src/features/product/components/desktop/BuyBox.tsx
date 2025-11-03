@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
 import { AuthActionButton } from "@shared/components/ui/AuthActionButton";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 import { copyProductLink } from "@shared/libs/clipboard";
 import type { Product, Variant } from "@shared/types/types";
 import { ShareIcon } from "@shared/components/icons";

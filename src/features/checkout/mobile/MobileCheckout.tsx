@@ -4,8 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import type {
   CartData,
   CartItem,
-  Product,
-  Variant,
   Voucher,
   VoucherSelection,
   VoucherConditions,
@@ -17,7 +15,7 @@ import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 import PaymentMethodsMobile from "./PaymentMethodsMobile";
 
 import AddressCardMobile from "./AddressCardMobile";
-import SellerCartCardMobile from "./SellerCartCardMobile";
+import SellerCartCard from "../components/SellerCartCard";
 import OrderSummaryMobile from "./OrderSummaryMobile";
 
 import ShippingModal from "@features/checkout/desktop/ShippingModal";
@@ -32,14 +30,7 @@ import {
   type CartCtx,
 } from "@features/cart/utils/redeemWithFallback";
 
-/* ---- util price ---- */
-function priceFrom(p: Product, v?: Variant) {
-  const unit =
-    typeof v?.price === "number"
-      ? v.price
-      : Number((p.price || "0").replace(/[^\d]/g, "")) || 0;
-  return unit;
-}
+import { getProductPrice } from "@shared/helpers/product";
 
 /* ---- voucher helpers (sama seperti desktop) ---- */
 type VoucherWithConditions = Voucher & { conditions?: VoucherConditions };
@@ -173,7 +164,7 @@ export default function MobileCheckout({
     let sum = 0;
     for (const line of items) {
       const v = line.product.variants.find((x) => x.id === line.variantId);
-      sum += priceFrom(line.product, v) * line.qty;
+      sum += getProductPrice(line.product, v) * line.qty;
     }
     return sum;
   }, [items]);
@@ -316,11 +307,12 @@ export default function MobileCheckout({
       />
 
       <main className="px-4 py-4 space-y-4">
-        <SellerCartCardMobile
+        <SellerCartCard
           items={items}
           current={shippingCurrent}
           loading={shippingLoading}
           openShipping={() => setOpenShipping(true)}
+          variant="mobile"
         />
 
         <section className="rounded-xl border border-gray-200 bg-white">

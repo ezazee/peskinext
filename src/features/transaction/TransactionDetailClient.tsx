@@ -4,12 +4,32 @@ import React from "react";
 import { transactionsMock } from "@data/transaction";
 import type { UserTransaction } from "@data/index";
 import AccountSidebar from "@features/account/AccountSidebar";
-import { accountData } from "@data/account";
+import { logout } from "@features/auth/action";
 import TransactionDetailMobile from "./mobile/TransactionDetailMobile";
 import TransactionDetailDesktop from "./desktop/TransactionDetailDesktop";
 
-export default function TransactionDetailClient({ id }: { id: string }) {
-  const { profile } = accountData;
+type ProfileData = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+};
+
+export default function TransactionDetailClient({
+  id,
+  profile
+}: {
+  id: string;
+  profile: ProfileData;
+}) {
+
+  const handleLogout = async () => {
+    if (confirm("Apakah Anda yakin ingin keluar?")) {
+      await logout();
+      // Force full page reload untuk update header
+      window.location.href = "/";
+    }
+  };
 
   const [hydrated, setHydrated] = React.useState(false);
   React.useEffect(() => setHydrated(true), []);
@@ -44,6 +64,7 @@ export default function TransactionDetailClient({ id }: { id: string }) {
               avatarUrl: profile.avatarUrl,
             }}
             active="transaction"
+            onLogout={handleLogout}
           />
         </div>
 

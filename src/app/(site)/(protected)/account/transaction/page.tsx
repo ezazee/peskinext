@@ -7,7 +7,6 @@ export default async function TransactionPage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    // Redirect to login with callback URL
     redirect("/login?callbackUrl=/account/transaction");
   }
 

@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { QrCodeIcon, XMarkIcon } from "@shared/components/icons";
 import { login } from "../action";
-import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,9 +18,7 @@ export const AuthModal = ({
   isOpen,
   onClose,
   initialView = "login",
-  onLoginSuccess,
 }: AuthModalProps) => {
-  const router = useRouter();
   const [view, setView] = useState(initialView);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,10 +42,8 @@ export const AuthModal = ({
 
       if (result.success) {
         onClose();
-        if (onLoginSuccess) {
-          onLoginSuccess();
-        }
-        router.refresh();
+        // Force full page reload untuk update header
+        window.location.reload();
       } else {
         setError(result.error || "Login gagal");
       }

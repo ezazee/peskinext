@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { DesktopDetailProps, Variant } from "@shared/types/types";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 import ProductTabs from "@shared/components/layout/header/mobile/product/productTabs";
 import { productsData } from "@data/products";
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
@@ -10,7 +10,7 @@ import { ProductGallery } from "@features/product/components/desktop/ProductGall
 import { VariantSelector } from "@features/product/components/desktop/VariantSelector";
 import { ShippingInfo } from "@features/product/components/desktop/ShippingInfo";
 import { BuyBox } from "@features/product/components/desktop/BuyBox";
-import { discountPercent } from "@shared/helpers/price";
+import { discountPercent } from "@shared/helpers/pricing";
 import { useShippingParamsForProduct } from "@features/shiping/hooks/useShippingParamsForProduct";
 import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
 import { DesktopDetailSkeleton } from "./skeleton/DesktopDetailSkeleton";

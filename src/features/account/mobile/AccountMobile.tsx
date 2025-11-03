@@ -4,9 +4,18 @@ import type { AccountData } from "@shared/types/types";
 import Link from "next/link";
 import { IconByName } from "@features/account/IconMap";
 import { Avatar } from "@shared/components/ui/Avatar";
+import { logout } from "@features/auth/action";
 
 export default function AccountMobile({ data }: { data: AccountData }) {
   const { profile } = data;
+
+  const handleLogout = async () => {
+    if (confirm("Apakah Anda yakin ingin keluar?")) {
+      await logout();
+      // Force full page reload untuk update header
+      window.location.href = "/";
+    }
+  };
 
   return (
     <div className="pb-20">
@@ -51,7 +60,7 @@ export default function AccountMobile({ data }: { data: AccountData }) {
             label="Logout"
             icon={<IconByName name="logout" />}
             danger
-            onClick={() => alert("Logout mock")}
+            onClick={handleLogout}
           />
         </div>
       </section>

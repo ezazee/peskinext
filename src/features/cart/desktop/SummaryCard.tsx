@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Image from "next/image";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 import type { Voucher, VoucherSelection } from "@shared/types/types";
 import { createCheckoutFromCart } from "@features/checkout/action";
 

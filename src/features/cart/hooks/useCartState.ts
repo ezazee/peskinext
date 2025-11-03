@@ -2,21 +2,9 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import type { CartData, CartItem, Product, Variant } from "@shared/types/types";
+import type { CartData, CartItem } from "@shared/types/types";
 import { saveCart } from "@features/cart/cartService";
-
-function parsePriceString(s?: string): number | undefined {
-  if (!s) return undefined;
-  const digits = s.replace(/[^\d]/g, "");
-  return digits ? Number(digits) : undefined;
-}
-function resolvePricing(p: Product, v?: Variant) {
-  const unit =
-    typeof v?.price === "number" ? v.price : parsePriceString(p.price) ?? 0;
-  const old = v?.oldPrice ?? parsePriceString(p.oldPrice);
-  const stock = typeof v?.stock === "number" ? v.stock : 999;
-  return { unit, old, stock };
-}
+import { resolveProductPricing } from "@shared/helpers/product";
 
 export function useCartState(initial?: CartData) {
   // ← seed aman walau initial undefined
@@ -48,7 +36,7 @@ export function useCartState(initial?: CartData) {
       const variant = line.product.variants.find(
         (v) => v.id === line.variantId
       );
-      const { unit, old } = resolvePricing(line.product, variant);
+      const { unit, old } = resolveProductPricing(line.product, variant);
       subtotal += unit * line.qty;
       compare += (old ?? unit) * line.qty;
     }
@@ -72,7 +60,7 @@ export function useCartState(initial?: CartData) {
       prev.map((i) => {
         if (i.id !== lineId) return i;
         const variant = i.product.variants.find((v) => v.id === i.variantId);
-        const { stock } = resolvePricing(i.product, variant);
+        const { stock } = resolveProductPricing(i.product, variant);
         const safe = Math.max(1, Math.min(stock, Math.floor(Number(qty) || 1)));
         return { ...i, qty: safe };
       })

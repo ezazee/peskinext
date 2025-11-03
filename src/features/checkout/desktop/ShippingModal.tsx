@@ -10,7 +10,7 @@ import {
   ClockIcon,
 } from "@heroicons/react/24/outline";
 import type { ShippingDetailData, ShippingOption } from "@data/shipingData";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 
 type Props = {
   open: boolean;

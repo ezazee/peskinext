@@ -91,15 +91,25 @@ export async function login(formData: FormData): Promise<LoginResult> {
       };
     }
 
-    // Create session
+    // Create session with 5 hour expiry
     const sessionToken = generateSessionToken(user.id);
     const store = await cookies();
+    const FIVE_HOURS = 60 * 60 * 5; // 5 hours in seconds
 
     store.set("session_token", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: FIVE_HOURS,
+      path: "/",
+    });
+
+    // Set last activity timestamp
+    store.set("last_activity", Date.now().toString(), {
+      httpOnly: false, // Allow client-side access
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: FIVE_HOURS,
       path: "/",
     });
 
@@ -163,15 +173,25 @@ export async function register(formData: FormData): Promise<RegisterResult> {
       };
     }
 
-    // Auto login after registration
+    // Auto login after registration with 5 hour expiry
     const sessionToken = generateSessionToken(result.user!.id);
     const store = await cookies();
+    const FIVE_HOURS = 60 * 60 * 5; // 5 hours in seconds
 
     store.set("session_token", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: FIVE_HOURS,
+      path: "/",
+    });
+
+    // Set last activity timestamp
+    store.set("last_activity", Date.now().toString(), {
+      httpOnly: false, // Allow client-side access
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: FIVE_HOURS,
       path: "/",
     });
 
@@ -195,10 +215,33 @@ export async function logout(): Promise<{ success: boolean }> {
 
     // Delete session token cookie
     store.delete("session_token");
+    // Delete last activity cookie
+    store.delete("last_activity");
 
     return { success: true };
   } catch (error) {
     console.error("Error during logout:", error);
     return { success: false };
+  }
+}
+
+// Update last activity timestamp
+export async function updateLastActivity(): Promise<void> {
+  try {
+    const store = await cookies();
+    const sessionToken = store.get("session_token");
+
+    if (sessionToken) {
+      const FIVE_HOURS = 60 * 60 * 5;
+      store.set("last_activity", Date.now().toString(), {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: FIVE_HOURS,
+        path: "/",
+      });
+    }
+  } catch (error) {
+    console.error("Error updating last activity:", error);
   }
 }

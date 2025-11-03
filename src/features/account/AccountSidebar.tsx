@@ -9,7 +9,7 @@ export type AccountSidebarActive = "account" | "address" | "transaction" | "logo
 
 export type AccountSidebarProps = {
   profile: { name: string; email: string; avatarUrl: string };
-  active?: AccountSidebarActive;       // manual override (opsional)
+  active?: AccountSidebarActive;
   onLogout?: () => void;
 };
 
@@ -20,7 +20,6 @@ export default function AccountSidebar({ profile, active, onLogout }: AccountSid
   const autoActive: AccountSidebarActive = (() => {
     if (second === "address") return "address";
     if (second === "transaction") return "transaction";
-    // default: halaman root /account
     return "account";
   })();
 

@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { BrandCheckbox } from "@shared/components/ui/BrandCheckbox";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 import { IconTrash } from "@shared/components/icons";
-import QtyStepperMobile from "./QtyStepperMobile";
+import QtyStepper from "@shared/components/ui/QtyStepper";
 import type { CartData } from "@shared/types/types";
 import { getVariantPricing } from "../utils/getVariantPricing";
 
@@ -87,7 +87,7 @@ export default function MobileCartItem({
             >
               <IconTrash />
             </button>
-            <QtyStepperMobile value={line.qty} max={stock} onChange={onQty} />
+            <QtyStepper value={line.qty} max={stock} onChange={onQty} size="sm" />
           </div>
         </div>
       </div>

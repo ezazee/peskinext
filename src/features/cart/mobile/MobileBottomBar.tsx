@@ -1,7 +1,7 @@
 "use client";
 
 import { BrandCheckbox } from "@shared/components/ui/BrandCheckbox";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { createCheckoutFromCart } from "@features/checkout/action";

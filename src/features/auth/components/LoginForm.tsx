@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { login } from "../action";
 
 export default function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,8 +26,8 @@ export default function LoginForm() {
       const result = await login(formData);
 
       if (result.success) {
-        router.push(result.redirectTo || "/");
-        router.refresh();
+        // Force full page reload untuk update header
+        window.location.href = result.redirectTo || "/";
       } else {
         setError(result.error || "Login gagal");
       }

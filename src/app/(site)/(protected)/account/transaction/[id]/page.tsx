@@ -15,5 +15,13 @@ export default async function TransactionDetailPage({
     redirect("/login?callbackUrl=/account/transaction");
   }
 
-  return <TransactionDetailPageClient params={params} />;
+  // Create profile data from user session
+  const profile = {
+    id: user.id,
+    name: user.name,
+    email: user.email || "",
+    avatarUrl: user.avatarUrl || "/images/avatar/default-avatar.jpg",
+  };
+
+  return <TransactionDetailPageClient params={params} profile={profile} />;
 }

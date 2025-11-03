@@ -3,7 +3,7 @@
 import Image from "next/image";
 import * as React from "react";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
-import { formatRupiah } from "@shared/libs/format";
+import { formatRupiah } from "@shared/helpers/pricing";
 
 type Props = {
   itemsCount: number;

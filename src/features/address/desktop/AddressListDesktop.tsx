@@ -4,33 +4,50 @@ import React, { type JSX } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import type { AddressItem } from "@shared/types/types";
-import { accountData } from "@data/account";
 import { CheckCircle2 } from "lucide-react";
 import AccountSidebar from "@features/account/AccountSidebar";
+import { logout } from "@features/auth/action";
+
+type ProfileData = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+};
 
 export default function AddressListDesktop({
   items,
   primaryId,
   onSetPrimary,
   onRemove,
+  profile,
 }: {
   items: ReadonlyArray<AddressItem>;
   primaryId: string | null;
   onSetPrimary: (id: string) => void;
   onRemove: (id: string) => void;
+  profile: ProfileData;
 }): JSX.Element {
+
+  const handleLogout = async () => {
+    if (confirm("Apakah Anda yakin ingin keluar?")) {
+      await logout();
+      // Force full page reload untuk update header
+      window.location.href = "/";
+    }
+  };
   return (
     <div className="grid grid-cols-[260px_1fr] gap-6 items-stretch">
       {/* Sidebar kiri */}
       <AccountSidebar
         profile={{
-          name: accountData.profile.name,
-          email: accountData.profile.email,
-          avatarUrl: accountData.profile.avatarUrl,
+          name: profile.name,
+          email: profile.email,
+          avatarUrl: profile.avatarUrl,
         }}
+        onLogout={handleLogout}
         active="address"
-        onLogout={() => alert("Logout belum diimplementasi (mock).")}
-      />
+        />
 
       {/* Panel kanan */}
       <main className="bg-white rounded-xl border p-6 h-full">
