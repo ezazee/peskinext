@@ -3,13 +3,13 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ProductCard } from "../layout/header/mobile/product/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon, FlashIcon } from "../icons";
-import { productsData } from "@data/products";
+import type { Product } from "@shared/types/types";
 
-// Filter produk diskon
-const discountProducts = productsData.filter((product) => product.isFlashSale);
-
-export const FlashSaleDiscount = () => {
+export const FlashSaleDiscount = ({ products }: { products: ReadonlyArray<Product> }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Filter produk diskon
+  const discountProducts = products.filter((product) => product.isFlashSale);
 
   // --- TIMER STATE ---
   const [timeLeft, setTimeLeft] = useState({

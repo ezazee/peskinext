@@ -24,6 +24,7 @@ export interface NavItem {
 
 export interface Banner {
   src: string;
+  mobileSrc?: string;
   alt: string;
   href?: string;
 }
@@ -214,6 +215,7 @@ export interface Product {
   type: "single" | "bundle";
   variants: Variant[];
   weightGr: number;
+  soldCount?: number;
 }
 
 export type BundleVariant = {

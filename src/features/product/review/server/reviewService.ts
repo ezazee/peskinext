@@ -1,6 +1,5 @@
 import "server-only";
 import type { Review } from "@shared/types/types";
-import { reviewsData } from "@data/review";
 
 export type Aggregate = { average: number; count: number };
 
@@ -13,50 +12,20 @@ export type ReviewsResponse = {
   pageSize: number;
 };
 
-type ReviewMaybeLinked = Review &
-  Partial<{ productSku: string; productSlug: string }>;
+const BACKEND_URL = "http://127.0.0.1:5000/api/v1";
 
-function matchesKey(
-  r: ReviewMaybeLinked,
-  sku?: string | null,
-  slug?: string | null
-): boolean {
-  if (sku && r.productSku) return r.productSku === sku;
-  if (slug && r.productSlug) return r.productSlug === slug;
-  return false;
+interface BackendReview {
+  id: number;
+  rating: number;
+  comment: string;
+  images: string[] | string; // Can be array or JSON string depending on backend version
+  created_at: string;
+  user?: string | { name: string }; // Backend returns string "Name", old interface expected object
+  productSlug?: string;
+  variant?: string;
 }
 
-function pickList(
-  source: ReadonlyArray<ReviewMaybeLinked>,
-  sku?: string | null,
-  slug?: string | null
-): ReviewMaybeLinked[] {
-  let list = source.filter((r) => matchesKey(r, sku, slug));
-  if (list.length === 0 && slug)
-    list = source.filter((r) => matchesKey(r, null, slug));
-  return list;
-}
-
-export function getAggregateByKey({
-  sku,
-  slug,
-}: {
-  sku?: string | null;
-  slug?: string | null;
-}): Aggregate {
-  if (!sku && !slug) return { average: 0, count: 0 };
-  const arr: ReadonlyArray<ReviewMaybeLinked> = Array.isArray(reviewsData)
-    ? (reviewsData as ReadonlyArray<ReviewMaybeLinked>)
-    : [];
-  const list = pickList(arr, sku, slug);
-  if (list.length === 0) return { average: 0, count: 0 };
-
-  const sum = list.reduce((acc, r) => acc + (r.rating ?? 0), 0);
-  const average = Number((sum / list.length).toFixed(2));
-  return { average, count: list.length };
-}
-
-export function getReviewsByKey({
+export async function getReviewsByKey({
   sku,
   slug,
   page = 1,
@@ -66,23 +35,80 @@ export function getReviewsByKey({
   slug?: string | null;
   page?: number;
   pageSize?: number;
-}): ReviewsResponse {
+}): Promise<ReviewsResponse> {
   if (page < 1) page = 1;
-  if (pageSize < 1) pageSize = 1;
-  if (pageSize > 50) pageSize = 50;
+  const safePageSize = Math.min(50, Math.max(1, pageSize ?? 10));
 
-  const arr: ReadonlyArray<ReviewMaybeLinked> = Array.isArray(reviewsData)
-    ? (reviewsData as ReadonlyArray<ReviewMaybeLinked>)
-    : [];
+  if (!slug) {
+    return { items: [], total: 0, average: 0, count: 0, page, pageSize: safePageSize };
+  }
 
-  const matched = pickList(arr, sku ?? null, slug ?? null);
-  const total = matched.length;
+  try {
+    const res = await fetch(`${BACKEND_URL}/reviews?slug=${slug}`);
 
-  const start = (page - 1) * pageSize;
-  const items = matched.slice(start, start + pageSize) as Review[];
+    if (res.status === 404) {
+      return { items: [], total: 0, average: 0, count: 0, page, pageSize: safePageSize };
+    }
 
-  const sum = matched.reduce((acc, r) => acc + (r.rating ?? 0), 0);
-  const average = total ? Number((sum / total).toFixed(2)) : 0;
+    if (!res.ok) throw new Error("Failed to fetch reviews");
 
-  return { items, total, average, count: total, page, pageSize };
+    // Backend returns all reviews for the product
+    const allReviews: BackendReview[] = await res.json();
+
+    const total = allReviews.length;
+    const sum = allReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+    const average = total > 0 ? Number((sum / total).toFixed(2)) : 0;
+
+    // Pagination logic (client-side of the backend data)
+    const start = (page - 1) * safePageSize;
+    const end = start + safePageSize;
+    const pagedBackendReviews = allReviews.slice(start, end);
+
+    const items: Review[] = pagedBackendReviews.map((r) => {
+      let images: string[] = [];
+      if (Array.isArray(r.images)) {
+        images = r.images;
+      } else if (typeof r.images === 'string') {
+        try {
+          images = JSON.parse(r.images || "[]");
+        } catch { /* ignore */ }
+      }
+
+      // Handle user name whether it's a string or object
+      let userName = "Anonymous";
+      if (typeof r.user === "string") {
+        userName = r.user;
+      } else if (r.user && typeof r.user === "object" && 'name' in r.user) {
+        userName = r.user.name;
+      }
+
+      return {
+        id: r.id,
+        user: userName,
+        variant: r.variant || "General",
+        comment: r.comment,
+        rating: r.rating,
+        images: images,
+        date: r.created_at,
+        productSlug: slug || "",
+      };
+    });
+
+    return { items, total, average, count: total, page, pageSize: safePageSize };
+
+  } catch (error) {
+    console.error("Review fetch error:", error);
+    return { items: [], total: 0, average: 0, count: 0, page, pageSize: safePageSize };
+  }
+}
+
+export async function getAggregateByKey({
+  sku,
+  slug,
+}: {
+  sku?: string | null;
+  slug?: string | null;
+}): Promise<Aggregate> {
+  const data = await getReviewsByKey({ sku, slug, page: 1, pageSize: 1 });
+  return { average: data.average, count: data.count };
 }

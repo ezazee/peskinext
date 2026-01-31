@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import type { Product } from "@shared/types/types";
-import { fetchProductBySlug } from "../api/fake";
+// import { getProductBySlug } from "../services/productService"; // Removed unused import
 
 export function useProductDetail(slug: string) {
   const [product, setProduct] = useState<Product | null>(null);
@@ -13,9 +13,12 @@ export function useProductDetail(slug: string) {
     setLoading(true);
     setError(null);
 
-    fetchProductBySlug(slug)
-      .then((p) => {
+    // Fetch from internal proxy to avoid CORS/Mixed Content issues
+    fetch(`/api/products/${slug}`)
+      .then(async (res) => {
         if (!alive) return;
+        if (!res.ok) throw new Error("Product not found");
+        const p: Product = await res.json();
         setProduct(p);
       })
       .catch((err) => {

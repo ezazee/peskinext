@@ -30,7 +30,9 @@ export function useShippingParamsForProduct(
   })();
 
   const weightGr = useMemo(() => {
-    const perItem = (variant as unknown as MaybeWeight).weight ?? 500;
+    // Safety check if variant is undefined
+    const v = variant as unknown as MaybeWeight | undefined;
+    const perItem = v?.weight ?? 500;
     const total = perItem * Math.max(1, qty);
     return Math.max(1, Math.round(total));
   }, [variant, qty]);

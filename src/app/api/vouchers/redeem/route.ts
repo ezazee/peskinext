@@ -18,32 +18,7 @@ export type RedeemResponseDTO = {
 };
 
 // Mock DB contoh (boleh tambah kode lain di sini)
-const mockCodeDB: Record<string, Omit<Voucher, "enabled">> = {
-  RAHASIA50: {
-    id: "srv-promo-rahasia50",
-    title: "Diskon 50% Rahasia",
-    subtitle: "Maks diskon Rp100.000",
-    type: "promo",
-    savingLabel: "Hemat s/d Rp100rb",
-    code: "RAHASIA50",
-    validTo: "2025-12-31",
-    conditions: { minSelectedItems: 1, minSubtotal: 100_000 },
-  },
-  ONGKIRXTRA: {
-    id: "srv-ship-ongkirxtra",
-    title: "Gratis Ongkir XTRA",
-    subtitle: "Min. belanja Rp250.000, khusus Jabodetabek",
-    type: "shipping",
-    savingLabel: "Hemat ongkir",
-    code: "ONGKIRXTRA",
-    validTo: "2025-12-31",
-    conditions: {
-      minSubtotal: 250_000,
-      minSelectedItems: 1,
-      regions: ["Jabodetabek"],
-    },
-  },
-};
+// Mock DB removed. Using Backend API.
 
 function evaluateVoucher(v: Omit<Voucher, "enabled">, ctx: CartCtxDTO) {
   const c: VoucherConditions = v.conditions ?? {};
@@ -83,6 +58,8 @@ function evaluateVoucher(v: Omit<Voucher, "enabled">, ctx: CartCtxDTO) {
   return { eligible: true };
 }
 
+const BACKEND_URL = "http://127.0.0.1:5000/api/v1";
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as RedeemRequestDTO;
@@ -94,12 +71,50 @@ export async function POST(req: Request) {
       });
     }
 
-    const base = mockCodeDB[code];
-    if (!base) {
-      // Kode tidak terdaftar di list → found:false (biar UI bisa tampilkan pesan “kode tidak ditemukan”)
-      return NextResponse.json<RedeemResponseDTO>({ found: false });
+    // Call Backend to check if coupon exists
+    let base: Voucher | null = null;
+    try {
+      const res = await fetch(`${BACKEND_URL}/vouchers/check`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+        cache: "no-store"
+      });
+
+      if (res.ok) {
+        const backendCoupon = await res.json();
+        // Map Backend Response to Frontend Voucher Type
+        // Backend: discount_type, discount_value. Frontend expects savingLabel (optional but good UI)
+        const isPercent = backendCoupon.discount_type === "percent";
+        const val = Number(backendCoupon.discount_value);
+        const savingLabel = isPercent ? `Hemat ${val}%` : `Hemat Rp${val.toLocaleString("id-ID")}`;
+
+        base = {
+          id: backendCoupon.id,
+          code: backendCoupon.id, // ID is used as code
+          title: backendCoupon.title,
+          subtitle: backendCoupon.subtitle,
+          type: backendCoupon.type,
+          enabled: backendCoupon.is_enabled,
+          savingLabel: savingLabel,
+          validTo: backendCoupon.expired_at,
+          conditions: backendCoupon.conditions
+        };
+      }
+    } catch (e) {
+      console.error("Backend voucher check failed", e);
     }
 
+    if (!base) {
+      return NextResponse.json<RedeemResponseDTO>({
+        found: false,
+        reason: "Kode tidak ditemukan atau sudah kadaluarsa." // Generic message for 404
+      });
+    }
+
+    // Validasi logic rules (Min belanja, region, dll) tetap di frontend (Next.js server)
+    // karena Backend saat ini hanya validasi existency.
+    // Jika backend nanti support validasi cart, logika ini bisa dipindah.
     const { eligible, reason } = evaluateVoucher(base, body.ctx);
     const voucher: Voucher = { ...base, enabled: eligible };
 
@@ -110,7 +125,6 @@ export async function POST(req: Request) {
       voucher,
     });
   } catch {
-    // Tetap balas JSON supaya fetch() tidak melempar network error saat dev
     return NextResponse.json<RedeemResponseDTO>(
       { found: false, reason: "Server error" },
       { status: 200 }

@@ -27,7 +27,17 @@ export default function DesktopDetail({
 }: DesktopDetailProps) {
   const toast = useToast();
   const [open, setOpen] = useState(false);
-  const [variant, setVariant] = useState<Variant>(product.variants[0]!);
+
+  // Guard: if variants empty, create a dummy
+  const defaultVariant: Variant = product.variants?.[0] || {
+    id: 0,
+    name: "Standard",
+    price: product.price, // string
+    oldPrice: product.oldPrice, // string
+    stock: 0,
+  } as unknown as Variant; // Temporary casting to satisfy types if needed, ideally fix types
+
+  const [variant, setVariant] = useState<Variant>(defaultVariant);
   const [selectedShippingId, setSelectedShippingId] = useState<
     string | undefined
   >(undefined);
@@ -75,107 +85,107 @@ export default function DesktopDetail({
 
       <div className="hidden md:block container mx-auto">
         <div className="grid grid-cols-12 grid-rows-[auto_auto] gap-6">
-        {/* Gallery */}
-        <section className="col-span-4 row-start-1">
-          <ProductGallery
-            name={product.name}
-            images={product.galleryImages}
-            discountPercent={disc}
-          />
-        </section>
+          {/* Gallery */}
+          <section className="col-span-4 row-start-1">
+            <ProductGallery
+              name={product.name}
+              images={product.galleryImages}
+              discountPercent={disc}
+            />
+          </section>
 
-        {/* Info */}
-        <section className="col-span-5 row-start-1 pt-5">
-          <h1 className="text-2xl font-semibold leading-snug">
-            {product.name} – {variant.name}
-          </h1>
+          {/* Info */}
+          <section className="col-span-5 row-start-1 pt-5">
+            <h1 className="text-2xl font-semibold leading-snug">
+              {product.name} – {variant.name}
+            </h1>
 
-          <div className="mt-3 flex items-center gap-3 text-sm text-gray-500">
-            <span className="flex items-center gap-1">
-              <RatingBadge sku={product.sku} slug={product.slug} size="sm" />
-            </span>
-            <span>•</span>
-            <span>
-              Terjual <strong>1.150</strong>
-            </span>
-          </div>
-
-          <div className="mt-4 flex items-end gap-3">
-            <div className="text-3xl font-bold text-gray-900">
-              {formatRupiah(variant.price)}
+            <div className="mt-3 flex items-center gap-3 text-sm text-gray-500">
+              <span className="flex items-center gap-1">
+                <RatingBadge sku={product.sku} slug={product.slug} size="sm" />
+              </span>
+              <span>•</span>
+              <span>
+                Terjual <strong>{product.soldCount?.toLocaleString("id-ID") || 0}</strong>
+              </span>
             </div>
-            {variant.oldPrice && (
-              <div className="flex items-center gap-2">
-                <span className="line-through text-gray-400">
-                  {formatRupiah(variant.oldPrice)}
-                </span>
-                <span className="text-red-600 font-semibold">{disc}%</span>
+
+            <div className="mt-4 flex items-end gap-3">
+              <div className="text-3xl font-bold text-gray-900">
+                {formatRupiah(variant.price)}
               </div>
-            )}
-          </div>
+              {variant.oldPrice && (
+                <div className="flex items-center gap-2">
+                  <span className="line-through text-gray-400">
+                    {formatRupiah(variant.oldPrice)}
+                  </span>
+                  <span className="text-red-600 font-semibold">{disc}%</span>
+                </div>
+              )}
+            </div>
 
-          <div className="mt-6 space-y-3">
-            <p className="text-sm text-gray-600">
-              Category: <span className="font-bold">{product.category}</span>
-            </p>
-            <p className="text-sm text-gray-600">
-              SKU: <span className="font-bold">{product.sku}</span>
-            </p>
-            <VariantSelector
-              variants={product.variants}
-              selectedId={variant.id}
-              onSelect={setVariant}
+            <div className="mt-6 space-y-3">
+              <p className="text-sm text-gray-600">
+                Category: <span className="font-bold">{product.category}</span>
+              </p>
+              <p className="text-sm text-gray-600">
+                SKU: <span className="font-bold">{product.sku}</span>
+              </p>
+              <VariantSelector
+                variants={product.variants}
+                selectedId={variant.id}
+                onSelect={setVariant}
+              />
+            </div>
+
+            <div className="mt-8">
+              <ProductTabs
+                description={product.description}
+                ingredients={product.ingredients}
+                howToUse={product.howToUse}
+              />
+            </div>
+
+            {/* Shipping Info */}
+            <ShippingInfo
+              origin={origin}
+              cheapest={cheapest}
+              onOpenModal={() => setOpen(true)}
             />
-          </div>
+          </section>
 
-          <div className="mt-8">
-            <ProductTabs
-              description={product.description}
-              ingredients={product.ingredients}
-              howToUse={product.howToUse}
+          {/* Modal ongkir */}
+          <ShippingModal
+            open={open}
+            params={params ?? null}
+            initialData={quotes ?? undefined}
+            selectedId={selectedShippingId}
+            onSelect={(opt) => setSelectedShippingId(opt.id)}
+            onClose={() => setOpen(false)}
+          />
+
+          {/* Buy Box */}
+          <aside className="col-start-10 col-span-3 row-span-2">
+            <BuyBox
+              product={product}
+              variant={variant}
+              onAdd={(qty) => {
+                const result = addToCart(product, variant.id, qty);
+                if (result.success) {
+                  toast.success(result.message);
+                } else {
+                  toast.error(result.message);
+                }
+              }}
+              onAuthRequired={() => setIsAuthModalOpen(true)}
             />
-          </div>
+          </aside>
 
-          {/* Shipping Info */}
-          <ShippingInfo
-            origin={origin}
-            cheapest={cheapest}
-            onOpenModal={() => setOpen(true)}
-          />
-        </section>
-
-        {/* Modal ongkir */}
-        <ShippingModal
-          open={open}
-          params={params ?? null}
-          initialData={quotes ?? undefined}
-          selectedId={selectedShippingId}
-          onSelect={(opt) => setSelectedShippingId(opt.id)}
-          onClose={() => setOpen(false)}
-        />
-
-        {/* Buy Box */}
-        <aside className="col-start-10 col-span-3 row-span-2">
-          <BuyBox
-            product={product}
-            variant={variant}
-            onAdd={(qty) => {
-              const result = addToCart(product, variant.id, qty);
-              if (result.success) {
-                toast.success(result.message);
-              } else {
-                toast.error(result.message);
-              }
-            }}
-            onAuthRequired={() => setIsAuthModalOpen(true)}
-          />
-        </aside>
-
-        {/* Review */}
-        <section className="col-start-1 col-span-9 row-start-2">
-          <ProductReview sku={product.sku} slug={product.slug} pageSize={5} />
-        </section>
-      </div>
+          {/* Review */}
+          <section className="col-start-1 col-span-9 row-start-2">
+            <ProductReview sku={product.sku} slug={product.slug} pageSize={5} />
+          </section>
+        </div>
 
         <section className="mt-6">
           <ProductGrid products={productsData} />

@@ -3,17 +3,17 @@
 
 import React, { useRef } from "react";
 import Image from "next/image";
-import { productsData } from "@data/products";
 import { ProductCard } from "../layout/header/mobile/product/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import Link from "next/link";
+import type { Product } from "@shared/types/types";
 
-// Filter data untuk hanya menampilkan produk bundle
-const bundleProducts = productsData.filter(
-  (product) => product.type === "bundle"
-);
+export const BundleSection = ({ products }: { products: ReadonlyArray<Product> }) => {
+  // Filter data untuk hanya menampilkan produk bundle
+  const bundleProducts = products.filter(
+    (product) => product.type === "bundle"
+  );
 
-export const BundleSection = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {

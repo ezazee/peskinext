@@ -34,6 +34,6 @@ export async function GET(
     );
   }
 
-  const result = getReviewsByKey({ sku, slug, page, pageSize });
+  const result = await getReviewsByKey({ sku, slug, page, pageSize });
   return withCache<ReviewsResponse>(result);
 }

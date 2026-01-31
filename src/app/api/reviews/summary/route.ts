@@ -21,6 +21,6 @@ export async function GET(req: Request): Promise<NextResponse<Aggregate>> {
   const sku = searchParams.get("sku");
   const slug = searchParams.get("slug");
   if (!sku && !slug) return withCache<Aggregate>({ average: 0, count: 0 }, 400);
-  const agg = getAggregateByKey({ sku, slug });
+  const agg = await getAggregateByKey({ sku, slug });
   return withCache<Aggregate>(agg);
 }

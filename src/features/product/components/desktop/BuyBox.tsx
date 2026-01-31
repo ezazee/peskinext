@@ -57,7 +57,7 @@ export function BuyBox({
         <div className="flex items-center gap-3">
           <div className="relative w-14 h-14 rounded-md overflow-hidden border">
             <Image
-              src={product.img}
+              src={product.img || "https://placehold.co/100x100?text=No+Image"}
               alt={product.name}
               fill
               sizes="56px"

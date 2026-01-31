@@ -4,7 +4,8 @@ import * as React from "react";
 import { useTransition } from "react";
 import type { Product } from "@shared/types/types";
 import { useMediaQuery } from "@shared/hooks/useMediaQuery";
-import { productsData } from "@data/products";
+import { useProducts } from "@features/product/hooks/useProducts";
+import { productsData as mockProducts } from "@data/products";
 import type {
   ProductTypeFilter,
   SortKey,
@@ -20,7 +21,9 @@ const PAGE_SIZE = 8;
 
 export default function BundleProductPage() {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
-  const allProducts = productsData as ReadonlyArray<Product>;
+
+  const { data: fetchedProducts, isLoading: isQueryLoading } = useProducts();
+  const allProducts = (fetchedProducts || []) as ReadonlyArray<Product>;
 
   // filters
   const [selectedCats, setSelectedCats] = React.useState<ReadonlyArray<string>>(
@@ -41,9 +44,10 @@ export default function BundleProductPage() {
   const [loading, setLoading] = React.useState<boolean>(true);
 
   React.useEffect(() => {
-    const id = setTimeout(() => setLoading(false), 350);
-    return () => clearTimeout(id);
-  }, []);
+    if (!isQueryLoading) {
+      setLoading(false);
+    }
+  }, [isQueryLoading]);
 
   React.useEffect(() => {
     if (isPending) setLoading(true);

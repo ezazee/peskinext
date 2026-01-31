@@ -1,12 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
-import { productsData } from "@data/products";
-import { carouselData, tilesData } from "@data/bannerPromotion";
+import { getProducts } from "@features/product/services/productService";
+import { getBanners } from "@features/home/services/bannerService";
+import { mainBannerData, carouselData, tilesData } from "@data/bannerPromotion"; // Keep as fallback type or initial state?
+import type { Product, Banner } from "@shared/types/types";
 
 type HomeData = {
-  products: typeof productsData;
-  carousel: typeof carouselData;
-  tiles: typeof tilesData;
+  products: Product[];
+  main: Banner[];
+  carousel: Banner[];
+  tiles: Banner[];
 };
 
 export function useHomeData() {
@@ -18,13 +21,23 @@ export function useHomeData() {
     let alive = true;
     async function run() {
       try {
-        // simulasi delay API
-        await new Promise((r) => setTimeout(r, 800));
+        const [productRes, bannerData] = await Promise.all([
+          fetch("/api/products").then(r => {
+            if (!r.ok) throw new Error("Failed to fetch products");
+            return r.json();
+          }),
+          getBanners().catch(err => {
+            console.error("Banner fetch failed, using fallback", err);
+            return { main: mainBannerData, carousel: carouselData, tiles: tilesData };
+          })
+        ]);
+
         if (!alive) return;
         setData({
-          products: productsData,
-          carousel: carouselData,
-          tiles: tilesData,
+          products: productRes,
+          main: bannerData.main || [],
+          carousel: bannerData.carousel,
+          tiles: bannerData.tiles,
         });
       } catch (e) {
         if (!alive) return;
