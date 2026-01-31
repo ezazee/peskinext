@@ -56,16 +56,11 @@ export function useProductRating(key: Key, seed?: AggregateRating) {
 
     load();
 
-    const onVis = () => {
-      if (document.visibilityState === "visible") load();
-    };
-    document.addEventListener("visibilitychange", onVis);
     return () => {
       mounted = false;
       abortRef.current?.abort();
-      document.removeEventListener("visibilitychange", onVis);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cacheKey, key.sku, key.slug, seed]);
 
   return {
