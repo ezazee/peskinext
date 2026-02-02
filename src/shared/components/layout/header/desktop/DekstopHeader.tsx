@@ -126,12 +126,15 @@ export const DesktopHeader = () => {
     };
 
     updateCount();
-
-    // Listen for cart updates
     window.addEventListener('cartUpdated', updateCount);
+
+    // Listen for profile updates (e.g. from Edit Profile page)
+    const handleProfileUpdate = () => checkAuth();
+    window.addEventListener('profileUpdated', handleProfileUpdate);
 
     return () => {
       window.removeEventListener('cartUpdated', updateCount);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
     };
   }, [currentUserId]);
 

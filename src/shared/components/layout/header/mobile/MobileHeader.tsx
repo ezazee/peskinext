@@ -58,6 +58,14 @@ export const MobileHeader = () => {
 
   useEffect(() => {
     checkAuth();
+
+    // Listen for profile updates
+    const handleProfileUpdate = () => checkAuth();
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
   }, []);
 
   useEffect(() => {

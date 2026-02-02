@@ -27,6 +27,7 @@ export default function AccountMobile({ data }: { data: AccountData }) {
       >
         <div className="flex items-center gap-3">
           <Avatar
+            key={profile.avatarUrl}
             name={profile.name}
             avatarUrl={profile.avatarUrl}
             size="lg"

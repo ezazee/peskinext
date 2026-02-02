@@ -44,6 +44,7 @@ export default function AccountDesktop({ data }: { data: AccountData }) {
           <div>
             {hydrated ? (
               <Avatar
+                key={profile.avatarUrl}
                 name={profile.name}
                 avatarUrl={profile.avatarUrl}
                 size="xl"

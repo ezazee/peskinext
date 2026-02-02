@@ -145,6 +145,9 @@ export async function getCurrentUser() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
 
+    console.log("DEBUG: getCurrentUser - Raw images from backend:", user.images);
+    console.log("DEBUG: getCurrentUser - Mapped Data:", { ...userWithoutPassword, avatarUrl: user.images });
+
     // Ensure avatarUrl exists (backend might just return 'avatar')
     return {
       ...userWithoutPassword,

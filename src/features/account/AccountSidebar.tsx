@@ -30,6 +30,7 @@ export default function AccountSidebar({ profile, active, onLogout }: AccountSid
       <Link href="/account" className="block">
         <div className="flex items-center gap-3 mb-6">
           <Avatar
+            key={profile.avatarUrl}
             name={profile.name}
             avatarUrl={profile.avatarUrl}
             size="lg"

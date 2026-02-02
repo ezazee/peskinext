@@ -7,10 +7,17 @@ import { Avatar } from "@shared/components/ui/Avatar";
 
 type Props = { initial: AccountProfile };
 
+import { uploadAvatar, updateProfile } from "../../action";
+import { useToast } from "@shared/components/ui/Toaster";
+import { Camera } from "lucide-react"; // Make sure to install/import lucide-react if available, or use text
+
 export default function ProfileEditMobile({ initial }: Props) {
   const router = useRouter();
+  const toast = useToast();
   const [form, setForm] = React.useState<AccountProfile>(initial);
   const [saving, setSaving] = React.useState<boolean>(false);
+  const [uploading, setUploading] = React.useState<boolean>(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   function onChange<K extends keyof AccountProfile>(
     key: K,
@@ -19,26 +26,81 @@ export default function ProfileEditMobile({ initial }: Props) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 10MB");
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await uploadAvatar(formData);
+    setUploading(false);
+
+    if (res.success && res.imageUrl) {
+      onChange("avatarUrl", res.imageUrl);
+      toast.success("Foto berhasil diupload");
+    } else {
+      toast.error(res.error || "Gagal upload foto");
+    }
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    // simulasi save (local only)
-    await new Promise((r) => setTimeout(r, 600));
+
+    const res = await updateProfile(form);
+
     setSaving(false);
-    router.push("/account"); // kembali
+
+    if (res.success) {
+      toast.success("Profil tersimpan");
+      // Notify other components (Header) to refresh user data
+      window.dispatchEvent(new Event("profileUpdated"));
+      router.push("/account");
+      router.refresh();
+    } else {
+      toast.error(res.error || "Gagal menyimpan");
+    }
   }
 
   return (
     <form onSubmit={onSubmit} className="bg-white rounded-lg shadow-sm p-4">
       <div className="flex items-center gap-3">
-        <Avatar
-          name={form.name}
-          avatarUrl={form.avatarUrl}
-          size="lg"
-        />
+        <div className="relative">
+          <Avatar
+            key={form.avatarUrl} // Force re-render when URL changes
+            name={form.name}
+            avatarUrl={form.avatarUrl || "/images/avatar/default-avatar.jpg"}
+            size="lg"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="absolute bottom-0 right-0 p-1.5 bg-primary text-white rounded-full shadow-md hover:bg-primary/90"
+          >
+            {/* If Lucide not available, use simple icon or text */}
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/png, image/jpeg, image/jpg, image/webp"
+            onChange={handleFileChange}
+          />
+        </div>
+
         <div className="text-sm text-gray-600">
           <div className="font-semibold text-gray-900">{form.name}</div>
           <div>{form.email}</div>
+          <div className="text-xs text-primary mt-1">{uploading ? "Mengupload..." : "Ganti Foto"}</div>
         </div>
       </div>
 
@@ -59,7 +121,7 @@ export default function ProfileEditMobile({ initial }: Props) {
         <Field label="Tanggal Lahir">
           <Input
             type="date"
-            value={form.birthDate ?? ""}
+            value={form.birthDate ? new Date(form.birthDate).toISOString().split('T')[0] : ""}
             onChange={(v) => onChange("birthDate", v)}
           />
         </Field>
@@ -68,7 +130,7 @@ export default function ProfileEditMobile({ initial }: Props) {
       <div className="mt-5 grid gap-2">
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || uploading}
           className="h-11 rounded-lg bg-primary text-white font-semibold hover:opacity-90 disabled:opacity-60"
         >
           {saving ? "Menyimpan..." : "Simpan"}

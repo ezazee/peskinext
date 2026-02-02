@@ -7,10 +7,17 @@ import { useRouter } from "next/navigation";
 
 type Props = { initial: AccountProfile };
 
+import { uploadAvatar, updateProfile } from "../../action";
+import { useToast } from "@shared/components/ui/Toaster";
+
 export default function ProfileEditDesktop({ initial }: Props) {
   const router = useRouter();
+  const toast = useToast();
+  // Ensure we map backend 'images' to 'avatarUrl' if coming initially, but 'initial' should already be mapped by parent used by page props
   const [form, setForm] = React.useState<AccountProfile>(initial);
   const [saving, setSaving] = React.useState<boolean>(false);
+  const [uploading, setUploading] = React.useState<boolean>(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   function onChange<K extends keyof AccountProfile>(
     key: K,
@@ -19,12 +26,47 @@ export default function ProfileEditDesktop({ initial }: Props) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 10MB");
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await uploadAvatar(formData);
+    setUploading(false);
+
+    if (res.success && res.imageUrl) {
+      onChange("avatarUrl", res.imageUrl);
+      toast.success("Foto profil berhasil diupload");
+    } else {
+      toast.error(res.error || "Gagal upload foto");
+    }
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 700)); // simulasi save
+
+    const res = await updateProfile(form);
+
     setSaving(false);
-    router.push("/account");
+
+    if (res.success) {
+      toast.success("Profil berhasil diperbarui");
+      // Notify other components (Header) to refresh user data
+      window.dispatchEvent(new Event("profileUpdated"));
+      router.push("/account");
+      router.refresh(); // Refresh to ensure data is consistent
+    } else {
+      toast.error(res.error || "Gagal menyimpan profil");
+    }
   }
 
   return (
@@ -32,20 +74,30 @@ export default function ProfileEditDesktop({ initial }: Props) {
       <aside className="bg-white rounded-xl border p-4 shadow-sm">
         <div className="flex flex-col items-center">
           <Image
-            src={form.avatarUrl}
+            key={form.avatarUrl} // Force re-render
+            src={form.avatarUrl || "/images/avatar/default-avatar.jpg"}
             alt={form.name || "User Avatar"}
             width={160}
             height={160}
-            className="rounded-full object-cover w-40 h-40"
+            className="rounded-full object-cover w-40 h-40 border"
+          />
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/png, image/jpeg, image/jpg, image/webp"
+            onChange={handleFileChange}
           />
           <button
             type="button"
-            className="mt-3 h-10 w-full rounded-lg border font-semibold"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="mt-3 h-10 w-full rounded-lg border font-semibold hover:bg-gray-50 flex items-center justify-center"
           >
-            Ubah Foto
+            {uploading ? "Mengupload..." : "Ubah Foto"}
           </button>
           <p className="text-xs text-gray-500 mt-2 text-center">
-            Maks 10MB · JPG/PNG
+            Maks 10MB · JPG/PNG/WEBP
           </p>
         </div>
       </aside>
@@ -69,7 +121,7 @@ export default function ProfileEditDesktop({ initial }: Props) {
           <Field label="Tanggal Lahir">
             <Input
               type="date"
-              value={form.birthDate ?? ""}
+              value={form.birthDate ? new Date(form.birthDate).toISOString().split('T')[0] : ""}
               onChange={(v) => onChange("birthDate", v)}
             />
           </Field>
@@ -78,7 +130,7 @@ export default function ProfileEditDesktop({ initial }: Props) {
         <div className="mt-6 flex gap-3">
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || uploading}
             className="h-11 px-6 rounded-lg bg-primary text-white font-semibold hover:opacity-90 disabled:opacity-60"
           >
             {saving ? "Menyimpan..." : "Simpan Perubahan"}
@@ -86,7 +138,7 @@ export default function ProfileEditDesktop({ initial }: Props) {
           <button
             type="button"
             onClick={() => router.back()}
-            className="h-11 px-6 rounded-lg border font-semibold"
+            className="h-11 px-6 rounded-lg border font-semibold hover:bg-gray-50"
           >
             Batal
           </button>
