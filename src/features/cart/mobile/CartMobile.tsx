@@ -4,12 +4,16 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CartData, Voucher, VoucherSelection } from "@shared/types/types";
 import { useCartState } from "@features/cart/hooks/useCartState";
-import MobileCartItem from "./mobile/MobileCartItem";
-import MobileBottomBar from "./mobile/MobileBottomBar";
-import VoucherModalMobile from "./mobile/VoucherModalMobile";
+import MobileCartItem from "./MobileCartItem";
+import MobileBottomBar from "./MobileBottomBar";
+import VoucherModalMobile from "./VoucherModalMobile";
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
-import { productsData } from "@data/products";
-import { promoVouchers, shippingVouchers } from "@data/voucher";
+// import { productsData } from "@data/products";
+import type { Product } from "@shared/types/types";
+const productsData: Product[] = [];
+// import { promoVouchers, shippingVouchers } from "@data/voucher";
+const promoVouchers: Voucher[] = [];
+const shippingVouchers: Voucher[] = [];
 import { useToast } from "@shared/components/ui/Toaster";
 import { parseRupiahFlexible } from "@shared/helpers/parseRupiahFlexible";
 
@@ -446,10 +450,10 @@ export function CartMobile({ initial, isLoggedIn = false }: { initial: CartData;
     // promo aktif list
     const activePromo = selectedVoucher.promoId
       ? resolveSelectedVoucherById(
-          selectedVoucher.promoId,
-          availablePromos,
-          codeVoucher
-        )
+        selectedVoucher.promoId,
+        availablePromos,
+        codeVoucher
+      )
       : null;
     if (activePromo?.savingLabel) labels.push(activePromo.savingLabel);
 
@@ -483,10 +487,10 @@ export function CartMobile({ initial, isLoggedIn = false }: { initial: CartData;
       // --- PROMO dari LIST
       const listPromo = selectedVoucher.promoId
         ? resolveSelectedVoucherById(
-            selectedVoucher.promoId,
-            availablePromos,
-            codeVoucher
-          )
+          selectedVoucher.promoId,
+          availablePromos,
+          codeVoucher
+        )
         : null;
       const proDiscList = computePromoDiscountFrom(listPromo, totals.subtotal);
 
@@ -503,8 +507,8 @@ export function CartMobile({ initial, isLoggedIn = false }: { initial: CartData;
       const totalDisc = Math.min(
         totals.subtotal,
         Math.max(0, shipDisc) +
-          Math.max(0, proDiscList) +
-          Math.max(0, proDiscCode)
+        Math.max(0, proDiscList) +
+        Math.max(0, proDiscCode)
       );
       const grand = Math.max(0, totals.subtotal - totalDisc);
 

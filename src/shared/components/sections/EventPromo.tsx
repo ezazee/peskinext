@@ -3,7 +3,9 @@
 
 import React, { useRef } from "react";
 import Image from "next/image";
-import { productsData } from "@data/products";
+// import { productsData } from "@data/products";
+import type { Product } from "@shared/types/types";
+const productsData: Product[] = []; // empty
 import type { EventPromoProps } from "@shared/types/types";
 import { ProductCard } from "../layout/header/mobile/product/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";

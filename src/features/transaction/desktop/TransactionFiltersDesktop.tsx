@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Calendar, ChevronDown, Search, X } from "lucide-react";
-import type { UserTransaction } from "@data/index";
+import type { UserTransaction } from "@shared/types/types";
 
 /* ====== Types ====== */
 export type StatusGroup = "all" | "progress" | "success" | "failed";

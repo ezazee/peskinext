@@ -3,7 +3,8 @@
 
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { notificationsSeed, type NotificationItem } from "@data/notification";
+import { type NotificationItem } from "@shared/types/types";
+const notificationsSeed: NotificationItem[] = [];
 import { FilterChips } from "../components/FilterChips";
 import { filterByKind, groupByDay } from "@shared/helpers/notificationFormat";
 import { NotificationCard } from "../components/NotificationCard";

@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { getProducts } from "@features/product/services/productService";
 import { getBanners } from "@features/home/services/bannerService";
-import { mainBannerData, carouselData, tilesData } from "@data/bannerPromotion"; // Keep as fallback type or initial state?
 import type { Product, Banner } from "@shared/types/types";
 
 type HomeData = {
@@ -28,7 +27,7 @@ export function useHomeData() {
           }),
           getBanners().catch(err => {
             console.error("Banner fetch failed, using fallback", err);
-            return { main: mainBannerData, carousel: carouselData, tiles: tilesData };
+            return { main: [], carousel: [], tiles: [] };
           })
         ]);
 

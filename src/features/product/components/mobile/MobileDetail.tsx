@@ -6,9 +6,10 @@ import type { MobileDetailProps, Product, Variant } from "@shared/types/types";
 import { formatRupiah } from "@shared/helpers/pricing";
 import { BusIcon, ChevronRightIcon, ShareIcon } from "@shared/components/icons";
 import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
-import MobileReviews from "../review/MobileReviews";
+import MobileReviews from "../../review/MobileReviews";
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
-import { productsData } from "@data/products";
+// import { productsData } from "@data/products";
+const productsData: Product[] = [];
 
 import { MobileGallery } from "@features/product/components/mobile/MobileGallery";
 import { VariantChips } from "@features/product/components/mobile/VariantChips";
@@ -19,7 +20,7 @@ import { ProductDescriptionCard } from "@shared/components/ui/ProductDescription
 
 import { discountPercent } from "@shared/helpers/pricing";
 import { motion } from "framer-motion";
-import { MobileDetailSkeleton } from "./skeleton/MobileDetailSkeleton";
+import { MobileDetailSkeleton } from "../skeleton/MobileDetailSkeleton";
 
 import { useShippingParamsForProduct } from "@features/shiping/hooks/useShippingParamsForProduct";
 import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
@@ -27,7 +28,7 @@ import type { ShippingDetailData } from "@shared/types/types";
 
 // util copy link
 import { copyProductLink } from "@shared/libs/clipboard";
-import { useProductReviews } from "../hooks/useProductReviews";
+import { useProductReviews } from "../../hooks/useProductReviews";
 import { RatingBadge } from "@features/product/review/RatingBadge";
 import { useToast } from "@shared/components/ui/Toaster";
 import { addToCart } from "@features/cart/cartService";

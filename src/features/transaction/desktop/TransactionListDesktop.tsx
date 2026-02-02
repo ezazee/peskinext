@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import type { UserTransaction } from "@data/index";
+import type { UserTransaction } from "@shared/types/types";
 
 type TxStatus = UserTransaction["status"];
 
@@ -108,7 +108,7 @@ export default function TransactionListDesktop({
 function renderActions(status: TxStatus, id: string, slug: string) {
   // Pending → Bayar Sekarang
   const base =
-  "inline-flex items-center justify-center h-5 rounded-lg px-4 text-sm font-semibold leading-none text-center transition";
+    "inline-flex items-center justify-center h-5 rounded-lg px-4 text-sm font-semibold leading-none text-center transition";
   if (status === "pending") {
     return (
       <Link

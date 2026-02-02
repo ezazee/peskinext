@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { transactionsMock } from "@data/transaction";
-import type { UserTransaction } from "@data/index";
+// import { transactionsMock } from "@data/transaction";
+import type { UserTransaction } from "@shared/types/types";
+const transactionsMock: UserTransaction[] = [];
 import AccountSidebar from "@features/account/AccountSidebar";
 import { logout } from "@features/auth/action";
 import TransactionDetailMobile from "./mobile/TransactionDetailMobile";

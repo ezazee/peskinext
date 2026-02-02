@@ -1,6 +1,6 @@
 "use client";
 
-import type { NavItem } from "@data/index";
+import type { NavItem } from "@shared/types/types";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -66,9 +66,8 @@ export const MobileFooter = ({ navItems }: { navItems: NavItem[] }) => {
             >
               <item.icon active={isActive} />
               <span
-                className={`text-xs mt-1 ${
-                  isActive ? "text-primary font-semibold" : "text-secondary"
-                }`}
+                className={`text-xs mt-1 ${isActive ? "text-primary font-semibold" : "text-secondary"
+                  }`}
               >
                 {item.name}
               </span>

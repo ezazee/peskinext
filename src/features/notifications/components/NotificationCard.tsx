@@ -1,6 +1,6 @@
 "use client";
 
-import type { NotificationItem } from "@data/notification";
+import type { NotificationItem } from "@shared/types/types";
 
 
 export function NotificationCard({ n }: { n: NotificationItem }) {

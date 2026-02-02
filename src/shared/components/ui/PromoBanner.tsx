@@ -21,8 +21,6 @@ export const PromoBanner = ({ banners }: PromoBannerProps) => {
   // The component logic relies on slides array.
   // We can just use banners directly if we adjust properties.
 
-  if (!banners || banners.length === 0) return null;
-
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.targetTouches[0].clientX;
   };
@@ -46,6 +44,8 @@ export const PromoBanner = ({ banners }: PromoBannerProps) => {
     const t = setInterval(goToNext, 5000);
     return () => clearInterval(t);
   }, [goToNext]);
+
+  if (!banners || banners.length === 0) return null;
 
   return (
     <div

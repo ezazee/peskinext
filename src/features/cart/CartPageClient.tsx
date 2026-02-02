@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "@shared/hooks/useMediaQuery";
-import type { CartData } from "@data/index";
+import type { CartData } from "@shared/types/types";
 import CartDesktopSkeleton from "./desktop/skeleton/CartDesktop.skeleton";
-import { CartDesktop } from "./DesktopCart";
-import { CartMobile } from "./MobileCart";
+import { CartDesktop } from "./desktop/CartDesktop";
+import { CartMobile } from "./mobile/CartMobile";
 import CartMobileSkeleton from "./mobile/skeleton/CartMobile.skeleton";
 
 type Props = {

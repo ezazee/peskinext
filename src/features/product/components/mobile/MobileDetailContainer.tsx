@@ -3,7 +3,7 @@
 
 import { useProductDetail } from "@features/product/hooks/useProductDetail";
 import { MobileDetailSkeleton } from "../skeleton/MobileDetailSkeleton";
-import MobileDetail from "../mobileDetail";
+import MobileDetail from "./MobileDetail";
 
 function toNum(v: number | string | undefined | null): number {
   if (v === undefined || v === null || v === "") return 0;

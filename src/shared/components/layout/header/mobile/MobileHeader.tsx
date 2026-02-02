@@ -15,7 +15,7 @@ import { getCartItemCount } from "@features/cart/cartService";
 import SearchOverlay from "../SearchOverlay";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
-import type { AddressListEntry } from "@data/index";
+import type { AddressListEntry } from "@shared/types/types";
 import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 import { startAddressSwitch } from "@features/address/addressSwitchBus";
 
@@ -46,10 +46,10 @@ export const MobileHeader = () => {
     if (user) {
       setUserProfile({
         id: user.id,
-        name: user.name,
+        name: user.name || user.email?.split("@")[0] || "User",
         email: user.email || "",
         phone: user.phone || "",
-        avatarUrl: "/images/avatar/default-avatar.png",
+        avatarUrl: user.avatarUrl || "/images/avatar/default-avatar.jpg",
       });
     } else {
       setUserProfile(null);

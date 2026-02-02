@@ -16,8 +16,8 @@ export default async function AccountPage() {
   const accountData = {
     profile: {
       id: user.id,
-      name: user.name,
-      avatarUrl: user.avatarUrl || "/images/avatar/default-avatar.jpg",
+      name: user.name || user.email?.split("@")[0] || "User",
+      avatarUrl: user.avatarUrl || "/images/avatar/default-avatar.jpg", // Ensure .jpg match other places
       email: user.email || "",
       phone: user.phone || "",
       birthDate: user.birthDate,

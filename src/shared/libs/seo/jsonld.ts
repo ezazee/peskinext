@@ -1,4 +1,4 @@
-import type { Product } from "@data/index";
+import type { Product } from "@shared/types/types";
 import { takeOgImages, computeOffer } from "./utils";
 
 /** JSON-LD untuk product */

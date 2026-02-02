@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AddressModal } from "@shared/components/ui/AddressModal";
 import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
-import type { AddressListEntry } from "@data/index";
+import type { AddressListEntry } from "@shared/types/types";
 import {
   useAddressSwitching,
   startAddressSwitch,

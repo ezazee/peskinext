@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import type { UserTransaction } from "@data/index";
+import type { UserTransaction } from "@shared/types/types";
 
 export type TxFilter = "all" | UserTransaction["status"];
 

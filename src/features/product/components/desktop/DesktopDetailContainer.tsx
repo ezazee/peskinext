@@ -3,7 +3,7 @@
 
 import { useProductDetail } from "@features/product/hooks/useProductDetail";
 import { DesktopDetailSkeleton } from "../skeleton/DesktopDetailSkeleton";
-import DesktopDetail from "../dekstopDetail";
+import DesktopDetail from "./DesktopDetail";
 
 function toNum(v: number | string | undefined | null): number {
   if (v === undefined || v === null || v === "") return 0;

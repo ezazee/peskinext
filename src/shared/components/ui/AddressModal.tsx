@@ -9,7 +9,7 @@ import {
   MapPinIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import type { AddressListEntry } from "@data/index";
+import type { AddressListEntry } from "@shared/types/types";
 
 // data entry yang lebih kaya (opsional)
 type Entry = AddressListEntry & {
@@ -106,9 +106,8 @@ export const AddressModal = ({
                   return (
                     <div
                       key={addr.id}
-                      className={`rounded-xl border p-4 transition ${
-                        active ? "bg-sky-50 border-sky-500" : "bg-white"
-                      }`}
+                      className={`rounded-xl border p-4 transition ${active ? "bg-sky-50 border-sky-500" : "bg-white"
+                        }`}
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex-1">

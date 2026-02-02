@@ -3,7 +3,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import type { UserTransaction } from "@data/index";
+import type { UserTransaction } from "@shared/types/types";
 import type { TxFilter } from "@features/transaction/TransactionFilters";
 
 /* -------------------- Types -------------------- */

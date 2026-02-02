@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import type { UserTransaction } from "@data/index";
+import type { UserTransaction } from "@shared/types/types";
 
 const currency = (n: number) =>
   `Rp ${n.toLocaleString("id-ID", { maximumFractionDigits: 0 })}`;
@@ -57,9 +57,8 @@ export default function TransactionListMobile({
 
             {/* Status badge kanan atas */}
             <span
-              className={`ml-auto text-[11px] font-medium px-2 py-0.5 rounded ${
-                STATUS_BADGE[t.status]
-              }`}
+              className={`ml-auto text-[11px] font-medium px-2 py-0.5 rounded ${STATUS_BADGE[t.status]
+                }`}
             >
               {STATUS_LABEL[t.status]}
             </span>

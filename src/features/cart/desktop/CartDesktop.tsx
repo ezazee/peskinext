@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CartData, Voucher, VoucherSelection } from "@shared/types/types";
 import { useCartState } from "@features/cart/hooks/useCartState";
-import CartItemCard from "./desktop/CartItemCard";
-import { promoVouchers, shippingVouchers } from "@data/voucher";
+import CartItemCard from "./CartItemCard";
+// import { promoVouchers, shippingVouchers } from "@data/voucher";
+const promoVouchers: Voucher[] = [];
+const shippingVouchers: Voucher[] = [];
 import { useToast } from "@shared/components/ui/Toaster";
-import SummaryCard from "./desktop/SummaryCard";
+import SummaryCard from "./SummaryCard";
 
 /* =====================================================================================
  *  Type guards & helpers (NO any)

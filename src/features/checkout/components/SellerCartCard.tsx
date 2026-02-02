@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import type { CartItem, Product, Variant } from "@shared/types/types";
-import type { ShippingOption } from "@data/shipingData";
+import type { ShippingOption } from "@shared/types/types";
 import { formatRupiah } from "@shared/helpers/pricing";
 import { getProductPrice, getProductImage } from "@shared/helpers/product";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";

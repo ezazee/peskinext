@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Review } from "@data/index";
+import type { Review } from "@shared/types/types";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { XMarkIcon } from "@shared/components/icons";
@@ -165,11 +165,10 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
                     <button
                       key={v}
                       onClick={() => setFilter(v)}
-                      className={`px-2.5 py-1 rounded-full text-xs border shrink-0 ${
-                        filter === v
+                      className={`px-2.5 py-1 rounded-full text-xs border shrink-0 ${filter === v
                           ? "bg-primary/10 text-primary border-primary"
                           : "bg-white text-gray-700"
-                      }`}
+                        }`}
                     >
                       {v === 0 ? "Semua" : `${v}★`}
                     </button>

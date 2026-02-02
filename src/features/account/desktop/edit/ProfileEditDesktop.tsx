@@ -33,7 +33,7 @@ export default function ProfileEditDesktop({ initial }: Props) {
         <div className="flex flex-col items-center">
           <Image
             src={form.avatarUrl}
-            alt={form.name}
+            alt={form.name || "User Avatar"}
             width={160}
             height={160}
             className="rounded-full object-cover w-40 h-40"

@@ -10,7 +10,7 @@
     // Build behavior
     "module": "esnext",
     "moduleResolution": "bundler",
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "incremental": true,
     "noEmit": true,
     // Strictness & ergonomics

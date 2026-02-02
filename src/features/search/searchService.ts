@@ -1,4 +1,5 @@
-import { productsData } from "@data/products";
+// import { productsData } from "@data/products";
+const productsData: Product[] = [];
 import type { Product } from "@shared/types/types";
 
 export interface SearchResult {

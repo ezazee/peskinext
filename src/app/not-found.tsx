@@ -1,6 +1,6 @@
 // File: src/app/(site)/not-found.tsx
 
-import { bottomNavItemsData } from "@data/navigation";
+import { bottomNavItemsData } from "@shared/constants/navigation";
 import { Footer } from "@shared/components/layout/footer/DekstopFooter";
 import { MobileFooter } from "@shared/components/layout/footer/MobileFooter";
 import { DesktopHeader } from "@shared/components/layout/header/desktop/DekstopHeader";

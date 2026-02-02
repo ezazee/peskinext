@@ -2,8 +2,8 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { randomUUID as nodeUUID } from "crypto";
-import type { CheckoutLine, CheckoutSession } from "@data/index";
-import { productsData } from "@data/products";
+import type { CheckoutLine, CheckoutSession } from "@shared/types/types";
+// import { productsData } from "@data/products"; // Removed
 
 // -------- helpers & types --------
 const randomId = () =>
@@ -153,15 +153,24 @@ export async function createSessionFromBuyNow(input: {
   variantId: string;
   qty: number;
 }) {
-  // Find the product
-  const product = productsData.find(p => p.id === input.productId);
+  // Fetch product from Backend API
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
+  const res = await fetch(`${backendUrl}/products/${input.productId}`, { cache: 'no-store' });
+
+  if (!res.ok) {
+    throw new Error(`Product not found: ${input.productId}`);
+  }
+
+  const product = await res.json();
 
   if (!product) {
     throw new Error(`Product not found: ${input.productId}`);
   }
 
   // Find the variant
-  const variant = product.variants.find(v => v.id === Number(input.variantId));
+  // Note: Backend might return variants in a specific structure. Adjust if needed.
+  // Assuming strict structure mapping from frontend types.
+  const variant = product.variants?.find((v: Record<string, unknown>) => String(v.id) === String(input.variantId));
 
   if (!variant) {
     throw new Error(`Variant not found: ${input.variantId}`);

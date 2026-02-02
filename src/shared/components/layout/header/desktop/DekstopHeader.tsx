@@ -19,7 +19,7 @@ import { AddressModal } from "@shared/components/ui/AddressModal";
 import { AuthAction } from "@features/auth/AuthAction";
 import { logout, getCurrentUser } from "@features/auth/action";
 import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
-import type { AddressListEntry } from "@data/index";
+import type { AddressListEntry } from "@shared/types/types";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 import {
   startAddressSwitch,
@@ -52,11 +52,10 @@ function MenuItem({
 }) {
   const content = (
     <div
-      className={`flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg transition-colors ${
-        danger
-          ? "text-red-600 hover:bg-red-50 active:bg-red-100 font-medium"
-          : "text-gray-800 hover:bg-gray-50 active:bg-gray-100"
-      }`}
+      className={`flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg transition-colors ${danger
+        ? "text-red-600 hover:bg-red-50 active:bg-red-100 font-medium"
+        : "text-gray-800 hover:bg-gray-50 active:bg-gray-100"
+        }`}
     >
       <span className="text-sm">{label}</span>
       {!danger && (
@@ -104,10 +103,10 @@ export const DesktopHeader = () => {
     if (user) {
       setUserProfile({
         id: user.id,
-        name: user.name,
+        name: user.name || user.email?.split("@")[0] || "User",
         email: user.email || "",
         phone: user.phone || "",
-        avatarUrl: "/images/avatar/default-avatar.png",
+        avatarUrl: user.avatarUrl || "/images/avatar/default-avatar.jpg",
       });
     } else {
       setUserProfile(null);
@@ -327,16 +326,16 @@ export const DesktopHeader = () => {
 
         <div className="max-w-screen-xl mx-auto px-8">
           <div className="flex items-center gap-6 py-3">
-<Link href="/" className="relative h-10 w-40 shrink-0">
-  <Image
-    src="/Logo.png"
-    alt="PE Skinpro Logo"
-    fill
-    className="object-contain"
-    sizes="(max-width: 768px) 120px, 160px"
-    priority
-  />
-</Link>
+            <Link href="/" className="relative h-10 w-40 shrink-0">
+              <Image
+                src="/Logo.png"
+                alt="PE Skinpro Logo"
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 120px, 160px"
+                priority
+              />
+            </Link>
 
 
 

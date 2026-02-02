@@ -3,7 +3,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AddressItem, AddressListEntry } from "@shared/types/types";
-import { addressBook as seedAddresses } from "@data/address";
+// import { addressBook as seedAddresses } from "@data/address"; // Removed
+const seedAddresses: AddressItem[] = [];
 
 const LS_KEY = "addr_book_v1";
 const BUS = "addrbook:changed";
@@ -208,8 +209,8 @@ export function useAddressBookLocal() {
 
       const finalAddresses = willPrimary
         ? nextAddresses.map((a) =>
-            a.id === id ? a : { ...a, isPrimary: false }
-          )
+          a.id === id ? a : { ...a, isPrimary: false }
+        )
         : nextAddresses;
 
       const nextPrimaryId = willPrimary ? id : prev.primaryId;

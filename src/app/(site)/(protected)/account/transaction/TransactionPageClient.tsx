@@ -2,8 +2,9 @@
 
 import React, { type JSX } from "react";
 import AccountSidebar from "@features/account/AccountSidebar";
-import { transactionsMock } from "@data/transaction";
-import type { UserTransaction } from "@data/index";
+// import { transactionsMock } from "@data/transaction";
+import type { UserTransaction } from "@shared/types/types";
+const transactionsMock: UserTransaction[] = [];
 import { getCurrentUser } from "@features/auth/action";
 
 import TransactionListDesktop from "@features/transaction/desktop/TransactionListDesktop";
@@ -96,8 +97,8 @@ export default function TransactionPageClient(): JSX.Element {
         group === "progress"
           ? ["pending", "paid", "shipped"]
           : group === "success"
-          ? ["delivered"]
-          : ["cancelled"]; // failed
+            ? ["delivered"]
+            : ["cancelled"]; // failed
       base = base.filter((t) => allow.includes(t.status));
     }
 

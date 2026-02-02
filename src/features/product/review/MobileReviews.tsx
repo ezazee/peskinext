@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoStar } from "react-icons/io5";
-import type { Review } from "@data/index";
+import type { Review } from "@shared/types/types";
 import ReviewsModalMobile from "./ReviewsModalMobile";
 import ReviewsModalMobileSkeleton from "./ReviewsModalMobileSkeleton";
 import { useQuery } from "@tanstack/react-query";
@@ -188,9 +188,8 @@ export default function MobileReviews({
             {top3.map((_, i) => (
               <span
                 key={i}
-                className={`h-1.5 w-1.5 rounded-full ${
-                  idx === i ? "bg-primary" : "bg-gray-300"
-                }`}
+                className={`h-1.5 w-1.5 rounded-full ${idx === i ? "bg-primary" : "bg-gray-300"
+                  }`}
               />
             ))}
           </div>

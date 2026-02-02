@@ -7,8 +7,12 @@ import type { OrderItem, UserTransaction } from "@shared/types/types";
 import { resolveUnitPrice, resolveVariantName } from "../utils/utils";
 
 // sumber data untuk Info Pengiriman
-import { addressBook } from "@data/address";
-import { shippingByTx } from "@data/shippingOrder";
+// import { addressBook } from "@data/address";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const addressBook: Array<{ id: string;[key: string]: any }> = [];
+// import { shippingByTx } from "@data/shippingOrder";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const shippingByTx: Record<string, { [key: string]: any }> = {};
 
 /* ================= helpers ================= */
 
@@ -64,8 +68,8 @@ function buildShippingInfo(tx: UserTransaction): ShippingInfo | undefined {
     meta?.courier && meta?.service
       ? `${meta.courier} ${meta.service}`
       : meta?.courier
-      ? meta.courier
-      : "";
+        ? meta.courier
+        : "";
 
   return {
     courier: courierText,
@@ -108,16 +112,16 @@ export default function TransactionDetailDesktop({
     tx.status === "pending"
       ? "Menunggu pembayaran"
       : tx.status === "paid"
-      ? "Pesanan menunggu diproses"
-      : tx.status === "shipped"
-      ? shipping?.eta
-        ? `Estimasi: ${shipping.eta}`
-        : undefined
-      : tx.status === "delivered"
-      ? shipping?.deliveredAt
-        ? `Sampai di tujuan • ${fmtDate(shipping.deliveredAt)}`
-        : "Sampai di tujuan"
-      : "Pesanan dibatalkan";
+        ? "Pesanan menunggu diproses"
+        : tx.status === "shipped"
+          ? shipping?.eta
+            ? `Estimasi: ${shipping.eta}`
+            : undefined
+          : tx.status === "delivered"
+            ? shipping?.deliveredAt
+              ? `Sampai di tujuan • ${fmtDate(shipping.deliveredAt)}`
+              : "Sampai di tujuan"
+            : "Pesanan dibatalkan";
 
   return (
     <div className="space-y-4">

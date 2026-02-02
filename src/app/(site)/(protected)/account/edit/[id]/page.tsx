@@ -21,10 +21,10 @@ export default async function EditAccountPage({ params }: PageProps) {
 
   const profile = {
     id: user.id,
-    name: user.name,
+    name: user.name || user.email?.split("@")[0] || "User",
     email: user.email || "",
     phone: user.phone || "",
-    avatarUrl: "/images/avatar/default-avatar.png",
+    avatarUrl: user.avatarUrl || "/images/avatar/default-avatar.jpg",
     birthDate: user.birthDate,
   };
 

@@ -1,4 +1,4 @@
-import type { Product, Variant } from "@data/index";
+import type { Product, Variant } from "@shared/types/types";
 
 /** Buat judul fallback dari slug */
 export function titleFromSlug(slug: string) {

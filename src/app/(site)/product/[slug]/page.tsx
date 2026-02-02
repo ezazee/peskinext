@@ -10,15 +10,18 @@ import {
   buildBreadcrumbJsonLd,
   buildProductJsonLd,
 } from "@shared/libs/seo/jsonld";
-import { productsData } from "@data/products";
-import type { Product } from "@data/index";
+// import { productsData } from "@data/products";
+const productsData: Product[] = [];
+// import type { Product } from "@data/index";
+import type { Product } from "@shared/types/types";
 
 type RouteParams = { slug: string };
 
 export const revalidate = 60;
 
 function getProductBySlug(slug: string): Product | null {
-  return productsData.find((p) => p.slug === slug) ?? null;
+  // Return null or fetch from API
+  return null;
 }
 
 /* ===== Metadata ===== */

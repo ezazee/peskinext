@@ -17,7 +17,9 @@ import OrderSummaryDesktop from "./OrderSummaryDesktop";
 
 import VoucherCard from "@features/checkout/desktop/VoucherCard";
 import VoucherModal from "@features/checkout/desktop/VoucherModal";
-import { promoVouchers, shippingVouchers } from "@data/voucher";
+// import { promoVouchers, shippingVouchers } from "@data/voucher";
+const promoVouchers: Voucher[] = [];
+const shippingVouchers: Voucher[] = [];
 import { evaluateVoucher } from "@features/cart/lib/voucher";
 import {
   redeemWithFallback,
@@ -25,11 +27,11 @@ import {
 } from "@features/cart/utils/redeemWithFallback";
 
 import ShippingModal from "./ShippingModal";
-import {
-  buildMockShippingData,
-  type ShippingDetailData,
-  type ShippingOption,
-} from "@data/shipingData";
+import type {
+  ShippingDetailData,
+  ShippingOption,
+} from "@shared/types/types";
+// import { buildMockShippingData } from "@data/shipingData";
 import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 
 /* ---------------- helpers voucher ---------------- */
@@ -186,11 +188,12 @@ export default function DesktopCheckout({
   const [openShip, setOpenShip] = useState(false);
 
   useEffect(() => {
-    const d = buildMockShippingData({
+    const d: ShippingDetailData = {
       origin: "Kota Administrasi Jakarta Pusat",
       destination: destinationLabel,
       weightGr: totalWeightGr,
-    });
+      groups: []
+    };
     setShipData(d);
   }, [destinationLabel, totalWeightGr]);
 
@@ -281,7 +284,7 @@ export default function DesktopCheckout({
       shipVoucher =
         availableShipping.find((x) => x.id === selectedVoucher.shippingId) ??
         (codeVoucher?.type === "shipping" &&
-        codeVoucher.id === selectedVoucher.shippingId
+          codeVoucher.id === selectedVoucher.shippingId
           ? codeVoucher
           : null);
     }

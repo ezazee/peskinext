@@ -306,3 +306,23 @@ export type ShippingOrder = {
   shippedAt?: string;
   deliveredAt?: string;
 };
+
+/* ================= Notification ================= */
+export type NotifKind = "transaksi" | "update" | "promo" | "info" | "feed";
+
+export type NotifStatus =
+  | "ongoing"
+  | "pending_payment"
+  | "delivered"
+  | "completed";
+
+export type NotificationItem = {
+  id: string;
+  kind: NotifKind;
+  status?: NotifStatus;
+  title: string;
+  message: string;
+  date: string;
+  badge?: string;
+  action?: { label: string; href: string };
+};

@@ -1,6 +1,6 @@
 "use client";
 
-import type { NotificationItem, NotifKind } from "@data/notification";
+import type { NotificationItem, NotifKind } from "@shared/types/types";
 import { chipCounts } from "@shared/helpers/notificationFormat";
 import clsx from "clsx";
 

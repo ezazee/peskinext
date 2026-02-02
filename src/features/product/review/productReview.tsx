@@ -4,7 +4,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { IoStar } from "react-icons/io5";
 import type { Review } from "@shared/types/types";
-import { reviewsData } from "@data/review";
+// import { reviewsData } from "@data/review";
+const reviewsData: Review[] = [];
 import { ReviewCard } from "./reviewCard";
 import { nfID, StarsClean } from "@shared/helpers/productReview";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
@@ -196,11 +197,10 @@ const ProductReview: React.FC<ProductReviewProps> = ({
             <button
               key={`p-${n}-${idx}`}
               onClick={() => setPage(n)}
-              className={`px-3 py-1.5 rounded border cursor-pointer ${
-                n === page
+              className={`px-3 py-1.5 rounded border cursor-pointer ${n === page
                   ? "bg-primary text-white border-primary"
                   : "bg-white text-base-text hover:bg-gray-50"
-              }`}
+                }`}
               aria-current={n === page ? "page" : undefined}
             >
               {n}
@@ -260,8 +260,8 @@ const ProductReview: React.FC<ProductReviewProps> = ({
               {loadingList
                 ? "Memuat ulasan…"
                 : `Menampilkan ${nfID(startIdx)}–${nfID(endIdx)} dari ${nfID(
-                    total
-                  )} ulasan`}
+                  total
+                )} ulasan`}
             </p>
           </div>
 
@@ -270,11 +270,10 @@ const ProductReview: React.FC<ProductReviewProps> = ({
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={loadingList || page === 1}
-              className={`px-3 py-1.5 rounded cursor-pointer ${
-                loadingList || page === 1
+              className={`px-3 py-1.5 rounded cursor-pointer ${loadingList || page === 1
                   ? "text-subtle-text bg-gray-100 cursor-not-allowed"
                   : "bg-white hover:bg-gray-50"
-              }`}
+                }`}
               aria-label="Halaman sebelumnya"
             >
               Prev
@@ -285,11 +284,10 @@ const ProductReview: React.FC<ProductReviewProps> = ({
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={loadingList || page === totalPages}
-              className={`px-3 py-1.5 rounded cursor-pointer ${
-                loadingList || page === totalPages
+              className={`px-3 py-1.5 rounded cursor-pointer ${loadingList || page === totalPages
                   ? "text-subtle-text bg-gray-100 cursor-not-allowed"
                   : "bg-white hover:bg-gray-50"
-              }`}
+                }`}
               aria-label="Halaman berikutnya"
             >
               Next
@@ -300,11 +298,11 @@ const ProductReview: React.FC<ProductReviewProps> = ({
         <div className="mt-4">
           {loadingList
             ? Array.from({ length: pageSize }).map((_, i) => (
-                <ReviewCardSkeleton key={`sk-${i}`} />
-              ))
+              <ReviewCardSkeleton key={`sk-${i}`} />
+            ))
             : pageItems.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
+              <ReviewCard key={review.id} review={review} />
+            ))}
         </div>
       </div>
     </div>

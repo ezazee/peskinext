@@ -9,7 +9,7 @@ import {
   BoltIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import type { ShippingDetailData, ShippingOption } from "@data/shipingData";
+import type { ShippingDetailData, ShippingOption } from "@shared/types/types";
 import { formatRupiah } from "@shared/helpers/pricing";
 
 type Props = {

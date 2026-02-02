@@ -1,5 +1,5 @@
 "use client";
-import type { Review } from "@data/index";
+import type { Review } from "@shared/types/types";
 import { useMemo } from "react";
 import { IoStar } from "react-icons/io5";
 

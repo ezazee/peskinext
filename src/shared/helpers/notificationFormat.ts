@@ -1,6 +1,6 @@
 // @shared/helpers/notificationFormat.ts
 
-import type { NotificationItem, NotifKind } from "@data/notification";
+import type { NotificationItem, NotifKind } from "@shared/types/types";
 
 export function formatDayHeading(d: Date): string {
   const today = new Date();

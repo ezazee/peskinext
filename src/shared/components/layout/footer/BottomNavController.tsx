@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { MobileFooter } from "@shared/components/layout/footer/MobileFooter";
-import { bottomNavItemsData } from "@data/navigation";
+import { bottomNavItemsData } from "@shared/constants/navigation";
 
 const HIDE_PATTERNS: RegExp[] = [
   /^\/notification(\/|$)/,

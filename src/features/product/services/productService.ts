@@ -1,4 +1,4 @@
-import { Product } from "@shared/types/types";
+import type { Product } from "@shared/types/types";
 
 const BACKEND_URL = "http://127.0.0.1:5000/api/v1";
 
@@ -29,6 +29,7 @@ interface FormattedBackendProduct {
         // other backend fields if needed
     }[];
     weightGr: number;
+    soldCount?: number;
 }
 
 export async function getProducts(): Promise<Product[]> {

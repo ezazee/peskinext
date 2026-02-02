@@ -5,7 +5,7 @@ import { useTransition } from "react";
 import type { Product } from "@shared/types/types";
 import { useMediaQuery } from "@shared/hooks/useMediaQuery";
 import { useProducts } from "@features/product/hooks/useProducts";
-import { productsData as mockProducts } from "@data/products";
+// import { productsData as mockProducts } from "@data/products";
 import type {
   ProductTypeFilter,
   SortKey,
@@ -142,7 +142,7 @@ export default function BundleProductPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-6">
-      <PromoBanner />
+      <PromoBanner banners={[]} />
 
       {/* Mobile topbar dengan tombol Filter */}
       {!isDesktop && (

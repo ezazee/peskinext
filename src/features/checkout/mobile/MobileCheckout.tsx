@@ -19,11 +19,13 @@ import SellerCartCard from "../components/SellerCartCard";
 import OrderSummaryMobile from "./OrderSummaryMobile";
 
 import ShippingModal from "@features/checkout/desktop/ShippingModal";
-import { buildMockShippingData } from "@data/shipingData";
-import type { ShippingDetailData, ShippingOption } from "@data/shipingData";
+// import { buildMockShippingData } from "@data/shipingData"; // Removed
+import type { ShippingDetailData, ShippingOption } from "@shared/types/types";
 
 import VoucherModal from "@features/checkout/desktop/VoucherModal";
-import { promoVouchers, shippingVouchers } from "@data/voucher";
+// import { promoVouchers, shippingVouchers } from "@data/voucher";
+const promoVouchers: Voucher[] = [];
+const shippingVouchers: Voucher[] = [];
 import { evaluateVoucher } from "@features/cart/lib/voucher";
 import {
   redeemWithFallback,
@@ -178,13 +180,7 @@ export default function MobileCheckout({
 
   /* shipping */
   const [openShipping, setOpenShipping] = useState(false);
-  const [shippingData, setShippingData] = useState<ShippingDetailData>(() =>
-    buildMockShippingData({
-      origin: "Gudang Pusat",
-      destination: addressLabel,
-      weightGr: 800,
-    })
-  );
+  const [shippingData, setShippingData] = useState<ShippingDetailData>({ origin: "Gudang Pusat", destination: addressLabel, weightGr: 800, groups: [] });
   const [shippingCurrent, setShippingCurrent] = useState<ShippingOption | null>(
     null
   );
@@ -192,13 +188,7 @@ export default function MobileCheckout({
 
   useEffect(() => {
     setShippingLoading(true);
-    setShippingData(
-      buildMockShippingData({
-        origin: "Gudang Pusat",
-        destination: addressLabel,
-        weightGr: 800,
-      })
-    );
+    setShippingData({ origin: "Gudang Pusat", destination: addressLabel, weightGr: 800, groups: [] });
     const t = setTimeout(() => {
       const flat = shippingData.groups.flatMap((g) => g.items);
       const cheapest = flat.length
@@ -253,7 +243,7 @@ export default function MobileCheckout({
       ship =
         availableShipping.find((x) => x.id === selectedVoucher.shippingId) ??
         (codeVoucher?.type === "shipping" &&
-        codeVoucher.id === selectedVoucher.shippingId
+          codeVoucher.id === selectedVoucher.shippingId
           ? codeVoucher
           : null);
     }

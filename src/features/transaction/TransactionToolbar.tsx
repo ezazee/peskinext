@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import type { TxFilter } from "./TransactionFilters";
-import type { UserTransaction } from "@data/index";
+import type { UserTransaction } from "@shared/types/types";
 
 type Props = {
   data: ReadonlyArray<UserTransaction>;
