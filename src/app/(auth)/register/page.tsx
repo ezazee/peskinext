@@ -22,26 +22,6 @@ const RegisterPage = () => {
         </header>
         <main className="flex-grow p-4">
           <RegisterForm />
-          <div className="flex items-center my-6">
-            <div className="flex-grow border-t border-border-color"></div>
-            <span className="mx-4 text-xs text-subtle-text">atau</span>
-            <div className="flex-grow border-t border-border-color"></div>
-          </div>
-          <button className="w-full flex items-center justify-center gap-3 border border-border-color font-semibold text-base-text py-3 rounded-lg hover:bg-tertiary transition-colors">
-            <GoogleIcon />
-            Google
-          </button>
-          <p className="text-center text-xs text-subtle-text mt-6">
-            Dengan mendaftar, saya menyetujui <br />
-            <a href="#" className="font-bold text-primary">
-              Syarat & Ketentuan
-            </a>{" "}
-            serta{" "}
-            <a href="#" className="font-bold text-primary">
-              Kebijakan Privasi
-            </a>
-            .
-          </p>
         </main>
       </div>
 
@@ -81,26 +61,11 @@ const RegisterPage = () => {
               </p>
             </div>
             <div className="space-y-4">
-              <button className="w-full flex items-center justify-center gap-3 border border-border-color font-semibold text-base-text py-3 rounded-lg hover:bg-tertiary transition-colors">
-                <GoogleIcon />
-                Google
-              </button>
-              <div className="flex items-center">
-                <div className="flex-grow border-t border-border-color"></div>
-                <span className="mx-4 text-xs text-subtle-text">atau</span>
-                <div className="flex-grow border-t border-border-color"></div>
-              </div>
               <RegisterForm />
             </div>
           </div>
         </div>
       </div>
-      <footer className="hidden md:block absolute bottom-4 text-center w-full text-sm text-subtle-text">
-        © 2009-2025, PT PE Skinpro.{" "}
-        <a href="#" className="font-bold text-primary hover:underline">
-          PE Skinpro Care
-        </a>
-      </footer>
     </>
   );
 };

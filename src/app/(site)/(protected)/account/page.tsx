@@ -19,7 +19,7 @@ export default async function AccountPage() {
       name: user.name || user.email?.split("@")[0] || "User",
       avatarUrl: user.avatarUrl || "/images/avatar/default-avatar.jpg", // Ensure .jpg match other places
       email: user.email || "",
-      phone: user.phone || "",
+      phone: user.no_telp || user.phone || "",
       birthDate: user.birthDate,
     },
   };

@@ -95,19 +95,27 @@ async function apiLogin(emailOrPhone: string, password: string) {
 }
 
 async function apiRegister(data: Record<string, unknown>): Promise<{ success: boolean; user?: Record<string, unknown>; error?: string }> {
-  // TODO: Implement real register if needed, for now focusing on Login/OAuth
-  // Assuming register via Google handles creation.
-  // Manual register implementation:
   try {
-    // Map frontend fields to backend expected fields
-    // Frontend: email, password, name, phone
-    // Backend: name, email, password, phone_number? (Need to check Swagger)
-    // For now sticking to simple stub or basic fetch
-    // BUT strict requirement is to "Connecting Frontend Session to Real Backend" for OAuth.
-    // Let's keep stub for manual register unless requested, to minimize breakage risk.
-    return { success: true, user: { id: "new-user-" + Date.now(), avatarUrl: "/images/avatar/default-avatar.png", ...data } };
+    // console.log("DEBUG: Registering with data:", data);
+    const res = await fetch(`${API_URL}/api/v1/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      return { success: false, error: err.message || "Registrasi gagal" };
+    }
+
+    const result = await res.json();
+    return { success: true, user: result.user };
   } catch (e) {
-    return { success: false, error: "Register failed" };
+    console.error("Register Error:", e);
+    return { success: false, error: "Gagal menghubungkan ke server" };
   }
 }
 
@@ -228,10 +236,11 @@ export async function register(formData: FormData): Promise<RegisterResult> {
   try {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    const name = formData.get("name") as string;
+    const firstName = formData.get("firstName") as string;
+    const lastName = formData.get("lastName") as string;
     const phone = formData.get("phone") as string;
 
-    if (!email || !password || !name) {
+    if (!email || !password || !firstName || !lastName || !phone) {
       return {
         success: false,
         error: "Semua field harus diisi",
@@ -256,10 +265,15 @@ export async function register(formData: FormData): Promise<RegisterResult> {
     }
 
     // Register user
+    // Mapping to backend expectation: name = firstName + " " + lastName
+    // OR passing individually if backend supports it.
+    // For now, based on UserModel having first_name/last_name, we pass them.
     const result = await apiRegister({
       email,
       password,
-      name,
+      first_name: firstName,
+      last_name: lastName,
+      name: `${firstName} ${lastName}`, // Fallback for 'name' field
       phone,
     });
 
