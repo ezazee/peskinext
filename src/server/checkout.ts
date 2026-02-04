@@ -155,8 +155,8 @@ export async function createSessionFromBuyNow(input: {
   qty: number;
 }) {
   // Fetch product from Backend API
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
-  const res = await fetch(`${backendUrl}/products/${input.productId}`, { cache: 'no-store' });
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
+  const res = await fetch(`${API_URL}/products/${input.productId}`, { cache: 'no-store' });
 
   if (!res.ok) {
     throw new Error(`Product not found: ${input.productId}`);

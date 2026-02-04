@@ -58,7 +58,7 @@ function evaluateVoucher(v: Omit<Voucher, "enabled">, ctx: CartCtxDTO) {
   return { eligible: true };
 }
 
-const BACKEND_URL = "http://127.0.0.1:5000/api/v1";
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
 
 export async function POST(req: Request) {
   try {

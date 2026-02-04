@@ -39,12 +39,12 @@ function parseSessionToken(token: string): { userId: string; accessToken: string
 }
 
 // === API HELPERS ===
-const API_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 async function fetchUserById(id: string, token: string) {
   try {
     // console.log("DEBUG: fetchUserById - Fetching:", `${API_URL}/api/v1/user/me`);
-    const res = await fetch(`${API_URL}/api/v1/user/me`, {
+    const res = await fetch(`${API_URL}/user/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

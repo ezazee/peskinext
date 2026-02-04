@@ -26,8 +26,8 @@ export default function SocialLoginButtons() {
                 <button
                     type="button"
                     onClick={() => {
-                        const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
-                        window.location.href = `${backendUrl}/api/v1/auth/google`;
+                        const googleUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000"}/api/v1/auth/google`;
+                        window.location.href = googleUrl;
                     }}
                     className="cursor-pointer w-full flex items-center justify-center gap-3 border border-gray-300 font-semibold text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 transition-colors bg-white shadow-sm"
                 >

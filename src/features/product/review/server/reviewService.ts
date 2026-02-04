@@ -12,7 +12,7 @@ export type ReviewsResponse = {
   pageSize: number;
 };
 
-const BACKEND_URL = "http://127.0.0.1:5000/api/v1";
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
 
 interface BackendReview {
   id: number;
