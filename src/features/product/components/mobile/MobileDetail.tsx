@@ -188,8 +188,8 @@ export default function MobileDetail({
             </div>
           </div>
 
-          {/* Shipping Info */}
-          {cheapest && (
+          {/* Shipping Info - Hanya tampil jika user login */}
+          {isLoggedIn && cheapest && (
             <motion.div
               className="mt-4"
               initial={{ opacity: 0, y: 6 }}

@@ -30,16 +30,16 @@ const RegisterPage = () => {
         {/* Kolom Kiri - Ilustrasi */}
         <div className="w-1/2 flex flex-col items-center text-center p-8">
           <Image
-            src="https://placehold.co/400x300/E8F5FA/1D9AD2?text=Ilustrasi+Toko"
-            alt="Ilustrasi Toko"
+            src="/images/auth/ICON-PESkinproid.png"
+            alt="PE Skinpro ID"
             width={400}
             height={300}
           />
           <h2 className="text-2xl font-bold text-base-text mt-6">
-            Jual Beli Mudah Hanya di PE Skinpro
+            Your Daily Skin Routine
           </h2>
           <p className="text-subtle-text mt-2">
-            Gabung dan rasakan kemudahan bertransaksi di PE Skinpro
+            Simple, aman, dan mudah untuk digunakan
           </p>
         </div>
 

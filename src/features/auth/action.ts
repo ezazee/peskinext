@@ -96,7 +96,6 @@ async function apiLogin(emailOrPhone: string, password: string) {
 
 async function apiRegister(data: Record<string, unknown>): Promise<{ success: boolean; user?: Record<string, unknown>; error?: string }> {
   try {
-    // console.log("DEBUG: Registering with data:", data);
     const res = await fetch(`${API_URL}/api/v1/register`, {
       method: "POST",
       headers: {
@@ -151,10 +150,8 @@ export async function getCurrentUser() {
 
     // Return user (backend already filters password usually, but safe to destructure)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
-
-    console.log("DEBUG: getCurrentUser - Raw images from backend:", user.images);
-    console.log("DEBUG: getCurrentUser - Mapped Data:", { ...userWithoutPassword, avatarUrl: user.images });
 
     // Ensure avatarUrl exists (backend might just return 'avatar')
     return {

@@ -243,7 +243,7 @@ export const Footer = () => {
         </div>
         <div className="border-t border-border-color">
           <div className="max-w-screen-xl mx-auto px-8 py-4 flex justify-between items-center text-sm text-subtle-text">
-            <p>© 2009 - 2025, PT PE Skinpro. All Rights Reserved.</p>
+            <p>©{new Date().getFullYear()}, PT Kilau Berlian Nusantara.</p>
             <div className="flex items-center gap-2">
               <button className="bg-primary text-white font-semibold px-4 py-1 rounded-full">
                 Indonesia
@@ -278,7 +278,7 @@ export const Footer = () => {
         ))}
         <div className="py-6 text-center">
           <p className="text-sm text-subtle-text">
-            © 2009 - 2025, PT PE Skinpro.
+            ©{new Date().getFullYear()}, PT Kilau Berlian Nusantara
           </p>
         </div>
       </div>

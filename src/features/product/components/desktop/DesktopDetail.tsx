@@ -22,6 +22,8 @@ import { RatingBadge } from "@features/product/review/RatingBadge";
 import { addToCart } from "@features/cart/cartService";
 import { useToast } from "@shared/components/ui/Toaster";
 import { AuthModal } from "@features/auth/components/AuthModal";
+import { getCurrentUser } from "@features/auth/action";
+import { useEffect } from "react";
 
 export default function DesktopDetail({
   product,
@@ -29,6 +31,16 @@ export default function DesktopDetail({
 }: DesktopDetailProps) {
   const toast = useToast();
   const [open, setOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check auth status
+  useEffect(() => {
+    async function checkAuth() {
+      const user = await getCurrentUser();
+      setIsLoggedIn(!!user);
+    }
+    checkAuth();
+  }, []);
 
   // Guard: if variants empty, create a dummy
   const defaultVariant: Variant = product.variants?.[0] || {
@@ -148,12 +160,14 @@ export default function DesktopDetail({
               />
             </div>
 
-            {/* Shipping Info */}
-            <ShippingInfo
-              origin={origin}
-              cheapest={cheapest}
-              onOpenModal={() => setOpen(true)}
-            />
+            {/* Shipping Info - Only if logged in */}
+            {isLoggedIn && (
+              <ShippingInfo
+                origin={origin}
+                cheapest={cheapest}
+                onOpenModal={() => setOpen(true)}
+              />
+            )}
           </section>
 
           {/* Modal ongkir */}
