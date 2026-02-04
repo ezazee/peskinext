@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { resetPasswordAction } from "@/features/auth/action";
 
 export default function ResetPasswordPage() {

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { forgotPasswordAction } from "@/features/auth/action";
 
 export default function ForgotPasswordPage() {
