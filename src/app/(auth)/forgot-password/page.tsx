@@ -24,7 +24,8 @@ export default function ForgotPasswordPage() {
             } else {
                 setError(result.error || "Gagal mengirim email");
             }
-        } catch (_err) {
+        } catch (err) {
+            console.error(err);
             setError("Terjadi kesalahan. Silakan coba lagi.");
         } finally {
             setIsLoading(false);

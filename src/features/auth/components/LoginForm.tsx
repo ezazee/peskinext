@@ -59,7 +59,8 @@ export default function LoginForm() {
       } else {
         setError(result.error || "Login gagal");
       }
-    } catch (_err) {
+    } catch (err) {
+      console.error(err);
       setError("Terjadi kesalahan saat login");
     } finally {
       setIsLoading(false);

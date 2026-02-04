@@ -113,7 +113,8 @@ export async function createSessionFromCart(
             price: Number(variant?.price || 0),
           };
         });
-    } catch (_error) {
+    } catch (error) {
+      console.error(error);
       throw new Error("Invalid cart data");
     }
   }

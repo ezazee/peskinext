@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { resetPasswordAction } from "@/features/auth/action";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const token = searchParams.get("token");
@@ -42,7 +42,8 @@ export default function ResetPasswordPage() {
             } else {
                 setError(result.error || "Gagal mereset password");
             }
-        } catch (_err) {
+        } catch (err) {
+            console.error(err);
             setError("Terjadi kesalahan. Silakan coba lagi.");
         } finally {
             setIsLoading(false);
@@ -63,7 +64,7 @@ export default function ResetPasswordPage() {
         );
     }
 
-    const Content = () => (
+    const FormContent = () => (
         <div className="w-full h-full md:h-auto bg-white p-8 md:rounded-lg md:border md:border-gray-200 md:shadow-xl relative hidden-scrollbar md:block">
             <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Reset Password</h1>
@@ -184,16 +185,24 @@ export default function ResetPasswordPage() {
                     <div className="w-9" /> {/* Spacer */}
                 </header>
                 <div className="p-4 pt-10">
-                    <Content />
+                    <FormContent />
                 </div>
             </div>
 
             {/* Desktop View */}
             <div className="hidden md:flex w-full min-h-screen items-center justify-center relative bg-gray-50">
                 <div className="w-full max-w-md z-10 mx-4">
-                    <Content />
+                    <FormContent />
                 </div>
             </div>
         </>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>}>
+            <ResetPasswordContent />
+        </Suspense>
     );
 }

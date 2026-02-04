@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@features/auth/action";
-import NewAddressClient from "./NewAddressClient";
+import AddressCreateClient from "@features/address/AddressCreateClient";
 
-export default async function AddressNewPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NewAddressPage() {
   // Check if user is logged in
   const user = await getCurrentUser();
 
@@ -11,5 +13,5 @@ export default async function AddressNewPage() {
     redirect("/login?callbackUrl=/account/address/new");
   }
 
-  return <NewAddressClient />;
+  return <AddressCreateClient />;
 }

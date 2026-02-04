@@ -23,7 +23,7 @@ export default function BundleProductPage() {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const { data: fetchedProducts, isLoading: isQueryLoading } = useProducts();
-  const allProducts = (fetchedProducts || []) as ReadonlyArray<Product>;
+  const allProducts = React.useMemo(() => (fetchedProducts || []) as ReadonlyArray<Product>, [fetchedProducts]);
 
   // filters
   const [selectedCats, setSelectedCats] = React.useState<ReadonlyArray<string>>(

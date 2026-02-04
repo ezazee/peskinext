@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getProducts } from "@features/product/services/productService";
+// import { getProducts } from "@features/product/services/productService";
 import { getBanners } from "@features/home/services/bannerService";
 import type { Product, Banner } from "@shared/types/types";
 

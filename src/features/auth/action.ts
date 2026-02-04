@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import crypto from "crypto";
+
 
 // Types
 export type LoginResult = {
@@ -17,11 +17,7 @@ export type RegisterResult = {
 };
 
 // Helper to generate session token
-function generateSessionToken(userId: string): string {
-  const timestamp = Date.now();
-  const random = crypto.randomBytes(16).toString("hex");
-  return `${userId}:${timestamp}:${random}`;
-}
+
 
 // Helper to parse session token
 function parseSessionToken(token: string): { userId: string; accessToken: string } | null {
@@ -198,7 +194,6 @@ export async function getCurrentUser() {
 
     // Return user (backend already filters password usually, but safe to destructure)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
 
     // Ensure avatarUrl exists (backend might just return 'avatar')
@@ -330,7 +325,7 @@ export async function register(formData: FormData): Promise<RegisterResult> {
     }
 
     // Auto login after registration with 5 hour expiry
-    const userId = String(result.user?.id ?? "");
+    // const userId = String(result.user?.id ?? "");
     // NOTE: apiRegister currently is a STUB so it doesn't return a token.
     // Real flow should return a token upon register or require explicit login.
     // For now, let's assume we redirect to login or handle it.

@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@features/auth/action";
 import AccountClient from "@features/account/AccountClient";
 
+export const dynamic = "force-dynamic";
+
 // SSR-safe, tidak ada any. Hanya pasang wrapper client.
 export default async function AccountPage() {
   // Check if user is logged in

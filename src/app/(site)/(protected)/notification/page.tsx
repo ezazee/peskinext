@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@features/auth/action";
 import NotificationsEntry from "@features/notifications/NotificationsEntry";
 
-export default async function Page() {
+export const dynamic = "force-dynamic";
+
+export default async function NotificationPage() {
   // Check if user is logged in
   const user = await getCurrentUser();
 

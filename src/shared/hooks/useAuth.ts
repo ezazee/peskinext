@@ -66,15 +66,15 @@ export function useAuth() {
  * }
  * ```
  */
-export function useProtectedRoute() {
-  const PROTECTED_ROUTES = [
-    "/account",
-    "/account/transaction",
-    "/cart",
-    "/notification",
-    "/checkout",
-  ];
+const PROTECTED_ROUTES = [
+  "/account",
+  "/account/transaction",
+  "/cart",
+  "/notification",
+  "/checkout",
+];
 
+export function useProtectedRoute() {
   const isProtectedRoute = useCallback((path: string) => {
     return PROTECTED_ROUTES.some(route =>
       path === route || path.startsWith(route + "/")

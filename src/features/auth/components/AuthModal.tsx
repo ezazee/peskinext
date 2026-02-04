@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
+// import Link from "next/link";
 import { XMarkIcon } from "@shared/components/icons";
 import LoginFormWrapper from "./LoginFormWrapper";
 import RegisterForm from "./RegisterForm";
@@ -12,6 +12,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialView?: "login" | "register";
+  onLoginSuccess?: () => void;
 }
 
 export const AuthModal = ({

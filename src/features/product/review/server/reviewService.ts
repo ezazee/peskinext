@@ -26,7 +26,7 @@ interface BackendReview {
 }
 
 export async function getReviewsByKey({
-  sku,
+  // sku, // unused
   slug,
   page = 1,
   pageSize = 10,

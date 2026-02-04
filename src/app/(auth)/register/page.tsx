@@ -1,7 +1,7 @@
 // File: src/app/(auth)/register/page.tsx
 "use client";
 
-import { ArrowLeftIcon, GoogleIcon } from "@shared/components/icons";
+import { ArrowLeftIcon } from "@shared/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 import RegisterForm from "@/features/auth/components/RegisterForm";

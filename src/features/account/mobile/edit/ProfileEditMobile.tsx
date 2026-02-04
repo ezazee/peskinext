@@ -9,7 +9,7 @@ type Props = { initial: AccountProfile };
 
 import { uploadAvatar, updateProfile } from "../../action";
 import { useToast } from "@shared/components/ui/Toaster";
-import { Camera } from "lucide-react"; // Make sure to install/import lucide-react if available, or use text
+// import { Camera } from "lucide-react";
 
 export default function ProfileEditMobile({ initial }: Props) {
   const router = useRouter();

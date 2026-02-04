@@ -59,10 +59,12 @@ export async function uploadAvatar(formData: FormData): Promise<UploadResult> {
 
 export type UpdateProfileResult = {
     success: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     user?: any;
     error?: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function updateProfile(data: any): Promise<UpdateProfileResult> {
     try {
         const token = await getToken();

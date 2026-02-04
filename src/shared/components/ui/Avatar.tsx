@@ -31,6 +31,7 @@ function getInitials(name: string): string {
 /**
  * Always return purple color for consistency
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getColorFromName(_name: string): string {
   return "bg-purple-500";
 }

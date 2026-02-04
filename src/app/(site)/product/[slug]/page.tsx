@@ -19,6 +19,7 @@ type RouteParams = { slug: string };
 
 export const revalidate = 60;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getProductBySlug(slug: string): Product | null {
   // Return null or fetch from API
   return null;

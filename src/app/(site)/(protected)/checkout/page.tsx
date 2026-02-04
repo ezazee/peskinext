@@ -3,6 +3,8 @@ import { getCurrentUser } from "@features/auth/action";
 import CheckoutClient from "@features/checkout/CheckoutClient";
 import { getSession } from "@server/checkout";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page({
   searchParams,
 }: {
@@ -25,7 +27,8 @@ export default async function Page({
   if (sessionId) {
     try {
       checkoutSession = await getSession(sessionId);
-    } catch (_error) {
+    } catch (error) {
+      console.error(error);
       // If session not found or expired, redirect to cart
       redirect("/cart?error=session_expired");
     }

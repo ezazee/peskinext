@@ -45,7 +45,8 @@ export default function RegisterForm() {
       } else {
         setError(result.error || "Registrasi gagal");
       }
-    } catch (_err) {
+    } catch (err) {
+      console.error(err);
       setError("Terjadi kesalahan saat registrasi");
     } finally {
       setIsLoading(false);
