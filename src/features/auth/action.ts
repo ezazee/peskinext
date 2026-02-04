@@ -118,6 +118,54 @@ async function apiRegister(data: Record<string, unknown>): Promise<{ success: bo
   }
 }
 
+async function apiForgotPassword(email: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+      cache: "no-store",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return { success: false, error: data.message || "Gagal mengirim email" };
+    }
+
+    return { success: true, message: data.message };
+  } catch (e) {
+    console.error("Forgot Password Error:", e);
+    return { success: false, error: "Gagal menghubungkan ke server" };
+  }
+}
+
+async function apiResetPassword(token: string, password: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token, password }),
+      cache: "no-store",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return { success: false, error: data.message || "Gagal reset password" };
+    }
+
+    return { success: true, message: data.message };
+  } catch (e) {
+    console.error("Reset Password Error:", e);
+    return { success: false, error: "Gagal menghubungkan ke server" };
+  }
+}
+
 
 // Get current user from session
 export async function getCurrentUser() {
@@ -401,4 +449,24 @@ export async function setSession(token: string, uid: string): Promise<void> {
     maxAge: FIVE_HOURS,
     path: "/",
   });
+}
+
+// Forgot Password Action
+export async function forgotPasswordAction(formData: FormData): Promise<{ success: boolean; message?: string; error?: string }> {
+  const email = formData.get("email") as string;
+  if (!email) return { success: false, error: "Email wajib diisi" };
+
+  return await apiForgotPassword(email);
+}
+
+// Reset Password Action
+export async function resetPasswordAction(token: string, formData: FormData): Promise<{ success: boolean; message?: string; error?: string }> {
+  const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+
+  if (!password || !confirmPassword) return { success: false, error: "Password wajib diisi" };
+  if (password !== confirmPassword) return { success: false, error: "Password tidak sama" };
+  if (password.length < 6) return { success: false, error: "Password minimal 6 karakter" };
+
+  return await apiResetPassword(token, password);
 }

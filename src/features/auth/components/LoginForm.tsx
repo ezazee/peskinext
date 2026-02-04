@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { login } from "../action";
 
 export default function LoginForm() {
@@ -132,9 +133,9 @@ export default function LoginForm() {
       </div>
 
       <div className="text-right">
-        <a href="#" className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+        <Link href="/forgot-password" className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
           Lupa password?
-        </a>
+        </Link>
       </div>
 
       <button
