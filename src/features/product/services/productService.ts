@@ -1,6 +1,6 @@
 import type { Product } from "@shared/types/types";
 
-const BACKEND_URL = "http://127.0.0.1:5000/api/v1";
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
 
 // Matches Backend's formatProductToFrontend
 interface FormattedBackendProduct {
