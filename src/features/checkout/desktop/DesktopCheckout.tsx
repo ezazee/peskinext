@@ -188,6 +188,11 @@ export default function DesktopCheckout({
   const [openShip, setOpenShip] = useState(false);
 
   useEffect(() => {
+    if (!primary) {
+      setShipData(null);
+      return;
+    }
+
     const d: ShippingDetailData = {
       origin: "Kota Administrasi Jakarta Pusat",
       destination: destinationLabel,
@@ -195,7 +200,7 @@ export default function DesktopCheckout({
       groups: []
     };
     setShipData(d);
-  }, [destinationLabel, totalWeightGr]);
+  }, [destinationLabel, totalWeightGr, primary]);
 
   useEffect(() => {
     if (!shipData) return;

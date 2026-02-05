@@ -50,18 +50,27 @@ export default function MobileDetail({
   const [open, setOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Check auth status
   useEffect(() => {
     async function checkAuth() {
       const user = await getCurrentUser();
       setIsLoggedIn(!!user);
+      setCurrentUser(user);
     }
     checkAuth();
   }, []);
 
   // state
-  const [variant, setVariant] = useState<Variant>(product.variants[0]);
+  const [variant, setVariant] = useState<Variant>(product.variants?.[0] || {
+    id: 0,
+    name: "Standard",
+    price: Number((product.price || "0").replace(/\D+/g, "")) || 0,
+    oldPrice: product.oldPrice ? Number((product.oldPrice || "0").replace(/\D+/g, "")) : 0,
+    stock: 0,
+  } as unknown as Variant);
+
   const [qty, setQty] = useState(1);
 
   const images = product.galleryImages?.length
@@ -81,7 +90,20 @@ export default function MobileDetail({
     variant as VariantForShipping,
     qty
   );
-  const { data: quotes } = useShippingQuotes(Boolean(params), params ?? null);
+
+  const itemsForShipping = useMemo(() => ([{
+    name: product.name,
+    variant_name: variant.name,
+    price: variant.price,
+    weight: params.weightGr,
+    quantity: qty,
+    variant: { name: variant.name }
+  }]), [product.name, variant.name, variant.price, params.weightGr, qty]);
+
+  // Check if user has address
+  const hasAddress = currentUser?.addresses && currentUser.addresses.length > 0;
+
+  const { data: quotes } = useShippingQuotes(Boolean(params) && !!currentUser?.id && hasAddress, params ?? null, currentUser?.id, itemsForShipping);
 
   const cheapest = useMemo(() => {
     if (!quotes) return null;
@@ -189,32 +211,41 @@ export default function MobileDetail({
           </div>
 
           {/* Shipping Info - Hanya tampil jika user login */}
-          {isLoggedIn && cheapest && (
-            <motion.div
-              className="mt-4"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <motion.button
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setOpen(true)}
-                aria-label="Lihat detail kurir dan opsi pengiriman"
-                className="w-full cursor-pointer flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white shadow-sm"
+          {/* Shipping Info - Hanya tampil jika user login */}
+          {isLoggedIn && (
+            hasAddress && cheapest ? (
+              <motion.div
+                className="mt-4"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <BusIcon className="w-5 h-5 text-gray-500" />
-                  <div className="flex items-baseline gap-2 min-w-0">
-                    <span className="font-semibold text-xs text-gray-800 whitespace-nowrap">
-                      Ongkir mulai {formatRupiah(cheapest.price)}
-                    </span>
-                    <span className="text-xs text-gray-500 truncate">
-                      Est. tiba {cheapest.eta}
-                    </span>
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setOpen(true)}
+                  aria-label="Lihat detail kurir dan opsi pengiriman"
+                  className="w-full cursor-pointer flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white shadow-sm"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <BusIcon className="w-5 h-5 text-gray-500" />
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      <span className="font-semibold text-xs text-gray-800 whitespace-nowrap">
+                        Ongkir mulai {formatRupiah(cheapest.price)}
+                      </span>
+                      <span className="text-xs text-gray-500 truncate">
+                        Est. tiba {cheapest.eta}
+                      </span>
+                    </div>
                   </div>
+                  <ChevronRightIcon className="w-4 h-4 text-gray-500 shrink-0" />
+                </motion.button>
+              </motion.div>
+            ) : (
+              !hasAddress && (
+                <div className="mt-4 bg-yellow-50 text-yellow-800 p-3 rounded-lg text-sm flex items-center gap-2">
+                  <span>⚠️ Harap isi alamat pengiriman terlebih dahulu.</span>
                 </div>
-                <ChevronRightIcon className="w-4 h-4 text-gray-500 shrink-0" />
-              </motion.button>
-            </motion.div>
+              )
+            )
           )}
 
           <div className="h-px bg-gray-100 my-4" />

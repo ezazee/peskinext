@@ -187,6 +187,12 @@ export default function MobileCheckout({
   const [shippingLoading, setShippingLoading] = useState(true);
 
   useEffect(() => {
+    if (!primary) {
+      setShippingCurrent(null);
+      setShippingLoading(false);
+      return;
+    }
+
     setShippingLoading(true);
     setShippingData({ origin: "Gudang Pusat", destination: addressLabel, weightGr: 800, groups: [] });
     const t = setTimeout(() => {

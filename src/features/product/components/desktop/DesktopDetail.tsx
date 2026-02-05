@@ -32,12 +32,14 @@ export default function DesktopDetail({
   const toast = useToast();
   const [open, setOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Check auth status
   useEffect(() => {
     async function checkAuth() {
       const user = await getCurrentUser();
       setIsLoggedIn(!!user);
+      setCurrentUser(user);
     }
     checkAuth();
   }, []);
@@ -46,10 +48,10 @@ export default function DesktopDetail({
   const defaultVariant: Variant = product.variants?.[0] || {
     id: 0,
     name: "Standard",
-    price: product.price, // string
-    oldPrice: product.oldPrice, // string
+    price: Number((product.price || "0").replace(/\D+/g, "")) || 0, // Ensure number
+    oldPrice: product.oldPrice ? Number((product.oldPrice || "0").replace(/\D+/g, "")) : 0,
     stock: 0,
-  } as unknown as Variant; // Temporary casting to satisfy types if needed, ideally fix types
+  } as unknown as Variant;
 
   const [variant, setVariant] = useState<Variant>(defaultVariant);
   const [selectedShippingId, setSelectedShippingId] = useState<
@@ -64,9 +66,19 @@ export default function DesktopDetail({
     estimateQty
   );
 
+  const itemsForShipping = useMemo(() => ([{
+    name: product.name,
+    variant_name: variant.name,
+    price: variant.price,
+    weight: params.weightGr,
+    quantity: estimateQty,
+    variant: { name: variant.name } // Match Expected structure in hook/backend
+  }]), [product.name, variant.name, variant.price, params.weightGr, estimateQty]);
 
   // prefetch quotes supaya ShippingInfo bisa dapat "cheapest"
-  const { data: quotes } = useShippingQuotes(Boolean(params), params ?? null);
+  // Only fetch if logged in AND has address
+  const hasAddress = currentUser?.addresses && currentUser.addresses.length > 0;
+  const { data: quotes } = useShippingQuotes(Boolean(params) && !!currentUser?.id && hasAddress, params ?? null, currentUser?.id, itemsForShipping);
 
   const cheapest = useMemo(() => {
     if (!quotes) return null;
@@ -166,6 +178,7 @@ export default function DesktopDetail({
                 origin={origin}
                 cheapest={cheapest}
                 onOpenModal={() => setOpen(true)}
+                hasAddress={hasAddress}
               />
             )}
           </section>
