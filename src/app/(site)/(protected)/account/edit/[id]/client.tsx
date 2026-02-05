@@ -34,7 +34,7 @@ export default function EditAccountClient({ exists, profile }: Props) {
   }
 
   return (
-    <div className="container mx-auto px-3 md:px-6 py-4">
+    <div className="w-full">
       {loading ? (
         isMobile ? (
           <MobileSkeleton />

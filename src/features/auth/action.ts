@@ -39,12 +39,15 @@ function parseSessionToken(token: string): { userId: string; accessToken: string
 }
 
 // === API HELPERS ===
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+// === API HELPERS ===
+// Handle potential /api/v1 suffix in env var to prevent double path
+const rawUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = rawUrl.endsWith("/api/v1") ? rawUrl.slice(0, -"/api/v1".length) : rawUrl;
 
 async function fetchUserById(id: string, token: string) {
   try {
     // console.log("DEBUG: fetchUserById - Fetching:", `${API_URL}/api/v1/user/me`);
-    const res = await fetch(`${API_URL}/user/me`, {
+    const res = await fetch(`${API_URL}/api/v1/user/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -58,7 +61,7 @@ async function fetchUserById(id: string, token: string) {
       return null;
     }
     const data = await res.json();
-    // console.log("DEBUG: fetchUserById - Success:", data);
+    console.log("DEBUG: fetchUserById - Raw User Data:", JSON.stringify(data.user, null, 2));
     return data.user;
   } catch (error) {
     console.error("Error fetching user:", error);

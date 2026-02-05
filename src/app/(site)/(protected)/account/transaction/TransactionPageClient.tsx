@@ -1,11 +1,11 @@
 "use client";
 
 import React, { type JSX } from "react";
-import AccountSidebar from "@features/account/AccountSidebar";
+// import AccountSidebar from "@features/account/AccountSidebar"; // Removed
+
 // import { transactionsMock } from "@data/transaction";
 import type { UserTransaction } from "@shared/types/types";
 const transactionsMock: UserTransaction[] = [];
-import { getCurrentUser } from "@features/auth/action";
 
 import TransactionListDesktop from "@features/transaction/desktop/TransactionListDesktop";
 import TransactionListMobile from "@features/transaction/mobile/TransactionListMobile";
@@ -25,35 +25,8 @@ import type { TxFilter } from "@features/transaction/TransactionFilters";
 type DateFilter = MobileDateFilter | DesktopDateFilter;
 
 export default function TransactionPageClient(): JSX.Element {
-  const [profile, setProfile] = React.useState<{
-    name: string;
-    email: string;
-    avatarUrl: string;
-  }>({
-    name: "Guest",
-    email: "",
-    avatarUrl: "/images/avatar/default-avatar.png",
-  });
-
   const [hydrated, setHydrated] = React.useState(false);
-
-  React.useEffect(() => {
-    setHydrated(true);
-
-    // Fetch user profile
-    async function loadProfile() {
-      const user = await getCurrentUser();
-      if (user) {
-        setProfile({
-          name: user.name,
-          email: user.email || "",
-          avatarUrl: "/images/avatar/default-avatar.png",
-        });
-      }
-    }
-
-    loadProfile();
-  }, []);
+  React.useEffect(() => setHydrated(true), []);
 
   /* ====== State filters ====== */
   // desktop pills group
@@ -137,68 +110,56 @@ export default function TransactionPageClient(): JSX.Element {
     setDate({ kind: "all" });
   }
 
+  // handleReset ...
+
   return (
-    <div className="container mx-auto px-3 md:px-6 py-4">
-      <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] items-start gap-4 md:gap-6">
-        {/* Sidebar (desktop) */}
+    <div className="w-full">
+      {/* MOBILE Filter (pills + bottom-sheets) */}
+      <div className="mb-3 block md:hidden">
+        <TransactionFiltersMobile
+          data={transactionsMock}
+          status={status}
+          onStatusChange={setStatus}
+          product={product}
+          onProductChange={setProduct}
+          date={date}
+          onDateChange={setDate}
+        />
+      </div>
+
+      <main className="p-0">
+        {/* DESKTOP Filter */}
         <div className="hidden md:block">
-          <AccountSidebar
-            profile={{
-              name: profile.name,
-              email: profile.email,
-              avatarUrl: profile.avatarUrl,
-            }}
-            active="transaction"
+          <TransactionFiltersDesktop
+            data={transactionsMock}
+            product={product}
+            onProductChange={setProduct}
+            search={search}
+            onSearchChange={setSearch}
+            date={date}
+            onDateChange={setDate}
+            group={group}
+            onGroupChange={setGroup}
+            onReset={handleReset}
           />
         </div>
 
-        <main className="p-0">
-          {/* DESKTOP Filter */}
-          <div className="hidden md:block">
-            <TransactionFiltersDesktop
-              data={transactionsMock}
-              product={product}
-              onProductChange={setProduct}
-              search={search}
-              onSearchChange={setSearch}
-              date={date}
-              onDateChange={setDate}
-              group={group}
-              onGroupChange={setGroup}
-              onReset={handleReset}
-            />
-          </div>
-
-          {/* MOBILE Filter (pills + bottom-sheets) */}
-          <div className="mb-3 block md:hidden">
-            <TransactionFiltersMobile
-              data={transactionsMock}
-              status={status}
-              onStatusChange={setStatus}
-              product={product}
-              onProductChange={setProduct}
-              date={date}
-              onDateChange={setDate}
-            />
-          </div>
-
-          {/* LIST */}
-          <div className="hidden md:block">
-            {!hydrated ? (
-              <TransactionSkeletonDesktop />
-            ) : (
-              <TransactionListDesktop data={[...filtered]} />
-            )}
-          </div>
-          <div className="block md:hidden">
-            {!hydrated ? (
-              <TransactionSkeletonMobile />
-            ) : (
-              <TransactionListMobile data={[...filtered]} />
-            )}
-          </div>
-        </main>
-      </div>
+        {/* LIST */}
+        <div className="hidden md:block">
+          {!hydrated ? (
+            <TransactionSkeletonDesktop />
+          ) : (
+            <TransactionListDesktop data={[...filtered]} />
+          )}
+        </div>
+        <div className="block md:hidden">
+          {!hydrated ? (
+            <TransactionSkeletonMobile />
+          ) : (
+            <TransactionListMobile data={[...filtered]} />
+          )}
+        </div>
+      </main>
     </div>
   );
 }

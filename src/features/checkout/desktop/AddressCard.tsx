@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AddressModal } from "@shared/components/ui/AddressModal";
 import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 import type { AddressListEntry } from "@shared/types/types";
@@ -18,6 +19,7 @@ type OptionForModal = AddressListEntry & {
 };
 
 export default function AddressCard() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
@@ -94,9 +96,10 @@ export default function AddressCard() {
           selectPrimary(id);
           setOpen(false);
         }}
-        onAddNew={() =>
-          alert("Tambah alamat belum diimplementasi pada mock ini.")
-        }
+        onAddNew={() => {
+          setOpen(false);
+          router.push("/account/address/new");
+        }}
       />
     </div>
   );

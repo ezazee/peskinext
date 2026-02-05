@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 import type { AddressItem } from "@shared/types/types";
 
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
@@ -9,22 +8,30 @@ import { useMediaQuery } from "@shared/hooks/useMediaQuery";
 import AddressListSkeletonDesktop from "./skeleton/AddressListSkeletonDesktop";
 import AddressListMobile from "./mobile/AddressListMobile";
 import AddressListDesktop from "./desktop/AddressListDesktop";
+import { getAddresses, deleteAddress, setDefaultAddress } from "./action";
+import { useToast } from "@shared/components/ui/Toaster";
 
-type ProfileData = {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl: string;
-};
 
-export default function AddressListClient({ profile }: { profile: ProfileData }) {
+export default function AddressListClient() {
   const isMobile = useMediaQuery("(max-width: 767px)");
-  const { addresses, primary, selectPrimary } = useAddressBookLocal();
+  const toast = useToast();
 
   const [loading, setLoading] = React.useState<boolean>(true);
+  const [addresses, setAddresses] = React.useState<AddressItem[]>([]);
+  const [primaryId, setPrimaryId] = React.useState<string | null>(null);
+
+  // Fetch addresses on mount
   React.useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(t);
+    async function fetchAddresses() {
+      const result = await getAddresses();
+      if (result.success && result.data) {
+        setAddresses(result.data);
+        const primary = result.data.find(a => a.isPrimary);
+        setPrimaryId(primary?.id || result.data[0]?.id || null);
+      }
+      setLoading(false);
+    }
+    fetchAddresses();
   }, []);
 
   const items = React.useMemo<ReadonlyArray<AddressItem>>(
@@ -33,13 +40,42 @@ export default function AddressListClient({ profile }: { profile: ProfileData })
     [addresses]
   );
 
-  const handleRemove = () => {
-    alert("Hapus alamat belum diimplementasi pada mock ini.");
+  const handleSetPrimary = async (id: string) => {
+    const result = await setDefaultAddress(id);
+    if (result.success) {
+      // Update local state
+      setAddresses(prev => prev.map(a => ({
+        ...a,
+        isPrimary: a.id === id
+      })));
+      setPrimaryId(id);
+      toast.success("Alamat utama berhasil diubah");
+      // Notify other components
+      window.dispatchEvent(new Event('addressUpdated'));
+    } else {
+      toast.error(result.error || "Gagal mengubah alamat utama");
+    }
+  };
+
+  const handleRemove = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus alamat ini?")) return;
+
+    const result = await deleteAddress(id);
+    if (result.success) {
+      setAddresses(prev => prev.filter(a => a.id !== id));
+      if (primaryId === id) {
+        const remaining = addresses.filter(a => a.id !== id);
+        setPrimaryId(remaining[0]?.id || null);
+      }
+      toast.success("Alamat berhasil dihapus");
+    } else {
+      toast.error(result.error || "Gagal menghapus alamat");
+    }
   };
 
   if (loading) {
     return (
-      <div className="container mx-auto px-3 md:px-6 py-4">
+      <div className="w-full">
         {isMobile ? (
           <AddressListSkeletonMobile />
         ) : (
@@ -50,24 +86,22 @@ export default function AddressListClient({ profile }: { profile: ProfileData })
   }
 
   return (
-    <div className="container mx-auto px-3 md:px-6 py-4">
+    <div className="w-full">
       {isMobile ? (
         <>
           <AddressListMobile
             items={items}
-            primaryId={primary?.id ?? null}
-            onSetPrimary={selectPrimary}
+            primaryId={primaryId}
+            onSetPrimary={handleSetPrimary}
             onRemove={handleRemove}
           />
         </>
       ) : (
-        // Desktop: header ada di dalam komponen Desktop agar tidak dobel
         <AddressListDesktop
           items={items}
-          primaryId={primary?.id ?? null}
-          onSetPrimary={selectPrimary}
+          primaryId={primaryId}
+          onSetPrimary={handleSetPrimary}
           onRemove={handleRemove}
-          profile={profile}
         />
       )}
     </div>

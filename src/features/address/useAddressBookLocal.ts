@@ -34,6 +34,7 @@ function isAddressItem(a: unknown): a is AddressItem {
     typeof o.phone === "string" &&
     typeof o.line1 === "string" &&
     typeof o.city === "string" &&
+    typeof o.district === "string" && // Validation
     typeof o.province === "string" &&
     typeof o.postalCode === "string" &&
     typeof o.isPrimary === "boolean"
@@ -100,7 +101,7 @@ function toListEntry(a: AddressItem): AddressListEntry {
   return {
     id: a.id,
     label: a.label,
-    address: `${a.line1}, ${a.city}, ${a.province} ${a.postalCode}`,
+    address: `${a.line1}, Kec. ${a.district}, ${a.city}, ${a.province} ${a.postalCode}`,
     isPrimary: a.isPrimary,
   };
 }

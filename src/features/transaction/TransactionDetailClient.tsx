@@ -64,8 +64,6 @@ export default function TransactionDetailClient({
               email: profile.email,
               avatarUrl: profile.avatarUrl,
             }}
-            active="transaction"
-            onLogout={handleLogout}
           />
         </div>
 

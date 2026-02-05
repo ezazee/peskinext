@@ -2,19 +2,19 @@
 
 import React, { type JSX } from "react";
 import { motion } from "framer-motion";
-import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
-import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 import { useMediaQuery } from "@shared/hooks/useMediaQuery";
 import type { AddressItem } from "@shared/types/types";
 import AddressCreateDesktopSkeleton from "./skeleton/AddressCreateDesktopSkeleton";
 import AddressCreateMobileSkeleton from "./skeleton/AddressCreateMobileSkeleton";
 import AddressCreateDesktop from "./desktop/AddressCreateDesktop";
 import AddressCreateMobile from "./mobile/AddressCreateMobile";
+import { createAddress } from "./action";
+import { useToast } from "@shared/components/ui/Toaster";
 
 export default function AddressCreateClient(): JSX.Element {
   const router = useRouter();
-  const { addAddress, selectPrimary } = useAddressBookLocal();
+  const toast = useToast();
 
   // breakpoint md (>=768px) = desktop
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -23,21 +23,21 @@ export default function AddressCreateClient(): JSX.Element {
   React.useEffect(() => setHydrated(true), []);
 
   const [saving, setSaving] = React.useState<boolean>(false);
-  const [form, setForm] = React.useState<AddressItem>({
-    id: "",
+  const [form, setForm] = React.useState<Omit<AddressItem, "id">>({
     label: "",
     recipient: "",
     phone: "",
     line1: "",
-    city: "",
     province: "",
+    district: "",
+    city: "",
     postalCode: "",
     isPrimary: false,
   });
 
-  function onChange<K extends keyof AddressItem>(
+  function onChange<K extends keyof Omit<AddressItem, "id">>(
     k: K,
-    v: AddressItem[K]
+    v: Omit<AddressItem, "id">[K]
   ): void {
     setForm((p) => ({ ...p, [k]: v }));
   }
@@ -46,16 +46,19 @@ export default function AddressCreateClient(): JSX.Element {
     e.preventDefault();
     setSaving(true);
 
-    const newId = `addr_${nanoid(8)}`;
-    const payload: AddressItem = { ...form, id: newId };
-
-    // simulasi I/O
-    await new Promise((r) => setTimeout(r, 450));
-    addAddress(payload);
-    if (payload.isPrimary) selectPrimary(newId);
+    const result = await createAddress(form);
 
     setSaving(false);
-    router.push("/account/address");
+
+    if (result.success) {
+      toast.success("Alamat berhasil ditambahkan");
+      // Notify other components
+      window.dispatchEvent(new Event('addressUpdated'));
+      router.push("/account/address");
+      router.refresh();
+    } else {
+      toast.error(result.error || "Gagal menambahkan alamat");
+    }
   }
 
   const onCancel = (): void => router.back();
@@ -78,17 +81,17 @@ export default function AddressCreateClient(): JSX.Element {
     >
       {isDesktop ? (
         <AddressCreateDesktop
-          form={form}
+          form={form as AddressItem}
           saving={saving}
-          onChange={onChange}
+          onChange={onChange as <K extends keyof AddressItem>(k: K, v: AddressItem[K]) => void}
           onSubmit={onSubmit}
           onCancel={onCancel}
         />
       ) : (
         <AddressCreateMobile
-          form={form}
+          form={form as AddressItem}
           saving={saving}
-          onChange={onChange}
+          onChange={onChange as <K extends keyof AddressItem>(k: K, v: AddressItem[K]) => void}
           onSubmit={onSubmit}
           onCancel={onCancel}
         />

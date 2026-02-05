@@ -3,36 +3,41 @@
 import React, { type JSX } from "react";
 import { motion } from "framer-motion";
 import { useMediaQuery } from "@shared/hooks/useMediaQuery";
-import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
 import type { AddressItem } from "@shared/types/types";
 import AddressEditDesktopSkeleton from "./skeleton/AddressEditDesktopSkeleton";
 import AddressEditMobileSkeleton from "./skeleton/AddressEditMobileSkeleton";
 import AddressEditDesktop from "./desktop/AddressEditDesktop";
 import AddressEditMobile from "./mobile/AddressEditMobile";
-
-
+import { getAddresses, updateAddress } from "./action";
+import { useToast } from "@shared/components/ui/Toaster";
+import { useRouter } from "next/navigation";
 
 type Props = { id: string };
 
 export default function AddressEditClient({ id }: Props): JSX.Element {
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const { addresses, updateAddress, selectPrimary } = useAddressBookLocal();
+  const toast = useToast();
+  const router = useRouter();
 
   const [hydrated, setHydrated] = React.useState<boolean>(false);
+  const [loading, setLoading] = React.useState<boolean>(true);
+  const [form, setForm] = React.useState<AddressItem | undefined>(undefined);
+  const [saving, setSaving] = React.useState<boolean>(false);
+
   React.useEffect(() => setHydrated(true), []);
 
-  const current = React.useMemo<AddressItem | undefined>(
-    () => addresses.find((a) => a.id === id),
-    [addresses, id]
-  );
-
-  // local form state diisi dari current
-  const [form, setForm] = React.useState<AddressItem | undefined>(undefined);
+  // Fetch address data
   React.useEffect(() => {
-    if (current && !form) setForm(current);
-  }, [current, form]);
-
-  const [saving, setSaving] = React.useState<boolean>(false);
+    async function fetchAddress() {
+      const result = await getAddresses();
+      if (result.success && result.data) {
+        const current = result.data.find((a) => a.id === id);
+        setForm(current);
+      }
+      setLoading(false);
+    }
+    fetchAddress();
+  }, [id]);
 
   function onChange<K extends keyof AddressItem>(
     k: K,
@@ -46,20 +51,25 @@ export default function AddressEditClient({ id }: Props): JSX.Element {
     if (!form) return;
     setSaving(true);
 
-    // simulasi I/O
-    await new Promise((r) => setTimeout(r, 400));
-
-    updateAddress(form.id, form); // asumsi hook punya ini
-    if (form.isPrimary) selectPrimary(form.id);
+    const result = await updateAddress(form.id, form);
 
     setSaving(false);
-    history.back();
+
+    if (result.success) {
+      toast.success("Alamat berhasil diperbarui");
+      // Notify other components
+      window.dispatchEvent(new Event('addressUpdated'));
+      router.push("/account/address");
+      router.refresh();
+    } else {
+      toast.error(result.error || "Gagal memperbarui alamat");
+    }
   }
 
   const onCancel = (): void => history.back();
 
   // SKELETON
-  if (!hydrated) {
+  if (!hydrated || loading) {
     return isDesktop ? (
       <AddressEditDesktopSkeleton />
     ) : (
@@ -67,8 +77,8 @@ export default function AddressEditClient({ id }: Props): JSX.Element {
     );
   }
 
-  // Not found state (misal id tidak ada di local store)
-  if (!current || !form) {
+  // Not found state
+  if (!form) {
     return (
       <div className="w-full rounded-lg border p-4 text-sm">
         Alamat tidak ditemukan.{" "}

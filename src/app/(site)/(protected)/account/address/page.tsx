@@ -11,12 +11,5 @@ export default async function AddressListPage() {
     redirect("/login?callbackUrl=/account/address");
   }
 
-  const profile = {
-    id: user.id,
-    name: user.name,
-    email: user.email || "",
-    avatarUrl: user.avatarUrl || "/images/avatar/default-avatar.jpg",
-  };
-
-  return <AddressListClient profile={profile} />;
+  return <AddressListClient />;
 }

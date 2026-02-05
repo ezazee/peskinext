@@ -1,67 +1,45 @@
 "use client";
 
 import React, { type JSX } from "react";
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import type { AddressItem } from "@shared/types/types";
-import { CheckCircle2 } from "lucide-react";
-import AccountSidebar from "@features/account/AccountSidebar";
-import { logout } from "@features/auth/action";
 
-type ProfileData = {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl: string;
-};
 
 export default function AddressListDesktop({
   items,
   primaryId,
   onSetPrimary,
   onRemove,
-  profile,
 }: {
   items: ReadonlyArray<AddressItem>;
   primaryId: string | null;
   onSetPrimary: (id: string) => void;
   onRemove: (id: string) => void;
-  profile: ProfileData;
 }): JSX.Element {
 
-  const handleLogout = async () => {
-    if (confirm("Apakah Anda yakin ingin keluar?")) {
-      await logout();
-      // Force full page reload untuk update header
-      window.location.href = "/";
-    }
-  };
-  return (
-    <div className="grid grid-cols-[260px_1fr] gap-6 items-stretch">
-      {/* Sidebar kiri */}
-      <AccountSidebar
-        profile={{
-          name: profile.name,
-          email: profile.email,
-          avatarUrl: profile.avatarUrl,
-        }}
-        onLogout={handleLogout}
-        active="address"
-        />
+  // handleLogout removed as it was only used by Sidebar
 
+  return (
+
+    <>
       {/* Panel kanan */}
-      <main className="bg-white rounded-xl border p-6 h-full">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold">List Alamat</h1>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 h-full">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Alamat Saya</h1>
+            <p className="text-sm text-gray-500 mt-1">Kelola alamat pengiriman Anda</p>
+          </div>
           <Link
             href="/account/address/new"
-            className="h-10 inline-flex items-center justify-center rounded-lg bg-primary px-4 text-white text-sm font-semibold hover:opacity-90"
+            className="h-10 inline-flex items-center justify-center rounded-xl bg-primary px-5 text-white text-sm font-semibold hover:bg-primary/90 shadow-md shadow-primary/20 transition-all active:scale-95"
           >
-            Tambah Alamat
+            + Tambah Alamat
           </Link>
         </div>
 
-        <div className="mt-4 grid gap-3">
+        <div className="space-y-4">
           <AnimatePresence>
             {items.map((a) => {
               const isPrimary = a.id === primaryId || a.isPrimary;
@@ -69,104 +47,82 @@ export default function AddressListDesktop({
               return (
                 <motion.div
                   key={a.id}
-                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  initial={{ opacity: 0, y: 10, scale: 0.99 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  transition={{ duration: 0.2 }}
                   className={[
-                    "rounded-xl border p-4",
-                    "grid grid-cols-[1fr_auto] gap-4",
+                    "rounded-2xl border p-5 transition-colors",
                     isPrimary
-                      ? "bg-sky-100/80 border-sky-300 ring-1 ring-sky-200" // << aktif: bg sky
-                      : "border-gray-100",
+                      ? "bg-sky-50/50 border-sky-200 ring-1 ring-sky-100" // active
+                      : "bg-white border-gray-100 hover:border-gray-200",
                   ].join(" ")}
                 >
-                  {/* Kiri: info alamat */}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <div className="font-semibold truncate">{a.label}</div>
-                      {isPrimary && (
-                        <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-white/80 text-sky-700 ring-1 ring-sky-300">
-                          <CheckCircle2 size={12} />
-                          Utama
-                        </span>
+                  <div className="flex items-start justify-between gap-4">
+                    {/* Left: Info */}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-gray-900">{a.label}</span>
+                        {isPrimary && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-100 text-sky-700 text-xs font-semibold">
+                            <CheckCircle2 size={13} strokeWidth={2.5} />
+                            Utama
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-sm font-medium text-gray-900">
+                        {a.recipient} <span className="text-gray-400 mx-1">|</span> {a.phone}
+                      </div>
+
+                      <div className="text-sm text-gray-600 leading-relaxed max-w-xl">
+                        {a.line1}, Kec. {a.district}, {a.city}, {a.province}, {a.postalCode}
+                      </div>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/account/address/edit/${a.id}`}
+                          className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                        >
+                          Ubah
+                        </Link>
+                        <button
+                          onClick={() => onRemove(a.id)}
+                          className="px-4 py-2 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+
+                      {!isPrimary && (
+                        <button
+                          onClick={() => onSetPrimary(a.id)}
+                          className="text-xs font-semibold text-primary hover:underline px-4"
+                        >
+                          Set Utama
+                        </button>
                       )}
                     </div>
-
-                    <div className="text-sm text-gray-700 mt-0.5">
-                      {a.recipient} · {a.phone}
-                    </div>
-
-                    <div className="text-sm text-gray-600 truncate">
-                      {a.line1}, {a.city}, {a.province} {a.postalCode}
-                    </div>
-                  </div>
-
-                  {/* Kanan: aksi (presisi tinggi & rata kanan) */}
-                  <div
-                    className={[
-                      "flex gap-2",
-                      "justify-self-end", // pastikan nempel ke kanan grid
-                      "self-center", // vertikal center per kartu
-                      "shrink-0", // cegah menciut
-                    ].join(" ")}
-                  >
-                    {!isPrimary && (
-                      <button
-                        onClick={() => onSetPrimary(a.id)}
-                        className={btnClass("ghost")}
-                      >
-                        Jadikan Utama
-                      </button>
-                    )}
-
-                    <Link
-                      href={`/account/address/edit/${a.id}`}
-                      className={btnClass("ghost")}
-                    >
-                      Edit
-                    </Link>
-
-                    <button
-                      onClick={() => onRemove(a.id)}
-                      className={btnClass("danger")}
-                    >
-                      Hapus
-                    </button>
                   </div>
                 </motion.div>
               );
             })}
           </AnimatePresence>
+
+          {items.length === 0 && (
+            <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+              <p className="text-gray-500 text-sm">Belum ada alamat tersimpan.</p>
+            </div>
+          )}
         </div>
-      </main>
-    </div>
+      </div >
+    </>
   );
 }
 
 /* ================= helpers ================ */
 
-type BtnVariant = "ghost" | "danger";
 
-function btnClass(variant: BtnVariant): string {
-  const base =
-    // tinggi & layout konsisten (presisi)
-    "inline-flex items-center justify-center h-9 px-3 rounded-lg text-sm font-medium leading-none";
-  const focus =
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-sky-300";
-  const ring = "shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]";
-
-  if (variant === "danger") {
-    return [
-      base,
-      focus,
-      "border border-red-200 text-red-600 hover:bg-red-50",
-      ring,
-    ].join(" ");
-  }
-
-  // ghost (outlined netral)
-  return [base, focus, "border border-gray-200 hover:bg-gray-50", ring].join(
-    " "
-  );
-}

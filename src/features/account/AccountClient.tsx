@@ -19,7 +19,7 @@ export default function AccountClient({ data }: { data: AccountData }) {
   }, []);
 
   return (
-    <div className="container mx-auto px-3 md:px-6 py-4">
+    <div className="w-full">
       {isMobile ? (
         loading ? (
           <AccountMobileSkeleton />

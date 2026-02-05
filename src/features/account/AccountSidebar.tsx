@@ -1,73 +1,87 @@
 "use client";
 
 import Link from "next/link";
-import { useSelectedLayoutSegments } from "next/navigation";
+import { useSelectedLayoutSegments, useRouter } from "next/navigation";
 import { IconByName } from "@features/account/IconMap";
 import { Avatar } from "@shared/components/ui/Avatar";
+import { logout } from "@features/auth/action";
 
 export type AccountSidebarActive = "account" | "address" | "transaction" | "logout";
 
 export type AccountSidebarProps = {
   profile: { name: string; email: string; avatarUrl: string };
-  active?: AccountSidebarActive;
-  onLogout?: () => void;
+  // active prop is deprecated, use segments auto-detection
 };
 
-export default function AccountSidebar({ profile, active, onLogout }: AccountSidebarProps) {
+export default function AccountSidebar({ profile }: AccountSidebarProps) {
+  const router = useRouter();
   const segments = useSelectedLayoutSegments();
-  const second = segments.at(1);
+  const second = segments.at(0); // /account/[second] -> account (dashboard is null or undefined?)
+  // Actually segments of /account/address is ['address']
+  // /account is [] or null
 
-  const autoActive: AccountSidebarActive = (() => {
-    if (second === "address") return "address";
-    if (second === "transaction") return "transaction";
-    return "account";
-  })();
+  const current = second || "account";
 
-  const current: AccountSidebarActive = active ?? autoActive;
+  const handleLogout = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    if (confirm("Apakah Anda yakin ingin keluar?")) {
+      await logout();
+      router.push("/");
+      router.refresh();
+    }
+  };
 
   return (
-    <aside className="bg-white border rounded-xl p-4 h-fit">
-      <Link href="/account" className="block">
-        <div className="flex items-center gap-3 mb-6">
+    <aside className="w-full bg-white border border-gray-100/50 rounded-2xl shadow-sm p-5 h-fit sticky top-24">
+      <Link href="/account" className="block group">
+        <div className="flex items-center gap-4 mb-8 p-3 rounded-xl hover:bg-gray-50 transition-colors">
           <Avatar
             key={profile.avatarUrl}
             name={profile.name}
             avatarUrl={profile.avatarUrl}
             size="lg"
+            className="ring-2 ring-offset-2 ring-gray-100"
           />
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm truncate">{profile.name}</div>
-            <div className="text-xs text-gray-500 truncate">{profile.email}</div>
+            <div className="font-bold text-gray-900 truncate group-hover:text-primary transition-colors">
+              {profile.name}
+            </div>
+            <div className="text-xs text-gray-500 truncate font-medium">
+              {profile.email}
+            </div>
           </div>
         </div>
       </Link>
 
-      <nav className="space-y-1">
+      <nav className="space-y-1.5">
         <SideRow
-          label="Akun"
+          label="Dashboard"
           href="/account"
           icon={<IconByName name="user" />}
           active={current === "account"}
         />
         <SideRow
-          label="List Alamat"
+          label="Alamat Saya"
           href="/account/address"
           icon={<IconByName name="address" />}
           active={current === "address"}
         />
         <SideRow
-          label="Transaksi"
-          href="/account/transaction"         // ← perbaiki ejaan path
+          label="Riwayat Pesanan"
+          href="/account/transaction"
           icon={<IconByName name="orderHistory" />}
           active={current === "transaction"}
         />
-        <SideRow
-          label="Logout"
-          href="#"
-          icon={<IconByName name="logout" />}
-          danger
-          onClick={onLogout}
-        />
+
+        <div className="pt-4 mt-4 border-t border-gray-100">
+          <SideRow
+            label="Keluar"
+            href="#"
+            icon={<IconByName name="logout" />}
+            danger
+            onClick={handleLogout}
+          />
+        </div>
       </nav>
     </aside>
   );
@@ -88,10 +102,10 @@ function SideRow({
   danger?: boolean;
   onClick?: () => void;
 }) {
-  const base = "flex items-center gap-2 px-3 py-2.5 rounded-md text-sm transition-colors";
-  const normalColor = "text-gray-700 hover:bg-gray-50";
-  const activeColor = "bg-primary text-white hover:bg-primary/90 shadow-sm";
-  const dangerColor = "text-red-600 hover:bg-red-50";
+  const base = "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200";
+  const normalColor = "text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1";
+  const activeColor = "bg-primary text-white shadow-md shadow-primary/20";
+  const dangerColor = "text-red-600 hover:bg-red-50 hover:text-red-700";
   const colorClass = danger ? dangerColor : active ? activeColor : normalColor;
 
   if (onClick) {
@@ -102,15 +116,23 @@ function SideRow({
         className={`${base} ${colorClass} w-full text-left`}
         aria-current={active ? "page" : undefined}
       >
-        {icon}
+        <span className={active ? "text-white" : danger ? "text-red-500" : "text-gray-400 group-hover:text-gray-600"}>
+          {icon}
+        </span>
         <span>{label}</span>
       </button>
     );
   }
 
   return (
-    <Link href={href} className={`${base} ${colorClass}`} aria-current={active ? "page" : undefined}>
-      {icon}
+    <Link
+      href={href}
+      className={`${base} ${colorClass} group`}
+      aria-current={active ? "page" : undefined}
+    >
+      <span className={active ? "text-white" : "text-gray-400 group-hover:text-gray-600"}>
+        {icon}
+      </span>
       <span>{label}</span>
     </Link>
   );

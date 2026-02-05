@@ -16,39 +16,89 @@ export default function AddressCreateDesktop({
   onSubmit,
   onCancel,
 }: Props): JSX.Element {
-  return (
-    <form onSubmit={onSubmit} className="w-full">
-      <h1 className="text-base md:text-lg font-semibold">Tambah Alamat</h1>
 
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Label">
+  return (
+    <form onSubmit={onSubmit} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-4xl">
+      <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-6">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Tambah Alamat Baru</h1>
+          <p className="text-sm text-gray-500 mt-1">Lengkapi detail alamat pengiriman Anda</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+        <div className="col-span-1 md:col-span-2">
+          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4 flex items-center gap-2">
+            <span className="w-1 h-4 bg-primary rounded-full"></span>
+            Informasi Penerima
+          </h3>
+        </div>
+
+        <Field label="Label Alamat">
           <Input
             value={form.label}
             onChange={(v) => onChange("label", v)}
-            placeholder="Rumah / Kantor / Gudang"
+            placeholder="Contoh: Rumah, Kantor, Kost"
           />
         </Field>
-        <Field label="Penerima">
+
+        <div className="hidden md:block"></div> {/* Spacer */}
+
+        <Field label="Nama Penerima">
           <Input
             value={form.recipient}
             onChange={(v) => onChange("recipient", v)}
+            placeholder="Nama lengkap penerima"
           />
         </Field>
 
-        <Field label="No. HP">
-          <Input value={form.phone} onChange={(v) => onChange("phone", v)} />
-        </Field>
-        <Field label="Alamat (Jalan/Detail)">
-          <Input value={form.line1} onChange={(v) => onChange("line1", v)} />
+        <Field label="Nomor Handphone">
+          <Input
+            value={form.phone}
+            onChange={(v) => onChange("phone", v)}
+            placeholder="Contoh: 08123456789"
+          />
         </Field>
 
-        <Field label="Kota/Kabupaten">
-          <Input value={form.city} onChange={(v) => onChange("city", v)} />
-        </Field>
+        <div className="col-span-1 md:col-span-2 mt-2">
+          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4 flex items-center gap-2">
+            <span className="w-1 h-4 bg-primary rounded-full"></span>
+            Detail Lokasi
+          </h3>
+        </div>
+
+        <div className="col-span-1 md:col-span-2">
+          <Field label="Alamat Lengkap">
+            <textarea
+              value={form.line1}
+              onChange={(e) => onChange("line1", e.target.value)}
+              placeholder="Nama jalan, nomor rumah, RT/RW, patokan..."
+              className="w-full h-24 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium transition-all focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 data-[focus]:bg-white outline-none resize-none"
+            />
+          </Field>
+        </div>
+
         <Field label="Provinsi">
           <Input
             value={form.province}
             onChange={(v) => onChange("province", v)}
+            placeholder="Contoh: Jawa Barat"
+          />
+        </Field>
+
+        <Field label="Kecamatan">
+          <Input
+            value={form.district}
+            onChange={(v) => onChange("district", v)}
+            placeholder="Contoh: Coblong"
+          />
+        </Field>
+
+        <Field label="Kota/Kabupaten">
+          <Input
+            value={form.city}
+            onChange={(v) => onChange("city", v)}
+            placeholder="Contoh: Bandung"
           />
         </Field>
 
@@ -56,32 +106,35 @@ export default function AddressCreateDesktop({
           <Input
             value={form.postalCode}
             onChange={(v) => onChange("postalCode", v)}
+            placeholder="5 digit kode pos"
           />
         </Field>
 
-        <div className="flex items-center gap-3 md:justify-start">
-          <span className="text-sm text-gray-600">Jadikan alamat utama</span>
-          <Toggle
-            checked={form.isPrimary}
-            onChange={(v) => onChange("isPrimary", v)}
-          />
+        <div className="flex items-end h-full pb-1">
+          <div className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 bg-gray-50/50 w-full hover:border-gray-200 transition-colors cursor-pointer" onClick={() => onChange("isPrimary", !form.isPrimary)}>
+            <Toggle
+              checked={form.isPrimary}
+              onChange={(v) => onChange("isPrimary", v)}
+            />
+            <span className="text-sm font-medium text-gray-700 select-none">Jadikan Alamat Utama</span>
+          </div>
         </div>
       </div>
 
-      <div className="mt-5 flex gap-2">
-        <button
-          type="submit"
-          disabled={saving}
-          className="inline-flex h-11 items-center justify-center px-5 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 disabled:opacity-60"
-        >
-          {saving ? "Menyimpan..." : "Simpan"}
-        </button>
+      <div className="mt-10 pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex h-11 items-center justify-center px-5 rounded-lg border text-sm font-semibold hover:bg-gray-50"
+          className="h-11 px-6 rounded-xl border border-gray-200 font-semibold text-sm hover:bg-gray-50 transition-colors"
         >
           Batal
+        </button>
+        <button
+          type="submit"
+          disabled={saving}
+          className="h-11 px-8 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-70 disabled:active:scale-100"
+        >
+          {saving ? "Menyimpan..." : "Simpan Alamat"}
         </button>
       </div>
     </form>
@@ -97,8 +150,8 @@ function Field({
   children: React.ReactNode;
 }): JSX.Element {
   return (
-    <label className="grid gap-1">
-      <span className="text-sm text-gray-600">{label}</span>
+    <label className="flex flex-col gap-1.5 w-full">
+      <span className="text-xs font-bold text-gray-700 uppercase tracking-wide ml-1">{label}</span>
       {children}
     </label>
   );
@@ -118,7 +171,7 @@ function Input({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="h-11 rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+      className="h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm font-medium transition-all focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none w-full"
     />
   );
 }
@@ -135,16 +188,19 @@ function Toggle({
       type="button"
       role="switch"
       aria-checked={checked}
-      onClick={() => onChange(!checked)}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange(!checked);
+      }}
       className={[
-        "w-12 h-7 rounded-full transition-colors",
-        checked ? "bg-black" : "bg-gray-300",
+        "w-11 h-6 rounded-full transition-colors relative",
+        checked ? "bg-primary" : "bg-gray-300",
       ].join(" ")}
     >
       <span
         className={[
-          "block h-6 w-6 bg-white rounded-full translate-x-1 transition-transform",
-          checked ? "translate-x-5" : "translate-x-1",
+          "block h-4 w-4 bg-white rounded-full absolute top-1 left-1 transition-transform shadow-sm",
+          checked ? "translate-x-5" : "translate-x-0",
         ].join(" ")}
       />
     </button>

@@ -3,7 +3,9 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+// Handle potential /api/v1 suffix in env var to prevent double path
+const rawUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = rawUrl.endsWith("/api/v1") ? rawUrl.slice(0, -"/api/v1".length) : rawUrl;
 
 async function getToken() {
     const store = await cookies();
@@ -45,8 +47,12 @@ export async function uploadAvatar(formData: FormData): Promise<UploadResult> {
         });
 
         if (!res.ok) {
-            const err = await res.json();
-            return { success: false, error: err.error || "Gagal upload gambar" };
+            try {
+                const err = await res.json();
+                return { success: false, error: err.error || "Gagal upload gambar" };
+            } catch {
+                return { success: false, error: `Gagal upload (${res.status}): Terjadi kesalahan server` };
+            }
         }
 
         const data = await res.json();

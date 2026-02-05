@@ -180,6 +180,7 @@ export type AddressItem = {
   phone: string;
   line1: string;
   city: string;
+  district: string;
   province: string;
   postalCode: string;
   isPrimary: boolean;

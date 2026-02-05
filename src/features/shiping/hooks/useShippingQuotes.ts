@@ -9,25 +9,25 @@ export function useShippingQuotes(
   enable: boolean,
   params: ShippingQueryParams | null,
   userId?: string,
-  items?: any[]
+  items?: Array<Record<string, unknown>>
 ) {
   const [data, setData] = useState<ShippingDetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const run = useCallback(async (p: ShippingQueryParams, uid: string, itemList?: any[], signal?: AbortSignal) => {
+  const run = useCallback(async (p: ShippingQueryParams, uid: string, itemList?: Array<Record<string, unknown>>, signal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
       const payload = {
         user_id: uid,
         items: itemList?.map(i => ({
-          name: i.name || "Product",
-          variant_name: i.variant?.name || "Standard",
-          price: i.price || 0,
-          weight: i.weight || 0,
-          quantity: i.quantity || 1
+          name: (i.name as string) || "Product",
+          variant_name: ((i.variant as Record<string, unknown>)?.name as string) || "Standard",
+          price: (i.price as number) || 0,
+          weight: (i.weight as number) || 0,
+          quantity: (i.quantity as number) || 1
         }))
       };
 
@@ -50,16 +50,16 @@ export function useShippingQuotes(
       const courierMap = new Map<string, ShippingOption[]>();
 
       if (json.available_couriers && Array.isArray(json.available_couriers)) {
-        json.available_couriers.forEach((c: any) => {
-          const groupName = c.courier_name || c.company;
+        json.available_couriers.forEach((c: Record<string, unknown>) => {
+          const groupName = (c.courier_name || c.company) as string;
           if (!courierMap.has(groupName)) courierMap.set(groupName, []);
 
           courierMap.get(groupName)!.push({
-            id: `${c.company}-${c.courier_service_code}-${c.price}`,
-            courier: c.courier_name,
-            service: c.courier_service_name,
-            eta: c.duration || "",
-            price: c.price,
+            id: `${c.company as string}-${c.courier_service_code as string}-${c.price as number}`,
+            courier: c.courier_name as string,
+            service: c.courier_service_name as string,
+            eta: (c.duration as string) || "",
+            price: c.price as number,
             badges: c.service_type === "instant" ? ["Instant"] : []
           });
         });

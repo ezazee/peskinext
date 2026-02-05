@@ -18,7 +18,8 @@ import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
 import { AuthAction } from "@features/auth/AuthAction";
 import { logout, getCurrentUser } from "@features/auth/action";
-import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
+import { getAddresses } from "@features/address/action";
+import type { AddressItem } from "@shared/types/types";
 import type { AddressListEntry } from "@shared/types/types";
 import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 import {
@@ -176,15 +177,44 @@ export const DesktopHeader = () => {
     avatarUrl: "/images/avatar/default-avatar.png",
   };
 
-  // Sumber tunggal data alamat
-  const { primary, addresses, selectPrimary } = useAddressBookLocal();
+  // Address state
+  const [addresses, setAddresses] = useState<AddressItem[]>([]);
+  const [primaryAddress, setPrimaryAddress] = useState<AddressItem | null>(null);
+
+  // Fetch addresses from API
+  const fetchAddresses = async () => {
+    const result = await getAddresses();
+    if (result.success && result.data) {
+      setAddresses(result.data);
+      const primary = result.data.find(a => a.isPrimary);
+      setPrimaryAddress(primary || result.data[0] || null);
+    }
+  };
+
+  // Load addresses on mount and when user logs in
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchAddresses();
+    }
+  }, [isLoggedIn]);
+
+  // Listen for address updates
+  useEffect(() => {
+    const handleAddressUpdate = () => {
+      if (isLoggedIn) {
+        fetchAddresses();
+      }
+    };
+    window.addEventListener('addressUpdated', handleAddressUpdate);
+    return () => window.removeEventListener('addressUpdated', handleAddressUpdate);
+  }, [isLoggedIn]);
 
   // Label header: samakan dengan AddressCard (Label • Penerima)
   const label = useMemo(() => {
-    if (!hydrated || !primary) return "Pilih alamat";
-    const who = primary.recipient ? ` • ${primary.recipient}` : "";
-    return `${primary.label}${who}`;
-  }, [hydrated, primary]);
+    if (!hydrated || !primaryAddress) return "Pilih alamat";
+    const who = primaryAddress.recipient ? ` • ${primaryAddress.recipient}` : "";
+    return `${primaryAddress.label}${who}`;
+  }, [hydrated, primaryAddress]);
 
   // Opsi untuk modal (urutkan primary di atas)
   const options = useMemo<ReadonlyArray<OptionForModal>>(() => {
@@ -192,13 +222,13 @@ export const DesktopHeader = () => {
       id: a.id,
       label: a.label,
       address: `${a.line1}, ${a.city}, ${a.province} ${a.postalCode}`,
-      isPrimary: primary ? a.id === primary.id : a.isPrimary,
+      isPrimary: primaryAddress ? a.id === primaryAddress.id : a.isPrimary,
       recipient: a.recipient,
       phone: a.phone,
       pinpointed: true,
     }));
     return [...list].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
-  }, [addresses, primary]);
+  }, [addresses, primaryAddress]);
 
   // tutup overlay search saat klik luar
   useEffect(() => {
@@ -254,19 +284,24 @@ export const DesktopHeader = () => {
         isOpen={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}
         options={hydrated ? options : []}
-        selectedId={hydrated ? primary?.id ?? null : null}
-        onConfirm={(id) => {
+        selectedId={hydrated ? primaryAddress?.id ?? null : null}
+        onConfirm={async (id) => {
           startAddressSwitch(700);
-          selectPrimary(id);
+          const { setDefaultAddress } = await import("@features/address/action");
+          await setDefaultAddress(id);
+          await fetchAddresses();
           setIsAddressModalOpen(false);
         }}
-        onMakePrimary={(id) => {
+        onMakePrimary={async (id) => {
           startAddressSwitch(700);
-          selectPrimary(id);
+          const { setDefaultAddress } = await import("@features/address/action");
+          await setDefaultAddress(id);
+          await fetchAddresses();
           setIsAddressModalOpen(false);
         }}
         onAddNew={() => {
-          alert("Tambah alamat belum diimplementasi pada mock ini.");
+          setIsAddressModalOpen(false);
+          router.push("/account/address/new");
         }}
       />
 
@@ -527,7 +562,7 @@ export const DesktopHeader = () => {
                                 onDone={() => setMenuOpen(false)}
                               />
                               <MenuItem
-                                href="/account/orders"
+                                href="/account/transaction"
                                 label="Daftar Transaksi"
                                 onDone={() => setMenuOpen(false)}
                               />

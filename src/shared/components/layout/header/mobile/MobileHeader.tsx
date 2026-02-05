@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   BellIcon,
   CartIcon,
@@ -26,6 +27,7 @@ type OptionForModal = AddressListEntry & {
 };
 
 export const MobileHeader = () => {
+  const router = useRouter();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -151,7 +153,8 @@ export const MobileHeader = () => {
           setIsAddressModalOpen(false);
         }}
         onAddNew={() => {
-          alert("Tambah alamat belum diimplementasi pada mock ini.");
+          setIsAddressModalOpen(false);
+          router.push("/account/address/new");
         }}
       />
 

@@ -50,7 +50,7 @@ export default function MobileDetail({
   const [open, setOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; email: string; addresses?: unknown[] } | null>(null);
 
   // Check auth status
   useEffect(() => {
