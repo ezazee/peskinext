@@ -11,7 +11,7 @@ import type {
 } from "@shared/types/types";
 
 import { AddressModal } from "@shared/components/ui/AddressModal";
-import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
+import { useAddressBook } from "@features/address/useAddressBook";
 import PaymentMethodsMobile from "./PaymentMethodsMobile";
 
 import AddressCardMobile from "./AddressCardMobile";
@@ -19,16 +19,15 @@ import SellerCartCard from "../components/SellerCartCard";
 import OrderSummaryMobile from "./OrderSummaryMobile";
 
 import ShippingModal from "@features/checkout/desktop/ShippingModal";
-// import { buildMockShippingData } from "@data/shipingData"; // Removed
-import type { ShippingDetailData, ShippingOption } from "@shared/types/types";
+import type { ShippingOption } from "@shared/types/types";
+import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
+import { getCurrentUser } from "@features/auth/action";
+import type { ShippingQueryParams } from "@features/shiping/hooks/useShippingParamsForProduct";
 
 import VoucherModal from "@features/checkout/desktop/VoucherModal";
-// import { promoVouchers, shippingVouchers } from "@data/voucher";
-const promoVouchers: Voucher[] = [];
-const shippingVouchers: Voucher[] = [];
 import { evaluateVoucher } from "@features/cart/lib/voucher";
+import { getVouchers, checkVoucherCode } from "@features/voucher/action";
 import {
-  redeemWithFallback,
   type CartCtx,
 } from "@features/cart/utils/redeemWithFallback";
 
@@ -117,6 +116,13 @@ export default function MobileCheckout({
   initialCart?: CartData;
   checkoutSession?: CheckoutSession | null;
 }) {
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    getCurrentUser().then((u) => {
+      if (u) setUserId(u.id);
+    });
+  }, []);
 
   /* Convert checkoutSession.lines to cart items format if session exists */
   const items: CartItem[] = useMemo(() => {
@@ -172,7 +178,7 @@ export default function MobileCheckout({
   }, [items]);
 
   /* alamat */
-  const { primary, listEntries, selectPrimary } = useAddressBookLocal();
+  const { primary, listEntries, selectPrimary } = useAddressBook();
   const [openAddress, setOpenAddress] = useState(false);
   const addressLabel = primary
     ? `${primary.label} ${primary.city}`
@@ -180,32 +186,61 @@ export default function MobileCheckout({
 
   /* shipping */
   const [openShipping, setOpenShipping] = useState(false);
-  const [shippingData, setShippingData] = useState<ShippingDetailData>({ origin: "Gudang Pusat", destination: addressLabel, weightGr: 800, groups: [] });
-  const [shippingCurrent, setShippingCurrent] = useState<ShippingOption | null>(
-    null
+  const [shippingCurrent, setShippingCurrent] = useState<ShippingOption | null>(null);
+
+  const totalWeightGr = useMemo(() => {
+    return items.reduce((acc, item) => {
+      // Check if weight is number or comes from backend handling
+      const w = item.product.weightGr || 1000;
+      return acc + (w * item.qty);
+    }, 0);
+  }, [items]);
+
+  // Prepare shipping params
+  const shippingParams: ShippingQueryParams | null = useMemo(() => {
+    if (!primary || !userId || items.length === 0) return null;
+    return {
+      origin: "Jakarta",
+      destination: primary.city,
+      destinationType: "city",
+      weightGr: totalWeightGr,
+      items: items.map(i => ({
+        name: i.product.name,
+        variant_name: i.product.variants[0]?.name,
+        price: typeof i.product.price === 'string' ? parseInt(i.product.price.replace(/[^\d]/g, "") || "0") : i.product.price || 0,
+        weight: i.product.weightGr || 1000,
+        quantity: i.qty
+      }))
+    };
+  }, [primary, userId, items, totalWeightGr]);
+
+  // Items for API (match structure)
+  const shippingItems = useMemo(() => {
+    return items.map(i => ({
+      name: i.product.name,
+      variant: { name: i.product.variants[0]?.name },
+      price: typeof i.product.price === 'string' ? parseInt(i.product.price.replace(/[^\d]/g, "") || "0") : i.product.price || 0,
+      weight: i.product.weightGr || 1000,
+      quantity: i.qty
+    }));
+  }, [items]);
+
+  const { data: shippingData, loading: shippingLoading } = useShippingQuotes(
+    !!shippingParams,
+    shippingParams,
+    userId,
+    shippingItems
   );
-  const [shippingLoading, setShippingLoading] = useState(true);
 
   useEffect(() => {
-    if (!primary) {
-      setShippingCurrent(null);
-      setShippingLoading(false);
-      return;
-    }
-
-    setShippingLoading(true);
-    setShippingData({ origin: "Gudang Pusat", destination: addressLabel, weightGr: 800, groups: [] });
-    const t = setTimeout(() => {
+    if (shippingData && !shippingCurrent) {
       const flat = shippingData.groups.flatMap((g) => g.items);
       const cheapest = flat.length
         ? [...flat].sort((a, b) => a.price - b.price)[0]
         : null;
-      setShippingCurrent(cheapest ?? null);
-      setShippingLoading(false);
-    }, 500);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [primary?.id]);
+      if (cheapest) setShippingCurrent(cheapest);
+    }
+  }, [shippingData, shippingCurrent]);
 
   const [paymentId, setPaymentId] = useState<string>("qris"); // default QRIS
 
@@ -213,6 +248,9 @@ export default function MobileCheckout({
   const selectedCount = itemsCount;
   const regionTag = "Jabodetabek";
   const hasPackage = false;
+
+  const [promoVouchers, setPromoVouchers] = useState<Voucher[]>([]);
+  const [shippingVouchers, setShippingVouchers] = useState<Voucher[]>([]);
 
   const [openVoucher, setOpenVoucher] = useState(false);
   const [voucherLoading, setVoucherLoading] = useState(false);
@@ -223,23 +261,36 @@ export default function MobileCheckout({
   });
   const [codeVoucher, setCodeVoucher] = useState<Voucher | null>(null);
 
+  // Load vouchers on mount
+  useEffect(() => {
+    getVouchers().then((res) => {
+      if (res.success && res.data) {
+        setPromoVouchers(res.data.filter(v => v.type === 'promo'));
+        setShippingVouchers(res.data.filter(v => v.type === 'shipping'));
+      }
+    });
+  }, []);
+
   const ctx = useMemo<CartCtx>(
     () => ({ subtotal, selectedCount, regionTag, hasPackage }),
     [subtotal, selectedCount, regionTag, hasPackage]
   );
   const availableShipping = useMemo(
     () => decorateVouchers(shippingVouchers, ctx),
-    [ctx]
+    [shippingVouchers, ctx]
   );
   const availablePromos = useMemo(
     () => decorateVouchers(promoVouchers, ctx),
-    [ctx]
+    [promoVouchers, ctx]
   );
 
   async function onRedeemCode(codeUpper: string) {
-    const res = await redeemWithFallback(codeUpper, ctx);
-    if (res.ok) setCodeVoucher(res.voucher);
-    return res;
+    const res = await checkVoucherCode(codeUpper, subtotal, items);
+    if (res.success && res.voucher) {
+      setCodeVoucher(res.voucher);
+      return { ok: true as const, voucher: res.voucher };
+    }
+    return { ok: false as const, reason: res.message || "Kode tidak valid" };
   }
 
   /* totals */
@@ -270,12 +321,12 @@ export default function MobileCheckout({
     const codeIsPromoNotInList =
       !!selectedVoucher.code &&
       codeVoucher?.type === "promo" &&
-      !availablePromos.some((p) => p.id === codeVoucher.id);
+      (!selectedVoucher.promoId || selectedVoucher.promoId !== codeVoucher.id);
 
     return codeIsPromoNotInList
       ? computePromoDiscountFrom(codeVoucher, subtotal)
       : 0;
-  }, [selectedVoucher.code, codeVoucher, availablePromos, subtotal]);
+  }, [selectedVoucher.code, selectedVoucher.promoId, codeVoucher, availablePromos, subtotal]);
 
   // >>> Shipping fee & grand total (CAP diskon ongkir)
   const shippingFee = shippingCurrent?.price ?? 0;

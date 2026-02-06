@@ -1,5 +1,3 @@
-// import { productsData } from "@data/products";
-const productsData: Product[] = [];
 import type { Product } from "@shared/types/types";
 
 export interface SearchResult {
@@ -12,55 +10,46 @@ export interface SearchResult {
  * Search products by query
  * Searches in: name, description, category, ingredients
  */
-export function searchProducts(query: string): SearchResult {
-  if (!query || query.trim().length === 0) {
+// Handle potential /api/v1 suffix in env var
+const rawUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = rawUrl.endsWith("/api/v1") ? rawUrl.slice(0, -"/api/v1".length) : rawUrl;
+
+/**
+ * Search products by query
+ * Searches in: name, description, category, ingredients
+ */
+export async function searchProducts(query: string): Promise<SearchResult> {
+  const normalizedQuery = query.toLowerCase().trim();
+
+  if (!query || normalizedQuery.length === 0) {
     return {
-      products: productsData,
-      total: productsData.length,
+      products: [],
+      total: 0,
       query: "",
     };
   }
 
-  const normalizedQuery = query.toLowerCase().trim();
+  try {
+    const res = await fetch(`${API_URL}/api/v1/products?search=${encodeURIComponent(normalizedQuery)}`);
+    if (!res.ok) throw new Error("Search failed");
 
-  const results = productsData.filter((product) => {
-    // Search in product name
-    if (product.name.toLowerCase().includes(normalizedQuery)) {
-      return true;
-    }
+    const data = await res.json();
+    // Backend returns flat array of products (formatted)
+    const products: Product[] = Array.isArray(data) ? data : data.data || [];
 
-    // Search in description
-    if (product.description.toLowerCase().includes(normalizedQuery)) {
-      return true;
-    }
-
-    // Search in category
-    if (product.category?.toLowerCase().includes(normalizedQuery)) {
-      return true;
-    }
-
-    // Search in ingredients
-    if (
-      product.ingredients?.some((ingredient) =>
-        ingredient.toLowerCase().includes(normalizedQuery)
-      )
-    ) {
-      return true;
-    }
-
-    // Search in SKU
-    if (product.sku?.toLowerCase().includes(normalizedQuery)) {
-      return true;
-    }
-
-    return false;
-  });
-
-  return {
-    products: results,
-    total: results.length,
-    query: normalizedQuery,
-  };
+    return {
+      products,
+      total: products.length,
+      query: normalizedQuery,
+    };
+  } catch (error) {
+    console.error("Search error:", error);
+    return {
+      products: [],
+      total: 0,
+      query: normalizedQuery,
+    };
+  }
 }
 
 /**
@@ -84,39 +73,4 @@ export function getPopularSearches(): string[] {
 /**
  * Get search suggestions based on query
  */
-export function getSearchSuggestions(query: string): string[] {
-  if (!query || query.trim().length === 0) {
-    return getPopularSearches().slice(0, 5);
-  }
 
-  const normalizedQuery = query.toLowerCase().trim();
-  const suggestions = new Set<string>();
-
-  // Add product names that match
-  productsData.forEach((product) => {
-    if (product.name.toLowerCase().includes(normalizedQuery)) {
-      suggestions.add(product.name);
-    }
-  });
-
-  // Add categories that match
-  productsData.forEach((product) => {
-    if (
-      product.category &&
-      product.category.toLowerCase().includes(normalizedQuery)
-    ) {
-      suggestions.add(product.category);
-    }
-  });
-
-  // Add ingredients that match
-  productsData.forEach((product) => {
-    product.ingredients?.forEach((ingredient) => {
-      if (ingredient.toLowerCase().includes(normalizedQuery)) {
-        suggestions.add(ingredient);
-      }
-    });
-  });
-
-  return Array.from(suggestions).slice(0, 10);
-}

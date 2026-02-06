@@ -15,11 +15,13 @@ export default function MobileCartItem({
   onToggle,
   onQty,
   onRemove,
+  onChangeVariant,
 }: {
   line: Line;
   onToggle: (checked: boolean) => void;
   onQty: (qty: number) => void;
   onRemove: () => void;
+  onChangeVariant?: (id: number) => void;
 }) {
   const { price, oldPrice, stock, variantName } = getVariantPricing(
     line.product.variants,
@@ -56,8 +58,26 @@ export default function MobileCartItem({
           <div className="text-[13px] font-medium text-gray-800 line-clamp-2">
             {line.product.name}
           </div>
-          {variantName && (
-            <div className="text-xs text-gray-500 mt-0.5">{variantName}</div>
+
+          {/* VARIANT SELECTOR */}
+          {line.product.variants && line.product.variants.length > 1 && onChangeVariant ? (
+            <div className="mt-1">
+              <select
+                className="text-xs border border-gray-300 rounded px-1.5 py-1 bg-white hover:border-gray-400 cursor-pointer focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary h-8"
+                value={line.variantId}
+                onChange={(e) => onChangeVariant(Number(e.target.value))}
+              >
+                {line.product.variants.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            variantName && (
+              <div className="text-xs text-gray-500 mt-0.5">{variantName}</div>
+            )
           )}
 
           {/* Harga */}

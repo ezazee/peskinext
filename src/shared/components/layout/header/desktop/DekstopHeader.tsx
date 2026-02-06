@@ -81,6 +81,7 @@ export const DesktopHeader = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
+  const [isLoading] = useState(false);
 
   // Check login status dynamically
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -146,12 +147,22 @@ export const DesktopHeader = () => {
 
   // Search suggestions effect
   useEffect(() => {
-    if (searchQuery.trim().length >= 2) {
-      const result = searchProducts(searchQuery);
-      setSearchSuggestions(result.products.slice(0, 5));
-    } else {
-      setSearchSuggestions([]);
-    }
+    const timer = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        searchProducts(searchQuery)
+          .then((result) => {
+            if (result && Array.isArray(result.products)) {
+              setSearchSuggestions(result.products.slice(0, 5));
+            } else {
+              setSearchSuggestions([]);
+            }
+          })
+          .catch(() => setSearchSuggestions([]));
+      } else {
+        setSearchSuggestions([]);
+      }
+    }, 300); // 300ms debounce
+    return () => clearTimeout(timer);
   }, [searchQuery]);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -209,11 +220,20 @@ export const DesktopHeader = () => {
     return () => window.removeEventListener('addressUpdated', handleAddressUpdate);
   }, [isLoggedIn]);
 
+  // Sync primary address to localStorage for other components (e.g. shipping calculator)
+  // Sync primary address to localStorage for other components (e.g. shipping calculator)
+  useEffect(() => {
+    if (primaryAddress) {
+      const dest = `${primaryAddress.city}, ${primaryAddress.postalCode} `;
+      localStorage.setItem("defaultDestination", dest);
+    }
+  }, [primaryAddress]);
+
   // Label header: samakan dengan AddressCard (Label • Penerima)
   const label = useMemo(() => {
     if (!hydrated || !primaryAddress) return "Pilih alamat";
-    const who = primaryAddress.recipient ? ` • ${primaryAddress.recipient}` : "";
-    return `${primaryAddress.label}${who}`;
+    const who = primaryAddress.recipient ? ` • ${primaryAddress.recipient} ` : "";
+    return `${primaryAddress.label}${who} `;
   }, [hydrated, primaryAddress]);
 
   // Opsi untuk modal (urutkan primary di atas)
@@ -290,6 +310,7 @@ export const DesktopHeader = () => {
           const { setDefaultAddress } = await import("@features/address/action");
           await setDefaultAddress(id);
           await fetchAddresses();
+          window.dispatchEvent(new Event("addressUpdated"));
           setIsAddressModalOpen(false);
         }}
         onMakePrimary={async (id) => {
@@ -297,6 +318,7 @@ export const DesktopHeader = () => {
           const { setDefaultAddress } = await import("@features/address/action");
           await setDefaultAddress(id);
           await fetchAddresses();
+          window.dispatchEvent(new Event("addressUpdated"));
           setIsAddressModalOpen(false);
         }}
         onAddNew={() => {
@@ -405,7 +427,19 @@ export const DesktopHeader = () => {
                     transition={{ duration: 0.2, ease: "easeOut" }}
                     className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg border z-50 max-h-96 overflow-y-auto"
                   >
-                    {searchSuggestions.length > 0 ? (
+                    {isLoading ? (
+                      <div className="py-2 px-4 space-y-3">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="flex gap-3">
+                            <Skeleton width={40} height={40} className="rounded shrink-0" />
+                            <div className="flex-1 space-y-2">
+                              <Skeleton width="80%" height={14} />
+                              <Skeleton width="40%" height={12} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : searchSuggestions.length > 0 ? (
                       <div className="py-2">
                         <div className="px-4 py-2 text-xs text-secondary font-semibold">
                           Produk yang cocok

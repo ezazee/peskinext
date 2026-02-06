@@ -13,6 +13,7 @@ export interface Variant {
   price: number;
   oldPrice?: number;
   stock: number;
+  weight?: number;
 }
 
 export interface NavItem {
@@ -327,3 +328,8 @@ export type NotificationItem = {
   badge?: string;
   action?: { label: string; href: string };
 };
+
+export interface SearchResult {
+  products: Product[];
+  total: number;
+}

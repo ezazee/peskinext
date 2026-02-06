@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeftIcon, SearchIcon, LocationIcon } from "@shared/components/icons";
+import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 import { searchProducts } from "@features/search/searchService";
 import type { Product } from "@shared/types/types";
 import Image from "next/image";
@@ -20,6 +21,7 @@ export default function SearchOverlay({ open, onClose, onSearch }: Props) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // kunci scroll saat overlay terbuka
   useEffect(() => {
@@ -30,12 +32,26 @@ export default function SearchOverlay({ open, onClose, onSearch }: Props) {
 
   // Search suggestions effect
   useEffect(() => {
-    if (q.trim().length >= 2) {
-      const result = searchProducts(q);
-      setSearchSuggestions(result.products.slice(0, 5));
-    } else {
-      setSearchSuggestions([]);
-    }
+    const timer = setTimeout(() => {
+      if (q.trim().length >= 2) {
+        setIsLoading(true);
+        searchProducts(q)
+          .then((result) => {
+            if (result && Array.isArray(result.products)) {
+              setSearchSuggestions(result.products.slice(0, 5));
+            } else {
+              setSearchSuggestions([]);
+            }
+          })
+          .catch(() => setSearchSuggestions([]))
+          .finally(() => setIsLoading(false));
+      } else {
+        setSearchSuggestions([]);
+        setIsLoading(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
   }, [q]);
 
   const handleSearch = () => {
@@ -106,7 +122,19 @@ export default function SearchOverlay({ open, onClose, onSearch }: Props) {
 
           {/* Konten bawah (suggestions atau tips) */}
           <div className="flex-1 overflow-y-auto">
-            {searchSuggestions.length > 0 ? (
+            {isLoading ? (
+              <div className="py-2 px-4 space-y-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex gap-3">
+                    <Skeleton width={50} height={50} className="rounded shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton width="70%" height={16} />
+                      <Skeleton width="40%" height={14} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : searchSuggestions.length > 0 ? (
               <div className="py-2">
                 <div className="px-4 py-2 text-xs text-secondary font-semibold">
                   Produk yang cocok

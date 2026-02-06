@@ -17,22 +17,20 @@ import OrderSummaryDesktop from "./OrderSummaryDesktop";
 
 import VoucherCard from "@features/checkout/desktop/VoucherCard";
 import VoucherModal from "@features/checkout/desktop/VoucherModal";
-// import { promoVouchers, shippingVouchers } from "@data/voucher";
-const promoVouchers: Voucher[] = [];
-const shippingVouchers: Voucher[] = [];
 import { evaluateVoucher } from "@features/cart/lib/voucher";
+import { getVouchers, checkVoucherCode } from "@features/voucher/action";
 import {
-  redeemWithFallback,
   type CartCtx,
 } from "@features/cart/utils/redeemWithFallback";
 
 import ShippingModal from "./ShippingModal";
 import type {
-  ShippingDetailData,
   ShippingOption,
 } from "@shared/types/types";
-// import { buildMockShippingData } from "@data/shipingData";
-import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
+import { useAddressBook } from "@features/address/useAddressBook";
+import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
+import { getCurrentUser } from "@features/auth/action";
+import type { ShippingQueryParams } from "@features/shiping/hooks/useShippingParamsForProduct";
 
 /* ---------------- helpers voucher ---------------- */
 type VoucherWithConditions = Voucher & { conditions?: VoucherConditions };
@@ -116,6 +114,13 @@ export default function DesktopCheckout({
   initialCart?: CartData;
   checkoutSession?: CheckoutSession | null;
 }) {
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    getCurrentUser().then((u) => {
+      if (u) setUserId(u.id);
+    });
+  }, []);
 
   // Convert checkoutSession.lines to cart items format if session exists
   const selectedItems = useMemo(() => {
@@ -177,51 +182,76 @@ export default function DesktopCheckout({
   }, [selectedItems]);
 
   // alamat untuk tujuan shipping
-  const { primary } = useAddressBookLocal();
-  const destinationLabel = primary ? `${primary.label} ${primary.city}` : "Alamat tujuan";
-  const totalWeightGr = 800;
+  // alamat untuk tujuan shipping
+  const { primary } = useAddressBook();
+
+  const totalWeightGr = useMemo(() => {
+    return selectedItems.reduce((acc, item) => {
+      const w = item.product.weightGr || 1000;
+      return acc + (w * item.qty);
+    }, 0);
+  }, [selectedItems]);
 
   // data shipping + pilihan + modal
-  const [shipData, setShipData] = useState<ShippingDetailData | null>(null);
-  const [shipSelected, setShipSelected] = useState<ShippingOption | null>(null);
-  const [shipLoading, setShipLoading] = useState(true);
   const [openShip, setOpenShip] = useState(false);
+  const [shipSelected, setShipSelected] = useState<ShippingOption | null>(null);
 
-  useEffect(() => {
-    if (!primary) {
-      setShipData(null);
-      return;
-    }
-
-    const d: ShippingDetailData = {
-      origin: "Kota Administrasi Jakarta Pusat",
-      destination: destinationLabel,
+  // Prepare shipping params
+  const shippingParams: ShippingQueryParams | null = useMemo(() => {
+    if (!primary || !userId || selectedItems.length === 0) return null;
+    return {
+      origin: "Jakarta", // This should ideally be dynamic or from store config
+      destination: primary.city, // Simplification, hook handles resolving
+      destinationType: "city",
       weightGr: totalWeightGr,
-      groups: []
+      items: selectedItems.map(i => ({
+        name: i.product.name,
+        variant_name: i.product.variants[0]?.name,
+        price: parseInt(i.product.price.replace(/[^\d]/g, "") || "0"),
+        weight: i.product.weightGr || 1000,
+        quantity: i.qty
+      }))
     };
-    setShipData(d);
-  }, [destinationLabel, totalWeightGr, primary]);
+  }, [primary, userId, selectedItems, totalWeightGr]);
 
+  // Items for API matching request body structure in useShippingQuotes
+  const shippingItems = useMemo(() => {
+    return selectedItems.map(i => ({
+      name: i.product.name,
+      variant: { name: i.product.variants[0]?.name },
+      price: parseInt(i.product.price.replace(/[^\d]/g, "") || "0"),
+      weight: i.product.weightGr || 1000,
+      quantity: i.qty
+    }));
+  }, [selectedItems]);
+
+  const { data: shipData, loading: shipLoading } = useShippingQuotes(
+    !!shippingParams,
+    shippingParams,
+    userId,
+    shippingItems
+  );
+
+  // Auto-select cheapest if nothing selected
   useEffect(() => {
-    if (!shipData) return;
-    setShipLoading(true);
-    const t = setTimeout(() => {
+    if (shipData && !shipSelected) {
       const all = shipData.groups.flatMap((g) => g.items);
       const cheapest = all.reduce<ShippingOption | null>(
         (best, cur) => (!best || cur.price < best.price ? cur : best),
         null
       );
-      setShipSelected((prev) => prev ?? cheapest ?? null);
-      setShipLoading(false);
-    }, 450);
-    return () => clearTimeout(t);
-  }, [shipData]);
+      if (cheapest) setShipSelected(cheapest);
+    }
+  }, [shipData, shipSelected]);
 
   const openShipping = () => setOpenShip(true);
 
   // voucher
   const regionTag = "Jabodetabek";
   const hasPackage = false;
+
+  const [promoVouchers, setPromoVouchers] = useState<Voucher[]>([]);
+  const [shippingVouchers, setShippingVouchers] = useState<Voucher[]>([]);
 
   const [openVoucher, setOpenVoucher] = useState(false);
   const [voucherLoading, setVoucherLoading] = useState(false);
@@ -232,6 +262,16 @@ export default function DesktopCheckout({
   });
   const [codeVoucher, setCodeVoucher] = useState<Voucher | null>(null);
 
+  // Load vouchers on mount
+  useEffect(() => {
+    getVouchers().then((res) => {
+      if (res.success && res.data) {
+        setPromoVouchers(res.data.filter(v => v.type === 'promo'));
+        setShippingVouchers(res.data.filter(v => v.type === 'shipping'));
+      }
+    });
+  }, []);
+
   const ctx = useMemo<CartCtx>(
     () => ({ subtotal, selectedCount: itemsCount, regionTag, hasPackage }),
     [subtotal, itemsCount, regionTag, hasPackage]
@@ -239,11 +279,11 @@ export default function DesktopCheckout({
 
   const availableShipping = useMemo(
     () => decorateVouchers(shippingVouchers, ctx),
-    [ctx]
+    [shippingVouchers, ctx]
   );
   const availablePromos = useMemo(
     () => decorateVouchers(promoVouchers, ctx),
-    [ctx]
+    [promoVouchers, ctx]
   );
 
   const appliedCount =
@@ -269,9 +309,12 @@ export default function DesktopCheckout({
   }, [selectedVoucher, availableShipping, availablePromos, codeVoucher]);
 
   async function onRedeemCode(codeUpper: string) {
-    const res = await redeemWithFallback(codeUpper, ctx);
-    if (res.ok) setCodeVoucher(res.voucher);
-    return res;
+    const res = await checkVoucherCode(codeUpper, subtotal, selectedItems);
+    if (res.success && res.voucher) {
+      setCodeVoucher(res.voucher);
+      return { ok: true as const, voucher: res.voucher };
+    }
+    return { ok: false as const, reason: res.message || "Kode tidak valid" };
   }
 
   // ---- summary (fee + discounts + total) ----
@@ -313,7 +356,7 @@ export default function DesktopCheckout({
     const codeIsPromoNotInList =
       !!selectedVoucher.code &&
       codeVoucher?.type === "promo" &&
-      !availablePromos.some((p) => p.id === codeVoucher.id);
+      (!selectedVoucher.promoId || selectedVoucher.promoId !== codeVoucher.id);
     const promoDiscountCode = codeIsPromoNotInList
       ? computePromoDiscountFrom(codeVoucher, subtotal)
       : 0;
@@ -387,6 +430,7 @@ export default function DesktopCheckout({
                 promoDiscountList={promoDiscountList}
                 promoDiscountCode={promoDiscountCode}
                 grandTotal={grandTotal}
+                hasShippingSelected={!!shipSelected}
               />
             </div>
           </div>

@@ -67,10 +67,47 @@ export function useCartState(initial?: CartData) {
     );
   }
 
+  function changeVariant(lineId: string, newVariantId: number) {
+    setItems((prev) => {
+      const currentItem = prev.find((i) => i.id === lineId);
+      if (!currentItem) return prev;
+
+      const product = currentItem.product;
+      const targetVariant = product.variants.find((v) => v.id === newVariantId);
+      if (!targetVariant) return prev; // Invalid variant
+
+      // Check for duplicate (same product + same target variant) in other lines
+      const duplicateIndex = prev.findIndex(
+        (i) =>
+          i.id !== lineId &&
+          i.product.id === product.id &&
+          i.variantId === newVariantId
+      );
+
+      if (duplicateIndex >= 0) {
+        // Merge logic
+        const next = [...prev];
+        const existing = next[duplicateIndex];
+        const totalQty = existing.qty + currentItem.qty;
+        // Cap at stock
+        const safeQty = Math.min(totalQty, targetVariant.stock);
+
+        next[duplicateIndex] = { ...existing, qty: safeQty };
+        // Remove the current item (since it merged into existing)
+        return next.filter((i) => i.id !== lineId);
+      }
+
+      // No duplicate, just update variantId
+      return prev.map((i) =>
+        i.id === lineId ? { ...i, variantId: newVariantId } : i
+      );
+    });
+  }
+
   return {
     items,
     counts,
     totals,
-    actions: { toggleSelectAll, toggleItem, removeItem, setQty },
+    actions: { toggleSelectAll, toggleItem, removeItem, setQty, changeVariant },
   };
 }

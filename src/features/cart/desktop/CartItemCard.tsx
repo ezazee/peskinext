@@ -19,6 +19,7 @@ type Props = {
   onToggle: (checked: boolean) => void;
   onQty: (qty: number) => void;
   onRemove: () => void;
+  onChangeVariant?: (id: number) => void;
 };
 
 export default function CartItemCard({
@@ -26,6 +27,7 @@ export default function CartItemCard({
   onToggle,
   onQty,
   onRemove,
+  onChangeVariant,
 }: Props) {
   const { price, oldPrice, stock, variantName } = getVariantPricing(
     line.product.variants,
@@ -45,6 +47,9 @@ export default function CartItemCard({
           qty={line.qty}
           stock={stock}
           selected={line.selected}
+          variants={line.product.variants}
+          variantId={line.variantId}
+          onChangeVariant={onChangeVariant}
           onToggle={onToggle}
           onQty={onQty}
           onRemove={onRemove}

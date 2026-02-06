@@ -10,7 +10,8 @@ import VoucherModalMobile from "./VoucherModalMobile";
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
 // import { productsData } from "@data/products";
 import type { Product } from "@shared/types/types";
-const productsData: Product[] = [];
+import { getRecommendations } from "@features/product/services/productService";
+// removed static productsData
 // import { promoVouchers, shippingVouchers } from "@data/voucher";
 const promoVouchers: Voucher[] = [];
 const shippingVouchers: Voucher[] = [];
@@ -320,6 +321,11 @@ export function CartMobile({ initial, isLoggedIn = false }: { initial: CartData;
   const regionTag = "Jabodetabek";
   const hasPackage = useMemo(() => computeHasPackage(items), [items]);
 
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  useEffect(() => {
+    getRecommendations(6).then(setRecommendations);
+  }, []);
+
   const [openVoucher, setOpenVoucher] = useState(false);
   const [voucherLoading, setVoucherLoading] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<VoucherSelection>({
@@ -561,12 +567,13 @@ export function CartMobile({ initial, isLoggedIn = false }: { initial: CartData;
               onToggle={(checked) => actions.toggleItem(line.id, checked)}
               onQty={(q) => actions.setQty(line.id, q)}
               onRemove={() => actions.removeItem(line.id)}
+              onChangeVariant={(vid) => actions.changeVariant?.(line.id, vid)}
             />
           ))}
         </div>
       </div>
 
-      <ProductGrid products={productsData} limit={6} />
+      <ProductGrid products={recommendations} limit={6} />
 
       {/* Bottom bar — kirim GRAND TOTAL yang sudah dipotong shipping + promo(list) + promo(code) */}
       <MobileBottomBar

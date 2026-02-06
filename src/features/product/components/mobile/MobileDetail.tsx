@@ -9,8 +9,9 @@ import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
 import MobileReviews from "../../review/MobileReviews";
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
 // import { productsData } from "@data/products";
-const productsData: Product[] = [];
+// removed static productsData
 
+import { getRecommendations } from "@features/product/services/productService";
 import { MobileGallery } from "@features/product/components/mobile/MobileGallery";
 import { VariantChips } from "@features/product/components/mobile/VariantChips";
 import { MobileActionBar } from "@features/product/components/mobile/MobileActionBar";
@@ -60,6 +61,13 @@ export default function MobileDetail({
       setCurrentUser(user);
     }
     checkAuth();
+    checkAuth();
+  }, []);
+
+  // Recommendations
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  useEffect(() => {
+    getRecommendations(6).then(setRecommendations);
   }, []);
 
   // state
@@ -100,10 +108,21 @@ export default function MobileDetail({
     variant: { name: variant.name }
   }]), [product.name, variant.name, variant.price, params.weightGr, qty]);
 
+
+
   // Check if user has address
   const hasAddress = currentUser?.addresses && currentUser.addresses.length > 0;
 
-  const { data: quotes } = useShippingQuotes(Boolean(params) && !!currentUser?.id && hasAddress, params ?? null, currentUser?.id, itemsForShipping);
+  const { data: quotes, refetch: refetchQuotes } = useShippingQuotes(Boolean(params) && !!currentUser?.id && hasAddress, params ?? null, currentUser?.id, itemsForShipping);
+
+  // Listen for address updates to refetch shipping
+  useEffect(() => {
+    const handleAddressUpdate = () => {
+      refetchQuotes();
+    };
+    window.addEventListener("addressUpdated", handleAddressUpdate);
+    return () => window.removeEventListener("addressUpdated", handleAddressUpdate);
+  }, [refetchQuotes]);
 
   const cheapest = useMemo(() => {
     if (!quotes) return null;
@@ -318,7 +337,7 @@ export default function MobileDetail({
 
         {/* Rekomendasi */}
         <section>
-          <ProductGrid products={productsData} />
+          <ProductGrid products={recommendations} />
         </section>
 
         {/* spacer action bar */}

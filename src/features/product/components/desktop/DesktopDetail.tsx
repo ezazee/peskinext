@@ -1,13 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { DesktopDetailProps, Variant } from "@shared/types/types";
+import type { DesktopDetailProps, Variant, Product } from "@shared/types/types";
 import { formatRupiah } from "@shared/helpers/pricing";
 import ProductTabs from "@shared/components/layout/header/mobile/product/productTabs";
-// import { productsData } from "@data/products";
-import type { Product } from "@shared/types/types";
-const productsData: Product[] = [];
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
+import { getRecommendations } from "@features/product/services/productService";
 import { ProductGallery } from "@features/product/components/desktop/ProductGallery";
 import { VariantSelector } from "@features/product/components/desktop/VariantSelector";
 import { ShippingInfo } from "@features/product/components/desktop/ShippingInfo";
@@ -41,7 +39,13 @@ export default function DesktopDetail({
       setIsLoggedIn(!!user);
       setCurrentUser(user);
     }
+
     checkAuth();
+  }, []);
+
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  useEffect(() => {
+    getRecommendations(6).then(setRecommendations);
   }, []);
 
   // Guard: if variants empty, create a dummy
@@ -60,7 +64,7 @@ export default function DesktopDetail({
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const estimateQty = 1;
-  const { params, origin } = useShippingParamsForProduct(
+  const { params } = useShippingParamsForProduct(
     product,
     variant,
     estimateQty
@@ -76,9 +80,19 @@ export default function DesktopDetail({
   }]), [product.name, variant.name, variant.price, params.weightGr, estimateQty]);
 
   // prefetch quotes supaya ShippingInfo bisa dapat "cheapest"
+  // prefetch quotes supaya ShippingInfo bisa dapat "cheapest"
   // Only fetch if logged in AND has address
   const hasAddress = currentUser?.addresses && currentUser.addresses.length > 0;
-  const { data: quotes } = useShippingQuotes(Boolean(params) && !!currentUser?.id && hasAddress, params ?? null, currentUser?.id, itemsForShipping);
+  const { data: quotes, refetch: refetchQuotes } = useShippingQuotes(Boolean(params) && !!currentUser?.id && hasAddress, params ?? null, currentUser?.id, itemsForShipping);
+
+  // Listen for address updates to refetch shipping
+  useEffect(() => {
+    const handleAddressUpdate = () => {
+      refetchQuotes();
+    };
+    window.addEventListener("addressUpdated", handleAddressUpdate);
+    return () => window.removeEventListener("addressUpdated", handleAddressUpdate);
+  }, [refetchQuotes]);
 
   const cheapest = useMemo(() => {
     if (!quotes) return null;
@@ -175,7 +189,7 @@ export default function DesktopDetail({
             {/* Shipping Info - Only if logged in */}
             {isLoggedIn && (
               <ShippingInfo
-                origin={origin}
+                origin={quotes?.origin ?? params?.origin ?? "Store Location"}
                 cheapest={cheapest}
                 onOpenModal={() => setOpen(true)}
                 hasAddress={hasAddress}
@@ -217,7 +231,7 @@ export default function DesktopDetail({
         </div>
 
         <section className="mt-6">
-          <ProductGrid products={productsData} />
+          <ProductGrid products={recommendations} />
         </section>
       </div>
     </>

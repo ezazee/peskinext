@@ -1,9 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState, useTransition, Suspense } from "react";
+import { useMemo, useState, useTransition, Suspense, useEffect } from "react";
 import { searchProducts } from "@/features/search/searchService";
-import type { Product } from "@shared/types/types";
+import type { Product, SearchResult } from "@shared/types/types";
 import BundleDesktop from "@features/all-product/desktop/BundleDesktop";
 import BundleMobile from "@features/all-product/mobile/BundleMobile";
 import Pagination from "@features/all-product/components/Pagination";
@@ -21,13 +21,20 @@ function SearchContent() {
   const [, startTransition] = useTransition();
   const [loading, setLoading] = useState(false);
 
-  // Search products
-  const searchResult = useMemo(() => {
-    return searchProducts(query);
-  }, [query]);
+  // Search products state
+  const [searchResult, setSearchResult] = useState<SearchResult>({ products: [], total: 0 });
+  const [isSearching, setIsSearching] = useState(true);
 
   // Parse price helper
   const parseIDR = (s?: string) => (s ? Number(s.replace(/[^\d]/g, "")) : 0);
+
+  useEffect(() => {
+    setIsSearching(true);
+    searchProducts(query).then((res) => {
+      setSearchResult(res);
+      setIsSearching(false);
+    });
+  }, [query]);
 
   // Sort results
   const sorted = useMemo<ReadonlyArray<Product>>(() => {

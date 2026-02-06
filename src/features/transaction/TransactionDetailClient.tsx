@@ -5,7 +5,6 @@ import React from "react";
 import type { UserTransaction } from "@shared/types/types";
 const transactionsMock: UserTransaction[] = [];
 import AccountSidebar from "@features/account/AccountSidebar";
-import { logout } from "@features/auth/action";
 import TransactionDetailMobile from "./mobile/TransactionDetailMobile";
 import TransactionDetailDesktop from "./desktop/TransactionDetailDesktop";
 
@@ -24,13 +23,7 @@ export default function TransactionDetailClient({
   profile: ProfileData;
 }) {
 
-  const handleLogout = async () => {
-    if (confirm("Apakah Anda yakin ingin keluar?")) {
-      await logout();
-      // Force full page reload untuk update header
-      window.location.href = "/";
-    }
-  };
+
 
   const [hydrated, setHydrated] = React.useState(false);
   React.useEffect(() => setHydrated(true), []);

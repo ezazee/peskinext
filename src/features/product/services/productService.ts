@@ -85,3 +85,9 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     const all = await getProducts(); // Reuse getProducts for consistency
     return all.find((p) => p.slug === slug) || null;
 }
+export async function getRecommendations(limit: number = 6): Promise<Product[]> {
+    const all = await getProducts();
+    // Simple randomization for now
+    const shuffled = all.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, limit);
+}

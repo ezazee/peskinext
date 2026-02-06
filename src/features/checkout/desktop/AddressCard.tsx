@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AddressModal } from "@shared/components/ui/AddressModal";
-import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
+import { useAddressBook } from "@features/address/useAddressBook";
 import type { AddressListEntry } from "@shared/types/types";
 import {
   useAddressSwitching,
@@ -24,7 +24,7 @@ export default function AddressCard() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  const { primary, addresses, selectPrimary } = useAddressBookLocal();
+  const { primary, addresses, selectPrimary, loading } = useAddressBook();
   const switching = useAddressSwitching();
 
   const current = primary ?? null;
@@ -42,8 +42,8 @@ export default function AddressCard() {
     return [...list].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
   }, [addresses, primary]);
 
-  // tampilkan skeleton bila belum hydrate atau sedang switching
-  if (!hydrated || switching) return <AddressCardSkeleton />;
+  // tampilkan skeleton bila belum hydrate atau sedang switching atau loading data
+  if (!hydrated || switching || loading) return <AddressCardSkeleton />;
 
   return (
     <div className="rounded-2xl border border-gray-200/70 bg-white">

@@ -244,6 +244,7 @@ export function CartDesktop({ initial, isLoggedIn = false }: { initial: CartData
                 onToggle={(checked) => actions.toggleItem(line.id, checked)}
                 onQty={(q) => actions.setQty(line.id, q)}
                 onRemove={() => actions.removeItem(line.id)}
+                onChangeVariant={(vid) => actions.changeVariant?.(line.id, vid)}
               />
             ))}
           </div>
