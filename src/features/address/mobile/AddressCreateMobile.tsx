@@ -16,6 +16,80 @@ export default function AddressCreateMobile({
   onSubmit,
   onCancel,
 }: Props): JSX.Element {
+  /* --- LOCATION STATES --- */
+  const [provinces, setProvinces] = React.useState<{ id: string; name: string }[]>([]);
+  const [cities, setCities] = React.useState<{ id: string; name: string }[]>([]);
+  const [districts, setDistricts] = React.useState<{ id: string; name: string }[]>([]);
+
+  // Selected IDs (internal state to drive dropdowns)
+  const [selectedProvId, setSelectedProvId] = React.useState<string>("");
+  const [selectedCityId, setSelectedCityId] = React.useState<string>("");
+  const [selectedDistrictId, setSelectedDistrictId] = React.useState<string>("");
+
+  /* --- LOAD PROVINCES ON MOUNT --- */
+  React.useEffect(() => {
+    import("@features/location/services/locationService").then(({ getProvinces }) => {
+      getProvinces().then(setProvinces);
+    });
+  }, []);
+
+  /* --- LOAD CITIES WHEN PROVINCE SELECTED --- */
+  React.useEffect(() => {
+    if (!selectedProvId) {
+      setCities([]);
+      return;
+    }
+    // Fetch cities
+    import("@features/location/services/locationService").then(({ getRegencies }) => {
+      getRegencies(selectedProvId).then(setCities);
+    });
+  }, [selectedProvId]);
+
+  /* --- LOAD DISTRICTS WHEN CITY SELECTED --- */
+  React.useEffect(() => {
+    if (!selectedCityId) {
+      setDistricts([]);
+      return;
+    }
+    // Fetch districts
+    import("@features/location/services/locationService").then(({ getDistricts }) => {
+      getDistricts(selectedCityId).then(setDistricts);
+    });
+  }, [selectedCityId]);
+
+  /* --- HANDLERS --- */
+  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const provId = e.target.value;
+    const provName = provinces.find((p) => p.id === provId)?.name || "";
+
+    setSelectedProvId(provId);
+    setSelectedCityId(""); // Reset city
+    setSelectedDistrictId(""); // Reset district
+
+    onChange("province", provName);
+    onChange("city", "");
+    onChange("district", "");
+  };
+
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cityId = e.target.value;
+    const cityName = cities.find((c) => c.id === cityId)?.name || "";
+
+    setSelectedCityId(cityId);
+    setSelectedDistrictId("");
+
+    onChange("city", cityName);
+    onChange("district", "");
+  };
+
+  const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const distId = e.target.value;
+    const distName = districts.find((d) => d.id === distId)?.name || "";
+
+    setSelectedDistrictId(distId);
+    onChange("district", distName);
+  };
+
   return (
     <form onSubmit={onSubmit} className="w-full">
       <h1 className="text-base font-semibold">Tambah Alamat</h1>
@@ -40,15 +114,69 @@ export default function AddressCreateMobile({
         <Field label="Alamat (Jalan/Detail)">
           <Input value={form.line1} onChange={(v) => onChange("line1", v)} />
         </Field>
-        <Field label="Kota/Kabupaten">
-          <Input value={form.city} onChange={(v) => onChange("city", v)} />
-        </Field>
+
         <Field label="Provinsi">
-          <Input
-            value={form.province}
-            onChange={(v) => onChange("province", v)}
-          />
+          <div className="relative">
+            <select
+              value={selectedProvId}
+              onChange={handleProvinceChange}
+              className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              <option value="" disabled>Pilih Provinsi</option>
+              {provinces.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
+              </svg>
+            </div>
+          </div>
         </Field>
+
+        <Field label="Kota/Kabupaten">
+          <div className="relative">
+            <select
+              value={selectedCityId}
+              onChange={handleCityChange}
+              disabled={!selectedProvId}
+              className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+            >
+              <option value="" disabled>Pilih Kota/Kabupaten</option>
+              {cities.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
+              </svg>
+            </div>
+          </div>
+        </Field>
+
+        <Field label="Kecamatan">
+          <div className="relative">
+            <select
+              value={selectedDistrictId}
+              onChange={handleDistrictChange}
+              disabled={!selectedCityId}
+              className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+            >
+              <option value="" disabled>Pilih Kecamatan</option>
+              {districts.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
+              </svg>
+            </div>
+          </div>
+        </Field>
+
         <Field label="Kode Pos">
           <Input
             value={form.postalCode}

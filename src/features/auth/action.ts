@@ -46,7 +46,7 @@ const API_URL = rawUrl.endsWith("/api/v1") ? rawUrl.slice(0, -"/api/v1".length) 
 
 async function fetchUserById(id: string, token: string) {
   try {
-    // console.log("DEBUG: fetchUserById - Fetching:", `${API_URL}/api/v1/user/me`);
+
     const res = await fetch(`${API_URL}/api/v1/user/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -55,13 +55,14 @@ async function fetchUserById(id: string, token: string) {
     });
 
     if (!res.ok) {
-      const text = await res.text();
-      console.error("DEBUG: fetchUserById - Error Response:", res.status, text);
-      console.error("DEBUG: fetchUserById - Failed URL:", `${API_URL}/api/v1/user/me`);
+      // Consume body but ignore
+      await res.text();
+      // console.error("Login failed body:", text);
+
       return null;
     }
     const data = await res.json();
-    console.log("DEBUG: fetchUserById - Raw User Data:", JSON.stringify(data.user, null, 2));
+
     return data.user;
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -172,28 +173,28 @@ export async function getCurrentUser() {
     const store = await cookies();
     const sessionToken = store.get("session_token")?.value;
 
-    // console.log("DEBUG: getCurrentUser - Raw Token:", sessionToken);
+
 
     if (!sessionToken) {
-      // console.log("DEBUG: getCurrentUser - No token in cookies");
+
       return null;
     }
 
     const session = parseSessionToken(sessionToken);
     if (!session) {
-      console.error("DEBUG: getCurrentUser - Failed to parse token:", sessionToken);
+
       return null;
     }
 
-    // console.log("DEBUG: getCurrentUser - Parsed Session:", { userId: session.userId, hasToken: !!session.accessToken });
+
 
     const user = await fetchUserById(session.userId, session.accessToken);
     if (!user) {
-      console.error("DEBUG: getCurrentUser - Fetch returned null");
+
       return null;
     }
 
-    // console.log("DEBUG: getCurrentUser - User Fetched:", user.id);
+
 
     // Return user (backend already filters password usually, but safe to destructure)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

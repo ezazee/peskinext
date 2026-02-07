@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type {
   CartData,
   CartItem,
@@ -116,6 +117,7 @@ export default function MobileCheckout({
   initialCart?: CartData;
   checkoutSession?: CheckoutSession | null;
 }) {
+  const searchParams = useSearchParams();
   const [userId, setUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -326,7 +328,7 @@ export default function MobileCheckout({
     return codeIsPromoNotInList
       ? computePromoDiscountFrom(codeVoucher, subtotal)
       : 0;
-  }, [selectedVoucher.code, selectedVoucher.promoId, codeVoucher, availablePromos, subtotal]);
+  }, [selectedVoucher.code, selectedVoucher.promoId, codeVoucher, subtotal]);
 
   // >>> Shipping fee & grand total (CAP diskon ongkir)
   const shippingFee = shippingCurrent?.price ?? 0;
@@ -388,7 +390,63 @@ export default function MobileCheckout({
           promoDiscountList={promoDiscountList}
           promoDiscountCode={promoDiscountCode}
           grandTotal={grandTotal}
-          onCheckout={() => alert("Checkout (demo)")}
+          onCheckout={async () => {
+            try {
+              if (!userId || !shippingCurrent || !primary) {
+                alert("Mohon lengkapi alamat dan pengiriman");
+                return;
+              }
+
+              // 1. Get existing order ID from URL params
+              const orderId = searchParams.get('oid');
+              if (!orderId) {
+                alert("Order tidak ditemukan. Silakan checkout ulang dari cart.");
+                return;
+              }
+
+              console.log("✅ Using existing order:", orderId);
+
+              // 2. Update order with complete address and shipping info
+              const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
+
+              const updatePayload = {
+                address_id: primary.id,
+                courier: shippingCurrent.courier,
+                shipping_service: shippingCurrent.service,
+                shipping_cost: shippingCurrent.price,
+                total_amount: grandTotal
+              };
+
+              const updateRes = await fetch(`${API_URL}/orders/${orderId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatePayload)
+              });
+
+              if (!updateRes.ok) throw new Error("Gagal update order");
+              console.log("✅ Order updated with shipping info");
+
+              // 3. Create Payment
+              const { createPayment } = await import("@features/payment/services/paymentService");
+              const paymentRes = await createPayment(orderId);
+
+              // 4. Redirect to DOKU
+              if (paymentRes.payment_url) {
+                // Clear order ID from sessionStorage after successful payment creation
+                sessionStorage.removeItem('pending_order_id');
+                window.location.href = paymentRes.payment_url;
+              } else {
+                alert("Gagal mendapatkan link pembayaran");
+              }
+
+            } catch (e: unknown) {
+              if (e instanceof Error) {
+                alert(e.message);
+              } else {
+                alert("Terjadi kesalahan tidak diketahui");
+              }
+            }
+          }}
         />
 
         <div className="h-24" />
@@ -448,3 +506,5 @@ export default function MobileCheckout({
     </>
   );
 }
+
+

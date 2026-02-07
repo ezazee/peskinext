@@ -157,6 +157,7 @@ export interface CheckoutLine {
 
 export interface CheckoutSession {
   id: string;
+  orderId?: string; // Backend order ID created when session is created
   source: CheckoutSource;
   userId?: string | null;
   anonId?: string | null;

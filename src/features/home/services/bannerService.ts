@@ -9,7 +9,7 @@ export interface BannersResponse {
 }
 
 export async function getBanners(): Promise<BannersResponse> {
-    console.log("Fetching banners from:", `${BACKEND_URL}/banners`);
+
     const res = await fetch(`${BACKEND_URL}/banners`, {
         cache: "no-store",
     });

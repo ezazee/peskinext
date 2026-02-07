@@ -128,8 +128,12 @@ export async function createSessionFromCart(
   const id = randomId();
   const anon = userId ? null : await getOrSetAnonId();
 
+  // Note: Order will be created separately via server action when user clicks checkout
+  // This function only creates the checkout session
+
   const session: CheckoutSession = {
     id,
+    orderId: undefined, // Will be set after order is created
     source: "cart",
     userId: userId ?? null,
     anonId: anon,

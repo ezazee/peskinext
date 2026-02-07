@@ -14,7 +14,7 @@ function OAuthCallbackContent() {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function (registrations) {
                 for (const registration of registrations) {
-                    console.log('Unregistering SW:', registration);
+
                     registration.unregister();
                 }
             });
@@ -24,29 +24,28 @@ function OAuthCallbackContent() {
         const uid = searchParams.get("uid");
         const errorParam = searchParams.get("error");
 
-        console.log("OAuth Callback Params:", { token, uid, errorParam });
+
 
         if (errorParam) {
-            console.error("OAuth Error Param:", errorParam);
-            setError("Login failed via Google.");
+            setError("Gagal memproses login Google.");
             setTimeout(() => router.push("/login"), 3000);
             return;
         }
 
         if (token && uid) {
-            console.log("Token and UID found, attempting setSession...");
+
             // Exchange token for session cookie via Server Action
             setSession(token, uid)
                 .then(() => {
-                    console.log("Session set successfully, redirecting...");
+
                     window.location.href = "/"; // Use window refresh to ensure cookies are picked up
                 })
-                .catch((err) => {
-                    console.error("Failed to set session:", err);
+                .catch(() => {
+
                     setError("Failed to initialize session. Please try again.");
                 });
         } else {
-            console.error("No token found in URL");
+
             setError("No token received.");
             setTimeout(() => router.push("/login"), 3000);
         }

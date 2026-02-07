@@ -1,11 +1,7 @@
 "use client";
 
 import React, { type JSX } from "react";
-// import AccountSidebar from "@features/account/AccountSidebar"; // Removed
-
-// import { transactionsMock } from "@data/transaction";
 import type { UserTransaction } from "@shared/types/types";
-const transactionsMock: UserTransaction[] = [];
 
 import TransactionListDesktop from "@features/transaction/desktop/TransactionListDesktop";
 import TransactionListMobile from "@features/transaction/mobile/TransactionListMobile";
@@ -24,9 +20,68 @@ import type { TxFilter } from "@features/transaction/TransactionFilters";
 
 type DateFilter = MobileDateFilter | DesktopDateFilter;
 
-export default function TransactionPageClient(): JSX.Element {
-  const [hydrated, setHydrated] = React.useState(false);
-  React.useEffect(() => setHydrated(true), []);
+export default function TransactionPageClient({ userId }: { userId: string }): JSX.Element {
+  const [transactions, setTransactions] = React.useState<UserTransaction[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!userId) {
+      console.warn("TransactionPageClient: userId is missing/empty");
+      return;
+    }
+    console.log(`TransactionPageClient: Fetching orders for user ${userId} from ${process.env.NEXT_PUBLIC_API_URL}`);
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${userId}`)
+      .then((res) => {
+        console.log("Response status:", res.status);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Orders data received:", data);
+        if (Array.isArray(data)) {
+          console.log(`Found ${data.length} orders`);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const mapped: UserTransaction[] = data.map((order: any) => ({
+            id: order.id,
+            dateISO: order.created_at,
+            status: order.status,
+            total: parseFloat(order.total_amount),
+            addressId: order.address_id,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            items: (order.items || []).map((item: any) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const product = item.Product || item.product || {};
+              return {
+                product: {
+                  id: product.id || "unknown",
+                  name: product.name || "Unknown Product",
+                  slug: product.slug || "",
+                  img: product.front_image || product.img || "/placeholder.jpg",
+                  type: product.type || "single",
+                  weightGr: product.weight_gr || product.weightGr || 0
+                },
+                quantity: item.quantity,
+                unitPrice: parseFloat(item.price),
+                subtotal: item.quantity * parseFloat(item.price),
+                variantId: item.variant_id
+              };
+            })
+          }));
+          console.log("Mapped transactions:", mapped);
+          setTransactions(mapped);
+        } else {
+          console.warn("Data is not an array:", data);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch transactions:", err);
+        console.error("Error details:", err.message);
+      })
+      .finally(() => setLoading(false));
+  }, [userId]);
 
   /* ====== State filters ====== */
   // desktop pills group
@@ -64,7 +119,7 @@ export default function TransactionPageClient(): JSX.Element {
 
   const filtered = React.useMemo<ReadonlyArray<UserTransaction>>(() => {
     // 1) group (desktop)
-    let base: ReadonlyArray<UserTransaction> = transactionsMock;
+    let base: ReadonlyArray<UserTransaction> = transactions;
     if (group !== "all") {
       const allow: ReadonlyArray<TxFilter> =
         group === "progress"
@@ -99,8 +154,12 @@ export default function TransactionPageClient(): JSX.Element {
 
     // 5) date
     base = applyDateFilter(base);
+
+    console.log("Filtered transactions:", base.length, "out of", transactions.length);
+    console.log("Filter settings:", { group, status, product, search, date });
+
     return base;
-  }, [group, status, product, search, applyDateFilter]);
+  }, [transactions, group, status, product, search, applyDateFilter, date]);
 
   function handleReset(): void {
     setGroup("all");
@@ -110,14 +169,12 @@ export default function TransactionPageClient(): JSX.Element {
     setDate({ kind: "all" });
   }
 
-  // handleReset ...
-
   return (
     <div className="w-full">
       {/* MOBILE Filter (pills + bottom-sheets) */}
       <div className="mb-3 block md:hidden">
         <TransactionFiltersMobile
-          data={transactionsMock}
+          data={transactions}
           status={status}
           onStatusChange={setStatus}
           product={product}
@@ -131,7 +188,7 @@ export default function TransactionPageClient(): JSX.Element {
         {/* DESKTOP Filter */}
         <div className="hidden md:block">
           <TransactionFiltersDesktop
-            data={transactionsMock}
+            data={transactions}
             product={product}
             onProductChange={setProduct}
             search={search}
@@ -146,14 +203,14 @@ export default function TransactionPageClient(): JSX.Element {
 
         {/* LIST */}
         <div className="hidden md:block">
-          {!hydrated ? (
+          {loading ? (
             <TransactionSkeletonDesktop />
           ) : (
             <TransactionListDesktop data={[...filtered]} />
           )}
         </div>
         <div className="block md:hidden">
-          {!hydrated ? (
+          {loading ? (
             <TransactionSkeletonMobile />
           ) : (
             <TransactionListMobile data={[...filtered]} />

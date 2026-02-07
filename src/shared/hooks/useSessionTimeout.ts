@@ -61,7 +61,7 @@ export function useSessionTimeout() {
 
     if (timeSinceLastActivity > FIVE_HOURS_MS) {
       // Session expired, logout
-      console.log("Session expired due to inactivity");
+
 
       // Clear interval
       if (checkIntervalRef.current) {
@@ -90,7 +90,7 @@ export function useSessionTimeout() {
 
     // Set new timeout for auto logout
     activityTimeoutRef.current = setTimeout(async () => {
-      console.log("Auto logout due to 5 hours inactivity");
+
       await logout();
       router.push("/login?reason=session-expired");
     }, FIVE_HOURS_MS);

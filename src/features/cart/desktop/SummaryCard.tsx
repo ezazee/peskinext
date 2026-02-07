@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { formatRupiah } from "@shared/helpers/pricing";
 import type { Voucher, VoucherSelection } from "@shared/types/types";
@@ -99,6 +99,7 @@ export default function SummaryCard({
   cartItems = [],
 }: Props) {
   const disabled = !canCheckout;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { shippingDiscount, promoDiscountList, promoDiscountCode, grandTotal } =
     useMemo(() => {
@@ -108,7 +109,7 @@ export default function SummaryCard({
         ship =
           shipping.find((x) => x.id === selected.shippingId) ??
           (redeemedVoucher?.type === "shipping" &&
-          redeemedVoucher.id === selected.shippingId
+            redeemedVoucher.id === selected.shippingId
             ? redeemedVoucher
             : null);
       }
@@ -144,8 +145,8 @@ export default function SummaryCard({
       const totalDisc = Math.min(
         subtotal,
         Math.max(0, shippingDiscount) +
-          Math.max(0, promoDiscountList) +
-          Math.max(0, promoDiscountCode)
+        Math.max(0, promoDiscountList) +
+        Math.max(0, promoDiscountCode)
       );
       const grandTotal = Math.max(0, subtotal - totalDisc);
 
@@ -164,12 +165,12 @@ export default function SummaryCard({
     w: number;
     h: number;
   }> = [
-    { src: "/images/paymentlogo/bca.svg", alt: "BCA", w: 62, h: 22 },
-    { src: "/images/paymentlogo/mandiri.png", alt: "Mandiri", w: 70, h: 20 },
-    { src: "/images/paymentlogo/kredivo.png", alt: "Kredivo", w: 72, h: 22 },
-    { src: "/images/paymentlogo/ovo.png", alt: "OVO", w: 44, h: 22 },
-    { src: "/images/paymentlogo/qris.png", alt: "QRIS", w: 56, h: 22 },
-  ];
+      { src: "/images/paymentlogo/bca.svg", alt: "BCA", w: 62, h: 22 },
+      { src: "/images/paymentlogo/mandiri.png", alt: "Mandiri", w: 70, h: 20 },
+      { src: "/images/paymentlogo/kredivo.png", alt: "Kredivo", w: 72, h: 22 },
+      { src: "/images/paymentlogo/ovo.png", alt: "OVO", w: 44, h: 22 },
+      { src: "/images/paymentlogo/qris.png", alt: "QRIS", w: 56, h: 22 },
+    ];
 
   const totalSaving = shippingDiscount + promoDiscountList + promoDiscountCode;
 
@@ -222,11 +223,10 @@ export default function SummaryCard({
       {!isLoggedIn ? (
         <a
           href="/login?callbackUrl=/cart"
-          className={`mt-3 block w-full h-11 rounded-lg transition text-white text-center leading-[2.75rem] ${
-            disabled
-              ? "bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none"
-              : "bg-primary hover:bg-secondary cursor-pointer"
-          }`}
+          className={`mt-3 block w-full h-11 rounded-lg transition text-white text-center leading-[2.75rem] ${disabled
+            ? "bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none"
+            : "bg-primary hover:bg-secondary cursor-pointer"
+            }`}
         >
           Login untuk Checkout
         </a>
@@ -234,7 +234,9 @@ export default function SummaryCard({
         <form
           action={createCheckoutFromCart}
           className="mt-3"
-          onSubmit={() => {}}
+          onSubmit={() => {
+            setIsSubmitting(true);
+          }}
         >
           <input
             type="hidden"
@@ -243,14 +245,13 @@ export default function SummaryCard({
           />
           <button
             type="submit"
-            disabled={disabled}
-            className={`w-full h-11 rounded-lg transition text-white ${
-              disabled
+            disabled={disabled || isSubmitting}
+            className={`w-full h-11 rounded-lg transition text-white ${disabled || isSubmitting
                 ? "bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none"
                 : "bg-primary hover:bg-secondary cursor-pointer"
-            }`}
+              }`}
           >
-            Checkout
+            {isSubmitting ? "Memproses..." : "Checkout"}
           </button>
         </form>
       )}

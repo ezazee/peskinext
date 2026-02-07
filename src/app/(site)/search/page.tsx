@@ -23,16 +23,14 @@ function SearchContent() {
 
   // Search products state
   const [searchResult, setSearchResult] = useState<SearchResult>({ products: [], total: 0 });
-  const [isSearching, setIsSearching] = useState(true);
-
   // Parse price helper
   const parseIDR = (s?: string) => (s ? Number(s.replace(/[^\d]/g, "")) : 0);
 
   useEffect(() => {
-    setIsSearching(true);
+    if (!query) return;
+
     searchProducts(query).then((res) => {
       setSearchResult(res);
-      setIsSearching(false);
     });
   }, [query]);
 

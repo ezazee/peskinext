@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+// import { cookies } from "next/headers";
 import type { Voucher } from "@shared/types/types";
 
 // Handle potential /api/v1 suffix in env var

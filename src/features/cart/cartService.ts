@@ -245,3 +245,21 @@ export function getSelectedItemsCount(userId?: string | null): number {
   const cart = getCart(userId);
   return cart.items.filter((item) => item.selected).length;
 }
+
+/**
+ * Remove selected items from cart (used when entering checkout)
+ */
+export function removeSelectedItems(userId?: string | null): void {
+  const cart = getCart(userId);
+  console.log("🔍 removeSelectedItems called");
+  console.log("Cart before removal:", cart);
+  console.log("Selected items count:", cart.items.filter(i => i.selected).length);
+
+  cart.items = cart.items.filter((item) => !item.selected);
+
+  console.log("Cart after removal:", cart);
+  console.log("Remaining items count:", cart.items.length);
+
+  saveCart(cart, userId);
+  console.log("✅ Cart saved to localStorage");
+}

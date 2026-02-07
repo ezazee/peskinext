@@ -20,6 +20,7 @@ type Props = {
   /** Total akhir yang sudah dihitung di parent */
   grandTotal: number;
   hasShippingSelected?: boolean;
+  onCheckout?: () => void;
 };
 
 export default function OrderSummaryDesktop({
@@ -31,6 +32,7 @@ export default function OrderSummaryDesktop({
   promoDiscountCode = 0,
   grandTotal,
   hasShippingSelected = true,
+  onCheckout,
 }: Props) {
   // --- Cap diskon ongkir agar tidak melebihi ongkir ---
   const shippingDiscountCapped = Math.min(
@@ -131,6 +133,7 @@ export default function OrderSummaryDesktop({
 
       <button
         type="button"
+        onClick={onCheckout}
         className="mt-4 w-full rounded-xl px-5 py-3 font-medium bg-primary text-white hover:bg-secondary transition-colors cursor-pointer active:scale-[.99]"
       >
         Checkout

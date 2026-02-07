@@ -12,5 +12,5 @@ export default async function TransactionPage() {
     redirect("/login?callbackUrl=/account/transaction");
   }
 
-  return <TransactionPageClient />;
+  return <TransactionPageClient userId={String(user.id)} />;
 }

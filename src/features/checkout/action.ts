@@ -1,32 +1,98 @@
 "use server";
 
+
 import { redirect } from "next/navigation";
 import {
-  createSessionFromBuyNow,
   createSessionFromCart,
+  createSessionFromBuyNow,
 } from "@server/checkout";
 import { getCurrentUser } from "@features/auth/action";
+import type { CartItem } from "@shared/types/types";
 
 
 export async function createCheckoutFromCart(formData: FormData) {
+  console.log("🔵 createCheckoutFromCart called at:", new Date().toISOString());
+
   try {
     const user = await getCurrentUser();
-    const userId = user?.id || null;
+    if (!user) {
+      redirect("/login?callbackUrl=/cart");
+    }
 
-    // Get cart items from formData
     const cartItemsJson = formData.get("cartItems") as string;
-
     if (!cartItemsJson) {
       throw new Error("No cart items provided");
     }
 
-    const sessionId = await createSessionFromCart(userId, cartItemsJson);
+    console.log("👤 User ID:", user.id);
+    console.log("🛒 Cart items:", cartItemsJson.substring(0, 100) + "...");
+
+    // 1. Parse cart items to create order
+    const cartItems = JSON.parse(cartItemsJson) as CartItem[];
+    const selectedItems = cartItems.filter((item) => item.selected);
+
+    if (selectedItems.length === 0) {
+      throw new Error("No items selected");
+    }
+
+    // 2. Prepare order payload
+    const items = selectedItems.map((item) => {
+      const product = item.product;
+      const variants = product.variants;
+      const variant = variants.find((v) => v.id === item.variantId);
+
+      return {
+        product_id: product.id,
+        variant_id: item.variantId,
+        quantity: item.qty,
+        price: Number(variant?.price) || 0
+      };
+    });
+
+    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // 3. Create order in backend FIRST
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
+
+    // Generate idempotency key to prevent duplicate orders
+    const idempotencyKey = `order_${user.id}_${Date.now()}`;
+    console.log("Creating order with idempotency key:", idempotencyKey);
+
+    const response = await fetch(`${API_URL}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Idempotency-Key": idempotencyKey
+      },
+      body: JSON.stringify({
+        user_id: user.id,
+        address_id: "temp", // This will be updated later
+        items,
+        total_amount: total,
+        shipping_cost: 0,
+        discount: 0,
+        courier: "temp" // This will be updated later
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Failed to create order:", error);
+      throw new Error("Failed to create order");
+    }
+
+    const orderData = await response.json();
+    console.log("✅ Order created server-side:", orderData.order_id);
+
+    // 4. Create checkout session
+    const sessionId = await createSessionFromCart(user.id, cartItemsJson);
 
     if (!sessionId) {
       throw new Error("Failed to create checkout session");
     }
 
-    redirect(`/checkout?cs=${sessionId}`);
+    // 5. Redirect to checkout page with Order ID
+    redirect(`/checkout?cs=${sessionId}&oid=${orderData.order_id}`);
   } catch (error) {
     // Check if this is a redirect error (which is expected)
     if (error && typeof error === 'object' && 'digest' in error && String(error.digest).startsWith('NEXT_REDIRECT')) {
