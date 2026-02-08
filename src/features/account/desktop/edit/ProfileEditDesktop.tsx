@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 
 type Props = { initial: AccountProfile };
 
-import { uploadAvatar, updateProfile } from "../../action";
+import { updateProfile } from "../../action";
 import { useToast } from "@shared/components/ui/Toaster";
 
 export default function ProfileEditDesktop({ initial }: Props) {
@@ -30,24 +30,26 @@ export default function ProfileEditDesktop({ initial }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Ukuran file maksimal 10MB");
+    // Limit to 2MB for Base64 storage performance
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 2MB");
       return;
     }
 
     setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
 
-    const res = await uploadAvatar(formData);
-    setUploading(false);
-
-    if (res.success && res.imageUrl) {
-      onChange("avatarUrl", res.imageUrl);
-      toast.success("Foto profil berhasil diupload");
-    } else {
-      toast.error(res.error || "Gagal upload foto");
-    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      onChange("avatarUrl", base64String);
+      setUploading(false);
+      toast.success("Foto berhasil dipilih. Klik Simpan untuk menerapkan.");
+    };
+    reader.onerror = () => {
+      toast.error("Gagal membaca file");
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
   }
 
   async function onSubmit(e: React.FormEvent) {
