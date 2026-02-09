@@ -32,7 +32,7 @@ export default function AccountSidebar({ profile }: AccountSidebarProps) {
   };
 
   return (
-    <aside className="w-full bg-white border border-gray-100/50 rounded-2xl shadow-sm p-5 h-fit sticky top-24">
+    <aside className="w-full bg-white rounded-2xl shadow-sm p-5 h-fit sticky top-24">
       <Link href="/account" className="block group">
         <div className="flex items-center gap-4 mb-8 p-3 rounded-xl hover:bg-gray-50 transition-colors">
           <Avatar

@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { DesktopDetailProps, Variant, Product } from "@shared/types/types";
 import { formatRupiah } from "@shared/helpers/pricing";
 import ProductTabs from "@shared/components/layout/header/mobile/product/productTabs";
 import { ProductGrid } from "@shared/components/layout/header/mobile/product/ProductGrid";
-import { getRecommendations } from "@features/product/services/productService";
+import { getRecommendations, calculatePrice } from "@features/product/services/productService";
 import { ProductGallery } from "@features/product/components/desktop/ProductGallery";
 import { VariantSelector } from "@features/product/components/desktop/VariantSelector";
 import { ShippingInfo } from "@features/product/components/desktop/ShippingInfo";
@@ -21,7 +21,17 @@ import { addToCart } from "@features/cart/cartService";
 import { useToast } from "@shared/components/ui/Toaster";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { getCurrentUser } from "@features/auth/action";
-import { useEffect } from "react";
+import { Skeleton } from "@shared/components/ui/SkeletonLoading";
+
+// Simple debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 export default function DesktopDetail({
   product,
@@ -58,12 +68,79 @@ export default function DesktopDetail({
   } as unknown as Variant;
 
   const [variant, setVariant] = useState<Variant>(defaultVariant);
+  const [qty, setQty] = useState(1);
+  const debouncedQty = useDebounce(qty, 500); // Debounce qty change 500ms
+
+  // Calculation State
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [calculatedData, setCalculatedData] = useState<{
+    unit_price: number;
+    subtotal: number;
+    product_name: string;
+    variant_name: string;
+    stock_available: number;
+  } | null>(null);
+
+  // Reset calculated data when variant changes immediately (to show skeleton)
+  useEffect(() => {
+    // Immediate skeleton
+    setIsCalculating(true);
+    setCalculatedData(null);
+  }, [variant.id]);
+
+  // Trigger calculation on debounced qty or variant change
+  useEffect(() => {
+    let active = true;
+
+    async function doCalculate() {
+      setIsCalculating(true);
+      try {
+        const res = await calculatePrice({
+          productId: product.id,
+          variantId: variant.id,
+          qty: debouncedQty,
+        });
+        if (active) {
+          setCalculatedData(res);
+        }
+      } catch (e) {
+        console.error("Calculation failed", e);
+        // Fallback to local calculation if backend fails
+        if (active) {
+          setCalculatedData({
+            unit_price: variant.price,
+            subtotal: variant.price * debouncedQty,
+            product_name: product.name,
+            variant_name: variant.name,
+            stock_available: variant.stock
+          });
+        }
+      } finally {
+        if (active) setIsCalculating(false);
+      }
+    }
+
+    doCalculate();
+    return () => { active = false; };
+  }, [product.id, variant.id, variant.price, variant.name, product.name, debouncedQty, variant.stock]); // Depend on debouncedQty
+
+  // Handle immediate visual skeleton for qty
+  useEffect(() => {
+    // If qty changes but debounced hasn't yet, we are "waiting" for debounce
+    // So we can show internal loading state if we want, OR just waiting is fine
+    // But user requested "skeleton dlu", so we should probably set calculating true immediately on qty change
+    if (qty !== debouncedQty) {
+      setIsCalculating(true);
+    }
+  }, [qty, debouncedQty]);
+
+
   const [selectedShippingId, setSelectedShippingId] = useState<
     string | undefined
   >(undefined);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  const estimateQty = 1;
+  const estimateQty = qty; // Use current qty
   const { params } = useShippingParamsForProduct(
     product,
     variant,
@@ -115,6 +192,10 @@ export default function DesktopDetail({
 
   if (isLoading) return <DesktopDetailSkeleton />;
 
+  // Display values
+  const displayPrice = isCalculating ? 0 : (calculatedData?.unit_price ?? variant.price);
+  const displaySubtotal = isCalculating ? 0 : (calculatedData?.subtotal ?? (variant.price * qty));
+
   return (
     <>
       <AuthModal
@@ -136,8 +217,12 @@ export default function DesktopDetail({
 
           {/* Info */}
           <section className="col-span-5 row-start-1 pt-5">
-            <h1 className="text-2xl font-semibold leading-snug">
-              {product.name} – {variant.name}
+            <h1 className="text-2xl font-semibold leading-snug min-h-[32px]">
+              {isCalculating ? (
+                <Skeleton.Text lines={1} widths={["80%"]} />
+              ) : (
+                `${product.name} – ${variant.name}`
+              )}
             </h1>
 
             <div className="mt-3 flex items-center gap-3 text-sm text-gray-500">
@@ -150,17 +235,23 @@ export default function DesktopDetail({
               </span>
             </div>
 
-            <div className="mt-4 flex items-end gap-3">
-              <div className="text-3xl font-bold text-gray-900">
-                {formatRupiah(variant.price)}
-              </div>
-              {variant.oldPrice && (
-                <div className="flex items-center gap-2">
-                  <span className="line-through text-gray-400">
-                    {formatRupiah(variant.oldPrice)}
-                  </span>
-                  <span className="text-red-600 font-semibold">{disc}%</span>
-                </div>
+            <div className="mt-4 flex items-end gap-3 min-h-[36px]">
+              {isCalculating ? (
+                <Skeleton.Block width={150} height={36} radius={4} />
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-gray-900">
+                    {formatRupiah(displayPrice)}
+                  </div>
+                  {variant.oldPrice && (
+                    <div className="flex items-center gap-2">
+                      <span className="line-through text-gray-400">
+                        {formatRupiah(variant.oldPrice)}
+                      </span>
+                      <span className="text-red-600 font-semibold">{disc}%</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -174,10 +265,20 @@ export default function DesktopDetail({
               <VariantSelector
                 variants={product.variants}
                 selectedId={variant.id}
-                onSelect={setVariant}
+                onSelect={(v) => {
+                  setVariant(v);
+                  setQty(1); // Reset qty on variant change
+                }}
               />
             </div>
 
+            {isCalculating ? (
+              <Skeleton className="h-5 w-24 bg-gray-200" />
+            ) : (
+              <span className="text-gray-600">
+                Stok: {calculatedData?.stock_available ?? variant.stock}
+              </span>
+            )}
             <div className="mt-8">
               <ProductTabs
                 description={product.description}
@@ -212,8 +313,12 @@ export default function DesktopDetail({
             <BuyBox
               product={product}
               variant={variant}
-              onAdd={(qty) => {
-                const result = addToCart(product, variant.id, qty);
+              qty={qty}
+              setQty={setQty}
+              subtotal={displaySubtotal}
+              isCalculating={isCalculating}
+              onAdd={(q) => {
+                const result = addToCart(product, variant.id, q);
                 if (result.success) {
                   toast.success(result.message);
                 } else {
@@ -221,6 +326,7 @@ export default function DesktopDetail({
                 }
               }}
               onAuthRequired={() => setIsAuthModalOpen(true)}
+              currentStock={calculatedData?.stock_available}
             />
           </aside>
 

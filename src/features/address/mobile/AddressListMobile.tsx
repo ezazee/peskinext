@@ -38,10 +38,10 @@ export default function AddressListMobile({
             <article
               key={a.id}
               className={[
-                "rounded-xl border p-4",
+                "rounded-xl p-4 shadow-sm",
                 isPrimary
-                  ? "bg-sky-100/80 border-sky-300 ring-1 ring-sky-200"
-                  : "border-gray-100 bg-white",
+                  ? "bg-sky-100/80 ring-1 ring-sky-200"
+                  : "bg-white",
               ].join(" ")}
             >
               {/* Title & badge */}

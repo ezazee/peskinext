@@ -4,7 +4,7 @@ import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 
 export default function TransactionSkeletonDesktop() {
   return (
-    <div className="bg-white rounded-xl border p-6">
+    <div className="bg-white rounded-xl shadow-sm p-6">
       <Skeleton width="30%" height={20} radius={6} />
       <div className="mt-4 space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (

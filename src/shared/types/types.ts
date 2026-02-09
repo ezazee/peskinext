@@ -294,11 +294,25 @@ export interface OrderItem {
 
 export interface UserTransaction {
   id: string;
+  invoiceNumber?: string;
   dateISO: string;
   status: TransactionStatus;
   items: OrderItem[];
   total: number;
   addressId?: string;
+  courier?: string;
+  trackingNumber?: string;
+  shippingCost?: number;
+  originalShippingCost?: number; // Base shipping cost before discount
+  discount?: number;
+  shippingAddress?: {
+    recipient: string;
+    phone: string;
+    addressLine: string;
+    city: string;
+    province: string;
+    postalCode: string;
+  };
 }
 
 export type ShippingOrder = {
@@ -317,7 +331,8 @@ export type NotifStatus =
   | "ongoing"
   | "pending_payment"
   | "delivered"
-  | "completed";
+  | "completed"
+  | "cancelled";
 
 export type NotificationItem = {
   id: string;
@@ -327,6 +342,7 @@ export type NotificationItem = {
   message: string;
   date: string;
   badge?: string;
+  active?: boolean;
   action?: { label: string; href: string };
 };
 

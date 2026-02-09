@@ -4,35 +4,81 @@ import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 
 export default function TransactionDetailSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-sky-50 to-white border rounded-2xl p-6 shadow-sm">
-        <Skeleton width="20%" height={14} radius={6} />
-        <Skeleton className="mt-2" width="30%" height={22} radius={8} />
-        <Skeleton className="mt-2" width="40%" height={14} radius={6} />
-        <Skeleton className="mt-4" width="60%" height={8} radius={6} />
+    <div className="space-y-4">
+      {/* 1. Pesanan */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <Skeleton className="h-5 w-24 rounded-md" />
+          <Skeleton className="h-6 w-20 rounded-full" />
+        </div>
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <Skeleton className="h-4 w-20 rounded-md" />
+            <Skeleton className="h-4 w-32 rounded-md" />
+          </div>
+          <div className="flex justify-between">
+            <Skeleton className="h-4 w-24 rounded-md" />
+            <Skeleton className="h-4 w-40 rounded-md" />
+          </div>
+          <Skeleton className="h-4 w-24 mt-2 rounded-md" />
+        </div>
       </div>
 
-      <div className="bg-white border rounded-2xl p-6 shadow-sm">
-        <Skeleton width="25%" height={16} radius={6} />
-        <div className="mt-3 space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="flex gap-3 items-center border rounded-xl p-3"
-            >
-              <Skeleton width={72} height={72} radius={10} />
-              <div className="flex-1 min-w-0">
-                <Skeleton width="60%" height={14} radius={6} />
-                <Skeleton className="mt-2" width="40%" height={12} radius={6} />
-                <Skeleton className="mt-2" width="30%" height={12} radius={6} />
+      {/* 2. Produk */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <Skeleton className="h-5 w-32 mb-4 rounded-md" />
+        <div className="space-y-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="flex gap-3">
+              <Skeleton className="w-16 h-16 rounded-md shrink-0" />
+              <div className="flex-1 space-y-2 py-1">
+                <Skeleton className="h-4 w-3/4 rounded-md" />
+                <Skeleton className="h-3 w-1/2 rounded-md" />
               </div>
-              <Skeleton width={90} height={16} radius={6} />
+              <Skeleton className="h-4 w-24 rounded-md mt-1" />
             </div>
           ))}
         </div>
-        <div className="mt-4 flex items-center justify-between border-t pt-4">
-          <Skeleton width="15%" height={14} radius={6} />
-          <Skeleton width="20%" height={18} radius={6} />
+      </div>
+
+      {/* 3. Pengiriman */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <Skeleton className="h-5 w-32 mb-4 rounded-md" />
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex justify-between gap-4">
+                <Skeleton className="h-4 w-16 rounded-md" />
+                <Skeleton className="h-4 w-24 rounded-md" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16 rounded-md" /> {/* label alamat */}
+            <Skeleton className="h-4 w-32 rounded-md" /> {/* nama */}
+            <Skeleton className="h-4 w-24 rounded-md" /> {/* telp */}
+            <Skeleton className="h-14 w-full rounded-md" /> {/* alamat */}
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Pembayaran */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <Skeleton className="h-5 w-40 mb-4 rounded-md" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex justify-between">
+              <Skeleton className="h-4 w-1/3 rounded-md" />
+              <Skeleton className="h-4 w-24 rounded-md" />
+            </div>
+          ))}
+          <div className="border-t pt-3 mt-2 flex justify-between">
+            <Skeleton className="h-5 w-1/4 rounded-md" />
+            <Skeleton className="h-5 w-32 rounded-md" />
+          </div>
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <Skeleton className="h-10 w-32 rounded-lg" />
         </div>
       </div>
     </div>

@@ -24,7 +24,7 @@ export default function AccountDesktop({ data }: { data: AccountData }) {
   return (
     <div className="space-y-6">
       {/* 1. Header Card */}
-      <div className="bg-white border rounded-2xl p-6 shadow-sm flex items-center justify-between">
+      <div className="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-5">
           {hydrated ? (
             <Avatar
@@ -41,13 +41,13 @@ export default function AccountDesktop({ data }: { data: AccountData }) {
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
               Halo, {profile.name}
             </h1>
-            <p className="text-gray-500">Member sejak 2024</p>
+            <p className="text-gray-500">{profile.email}</p>
           </div>
         </div>
 
         <Link
           href={`/account/edit/${profile.id}`}
-          className="px-5 py-2.5 rounded-xl border border-gray-200 font-semibold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all"
+          className="px-5 py-2.5 rounded-xl bg-gray-50 font-semibold text-sm hover:bg-gray-100 transition-all text-gray-700"
         >
           Edit Profil
         </Link>
@@ -55,7 +55,7 @@ export default function AccountDesktop({ data }: { data: AccountData }) {
 
       {/* 2. Order Status Widget */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white border rounded-2xl p-6 shadow-sm">
+        <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-bold text-lg">Pesanan Saya</h2>
             <Link href="/account/transaction" className="text-sm font-semibold text-primary hover:underline">
@@ -88,10 +88,10 @@ export default function AccountDesktop({ data }: { data: AccountData }) {
         </div>
 
         {/* 3. Quick Actions / Info */}
-        <div className="bg-white border rounded-2xl p-6 shadow-sm flex flex-col justify-center">
+        <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col justify-center">
           <h2 className="font-bold text-lg mb-4">Informasi Akun</h2>
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
               <div className="p-2 bg-white rounded-lg shadow-sm">
                 <Settings size={20} className="text-gray-600" />
               </div>
@@ -101,7 +101,7 @@ export default function AccountDesktop({ data }: { data: AccountData }) {
               </div>
             </div>
 
-            <Link href="/account/address" className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 group hover:border-primary/30 transition-colors">
+            <Link href="/account/address" className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 group hover:bg-gray-100 transition-colors">
               <div className="p-2 bg-white rounded-lg shadow-sm group-hover:text-primary transition-colors">
                 <MapPin size={20} className="text-gray-600 group-hover:text-primary" />
               </div>
@@ -122,7 +122,7 @@ function StatusIcon({ icon, label, href }: { icon: React.ReactNode, label: strin
   return (
     <Link href={href} className="flex flex-col items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors group">
       <div className="relative">
-        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300 shadow-sm border border-blue-100">
+        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300 shadow-sm">
           {icon}
         </div>
       </div>

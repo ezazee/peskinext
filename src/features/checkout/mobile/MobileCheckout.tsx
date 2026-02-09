@@ -413,7 +413,9 @@ export default function MobileCheckout({
                 address_id: primary.id,
                 courier: shippingCurrent.courier,
                 shipping_service: shippingCurrent.service,
-                shipping_cost: shippingCurrent.price,
+                shipping_cost: shippingAfter, // Net cost after discount
+                original_shipping_cost: shippingCurrent.price, // Base price before discount
+                discount: promoDiscountList + promoDiscountCode, // Total promo discount
                 total_amount: grandTotal
               };
 

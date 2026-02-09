@@ -3,7 +3,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
-import type { UserTransaction } from "@shared/types/types";
 import type { TxFilter } from "@features/transaction/TransactionFilters";
 
 /* -------------------- Types -------------------- */
@@ -14,7 +13,6 @@ export type DateFilter =
   | { kind: "range"; from: string; to: string };
 
 type Props = {
-  data: ReadonlyArray<UserTransaction>;
 
   status: TxFilter;
   onStatusChange: (v: TxFilter) => void;
@@ -31,7 +29,6 @@ type SheetKind = "status" | "product" | "date" | null;
 /* -------------------- Component -------------------- */
 
 export default function TransactionFiltersMobile({
-  data,
   status,
   onStatusChange,
   product,
@@ -40,12 +37,6 @@ export default function TransactionFiltersMobile({
   onDateChange,
 }: Props) {
   const [open, setOpen] = React.useState<SheetKind>(null);
-
-  const productOptions = React.useMemo<ReadonlyArray<string>>(() => {
-    const set = new Set<string>();
-    data.forEach((t) => t.items.forEach((it) => set.add(it.product.name)));
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [data]);
 
   return (
     <>
@@ -141,30 +132,36 @@ export default function TransactionFiltersMobile({
       <BottomSheet
         open={open === "product"}
         onClose={() => setOpen(null)}
-        title="Pilih produk"
+        title="Pilih kategori"
       >
         <SheetSection title="">
           <RadioRow
             name="product"
             checked={product === "all"}
-            label="Semua Produk"
+            label="Semua Kategori"
             onChange={() => {
               onProductChange("all");
               setOpen(null);
             }}
           />
-          {productOptions.map((p) => (
-            <RadioRow
-              key={p}
-              name="product"
-              checked={product === p}
-              label={p}
-              onChange={() => {
-                onProductChange(p);
-                setOpen(null);
-              }}
-            />
-          ))}
+          <RadioRow
+            name="product"
+            checked={product === "single"}
+            label="Single Product"
+            onChange={() => {
+              onProductChange("single");
+              setOpen(null);
+            }}
+          />
+          <RadioRow
+            name="product"
+            checked={product === "bundle"}
+            label="Bundle Product"
+            onChange={() => {
+              onProductChange("bundle");
+              setOpen(null);
+            }}
+          />
         </SheetSection>
       </BottomSheet>
 
@@ -195,7 +192,7 @@ function PillButton({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 bg-white active:bg-gray-50"
+      className="inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 active:bg-gray-200 transition-colors"
     >
       <span className="truncate max-w-[200px]">{label}</span>
       <ChevronDown className="h-4 w-4 text-gray-400" />

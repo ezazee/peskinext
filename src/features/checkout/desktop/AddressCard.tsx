@@ -46,8 +46,8 @@ export default function AddressCard() {
   if (!hydrated || switching || loading) return <AddressCardSkeleton />;
 
   return (
-    <div className="rounded-2xl border border-gray-200/70 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-200/70 px-6 py-4">
+    <div className="rounded-2xl bg-white shadow-sm">
+      <div className="flex items-center justify-between px-6 py-4">
         <h2 className="text-lg font-semibold">Alamat pengiriman</h2>
         <button
           className="text-sm font-medium cursor-pointer text-primary hover:underline"
@@ -57,7 +57,7 @@ export default function AddressCard() {
         </button>
       </div>
 
-      <div className="px-6 py-5 text-sm">
+      <div className="px-6 py-5 text-sm pt-0">
         {current ? (
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">

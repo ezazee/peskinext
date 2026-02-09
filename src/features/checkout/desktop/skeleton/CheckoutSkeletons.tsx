@@ -5,8 +5,8 @@ import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 
 export function AddressCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-gray-200/70 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-200/70 px-6 py-4">
+    <div className="rounded-2xl bg-white shadow-sm">
+      <div className="flex items-center justify-between px-6 py-4">
         <Skeleton width={160} height={20} className="rounded" />
         <Skeleton width={64} height={16} className="rounded" />
       </div>
@@ -26,7 +26,7 @@ export function AddressCardSkeleton() {
 
 export function SellerCartCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
+    <div className="rounded-2xl bg-white shadow-sm p-4">
       <Skeleton width={120} height={18} className="rounded" />
       <div className="mt-4 space-y-3">
         <Skeleton.List
@@ -48,7 +48,7 @@ export function SellerCartCardSkeleton() {
 
 export function VoucherCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
+    <div className="rounded-2xl bg-white shadow-sm p-4">
       <Skeleton width={140} height={18} className="rounded" />
       <Skeleton.Text className="mt-2" lines={2} />
       <Skeleton width={"100%"} height={36} className="mt-3 rounded-lg" />
@@ -58,7 +58,7 @@ export function VoucherCardSkeleton() {
 
 export function PaymentMethodsSkeleton() {
   return (
-    <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
+    <div className="rounded-2xl bg-white shadow-sm p-4">
       <Skeleton width={160} height={18} className="rounded" />
       <Skeleton.List
         className="mt-3"
@@ -73,7 +73,7 @@ export function PaymentMethodsSkeleton() {
 
 export function OrderSummarySkeleton() {
   return (
-    <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
+    <div className="rounded-2xl bg-white shadow-sm p-4">
       <Skeleton width={150} height={18} className="rounded" />
       <Skeleton.Text className="mt-3" lines={3} />
       <div className="mt-3 h-px bg-gray-200" />

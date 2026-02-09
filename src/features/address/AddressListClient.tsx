@@ -117,7 +117,7 @@ function AddressListSkeletonMobile() {
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="bg-white rounded-lg shadow-sm border border-gray-100 p-4"
+            className="bg-white rounded-lg shadow-sm p-4"
           >
             <Skeleton width="30%" height={14} radius={6} />
             <Skeleton className="mt-2" width="50%" height={12} radius={6} />

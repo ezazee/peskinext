@@ -6,28 +6,20 @@ import { NotificationCardSkeleton } from "../components/NotificationCardSkeleton
 
 export default function NotificationsMobileSkeleton() {
   return (
-    <div className="min-h-[100dvh] bg-white">
+    <div className="min-h-[100dvh] bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b bg-white/90 backdrop-blur">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <Skeleton.Circle size={28} />
-          <Skeleton.Block width={110} height={16} className="rounded" />
-        </div>
-        <div className="px-4 pb-3">
+      <div className="bg-white px-4 pt-4 pb-2">
+        <Skeleton.Block width={120} height={28} className="rounded" />
+      </div>
+
+      <div className="sticky top-0 z-10 border-b border-gray-200/50 bg-white/95 backdrop-blur-sm supports-[backdrop-filter]:bg-white/80">
+        <div className="px-4 pb-3 pt-1">
           <FilterChipsSkeleton />
         </div>
       </div>
 
-      {/* Banner status */}
-      <div className="px-4 pt-3">
-        <div className="mb-3 flex gap-2">
-          <Skeleton.Block width={160} height={22} radius={9999} />
-          <Skeleton.Block width={200} height={22} radius={9999} />
-        </div>
-      </div>
-
       {/* Sections */}
-      <div className="px-4 pb-6">
+      <div className="px-4 pb-24 pt-4">
         {Array.from({ length: 2 }).map((_, s) => (
           <section key={s} className="mb-6">
             <Skeleton.Block width={90} height={12} className="mb-2 rounded" />

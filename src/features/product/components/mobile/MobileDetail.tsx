@@ -11,7 +11,7 @@ import { ProductGrid } from "@shared/components/layout/header/mobile/product/Pro
 // import { productsData } from "@data/products";
 // removed static productsData
 
-import { getRecommendations } from "@features/product/services/productService";
+import { getRecommendations, calculatePrice } from "@features/product/services/productService";
 import { MobileGallery } from "@features/product/components/mobile/MobileGallery";
 import { VariantChips } from "@features/product/components/mobile/VariantChips";
 import { MobileActionBar } from "@features/product/components/mobile/MobileActionBar";
@@ -36,6 +36,17 @@ import { addToCart } from "@features/cart/cartService";
 import { createCheckoutFromBuyNow } from "@features/checkout/action";
 import { getCurrentUser } from "@features/auth/action";
 import { AuthModal } from "@features/auth/components/AuthModal";
+import { Skeleton } from "@shared/components/ui/SkeletonLoading";
+
+// Simple debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 /** adaptor tipe agar tidak pakai `any` */
 type ProductForShipping = Product &
@@ -61,7 +72,6 @@ export default function MobileDetail({
       setCurrentUser(user);
     }
     checkAuth();
-    checkAuth();
   }, []);
 
   // Recommendations
@@ -80,16 +90,77 @@ export default function MobileDetail({
   } as unknown as Variant);
 
   const [qty, setQty] = useState(1);
+  const debouncedQty = useDebounce(qty, 500);
+
+  // Calculation State
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [calculatedData, setCalculatedData] = useState<{
+    unit_price: number;
+    subtotal: number;
+    product_name: string;
+    variant_name: string;
+    stock_available: number;
+  } | null>(null);
+
+  // Reset calculated data when variant changes immediately (to show skeleton)
+  useEffect(() => {
+    // Immediate skeleton
+    setIsCalculating(true);
+    setCalculatedData(null);
+  }, [variant.id]);
+
+  // Trigger calculation on debounced qty or variant change
+  useEffect(() => {
+    let active = true;
+
+    async function doCalculate() {
+      setIsCalculating(true);
+      try {
+        const res = await calculatePrice({
+          productId: product.id,
+          variantId: variant.id,
+          qty: debouncedQty,
+        });
+        if (active) {
+          setCalculatedData(res);
+        }
+      } catch (e) {
+        console.error("Calculation failed", e);
+        // Fallback to local calculation if backend fails
+        if (active) {
+          setCalculatedData({
+            unit_price: variant.price,
+            subtotal: variant.price * debouncedQty,
+            product_name: product.name,
+            variant_name: variant.name,
+            stock_available: variant.stock
+          });
+        }
+      } finally {
+        if (active) setIsCalculating(false);
+      }
+    }
+
+    doCalculate();
+    return () => { active = false; };
+  }, [product.id, variant.id, variant.price, variant.name, product.name, debouncedQty, variant.stock]);
+
+  // Handle immediate visual skeleton for qty
+  useEffect(() => {
+    if (qty !== debouncedQty) {
+      setIsCalculating(true);
+    }
+  }, [qty, debouncedQty]);
 
   const images = product.galleryImages?.length
     ? product.galleryImages
     : [product.img];
 
-  const priceNum = variant.price;
+  const priceNum = isCalculating ? 0 : (calculatedData?.unit_price ?? variant.price);
   const oldPriceNum = variant.oldPrice ?? null;
   const hasDiscount = oldPriceNum !== null;
-  const disc = discountPercent(oldPriceNum ?? undefined, priceNum);
-  const subtotal = priceNum * qty;
+  const disc = discountPercent(oldPriceNum ?? undefined, variant.price);
+  const subtotal = isCalculating ? 0 : (calculatedData?.subtotal ?? (variant.price * qty));
   const maxStock = variant.stock ?? 99;
 
   // ====== Dinamis: params & quotes ongkir ======
@@ -178,23 +249,29 @@ export default function MobileDetail({
         {/* KONTEN */}
         <div className="p-4 bg-white rounded-t-2xl -mt-4 relative z-10 shadow-sm">
           {/* HARGA */}
-          <div className="flex items-end gap-2">
-            <motion.div
-              key={variant.id}
-              initial={{ scale: 0.98, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-2xl font-bold text-gray-900"
-            >
-              {formatRupiah(priceNum)}
-            </motion.div>
-            {hasDiscount && (
+          <div className="flex items-end gap-2 min-h-[32px]">
+            {isCalculating ? (
+              <Skeleton.Block width={120} height={32} radius={4} />
+            ) : (
               <>
-                <div className="text-sm text-gray-400 line-through">
-                  {formatRupiah(oldPriceNum!)}
-                </div>
-                <div className="text-sm text-red-600 font-semibold">
-                  {disc}%
-                </div>
+                <motion.div
+                  key={variant.id}
+                  initial={{ scale: 0.98, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-2xl font-bold text-gray-900"
+                >
+                  {formatRupiah(priceNum)}
+                </motion.div>
+                {hasDiscount && (
+                  <>
+                    <div className="text-sm text-gray-400 line-through">
+                      {formatRupiah(oldPriceNum!)}
+                    </div>
+                    <div className="text-sm text-red-600 font-semibold">
+                      {disc}%
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -202,8 +279,12 @@ export default function MobileDetail({
           {/* NAMA + AKSI */}
           <div className="mt-3">
             <div className="flex items-start justify-between gap-3">
-              <h1 className="text-base font-semibold leading-snug">
-                {product.name} – {variant.name}
+              <h1 className="text-base font-semibold leading-snug min-h-[24px]">
+                {isCalculating ? (
+                  <Skeleton.Text lines={1} widths={["90%"]} />
+                ) : (
+                  `${product.name} – ${variant.name}`
+                )}
               </h1>
               <div className="flex items-center gap-3 text-xl text-gray-700">
                 <motion.button
@@ -250,9 +331,13 @@ export default function MobileDetail({
                       <span className="font-semibold text-xs text-gray-800 whitespace-nowrap">
                         Ongkir mulai {formatRupiah(cheapest.price)}
                       </span>
-                      <span className="text-xs text-gray-500 truncate">
-                        Est. tiba {cheapest.eta}
-                      </span>
+                      {isCalculating ? (
+                        <Skeleton className="h-4 w-20 bg-gray-200" />
+                      ) : (
+                        <span className="text-gray-500 text-sm">
+                          Stok: {calculatedData?.stock_available ?? maxStock}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <ChevronRightIcon className="w-4 h-4 text-gray-500 shrink-0" />
@@ -276,7 +361,10 @@ export default function MobileDetail({
           <VariantChips
             variants={product.variants}
             activeId={variant.id}
-            onSelect={setVariant}
+            onSelect={(v) => {
+              setVariant(v);
+              setQty(1);
+            }}
           />
 
           {/* DETAIL & KONTEN PRODUK */}
@@ -347,6 +435,7 @@ export default function MobileDetail({
         <MobileActionBar
           subtotal={subtotal}
           qty={qty}
+          isCalculating={isCalculating}
           onQtyChange={(n) => setQty(Math.min(Math.max(1, n), maxStock))}
           onAddToCart={() => {
             if (!isLoggedIn) {

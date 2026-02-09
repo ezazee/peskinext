@@ -1,14 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { type NotificationItem } from "@shared/types/types";
 const notificationsSeed: NotificationItem[] = [];
 import { FilterChips } from "../components/FilterChips";
-import { filterByKind, groupByDay } from "@shared/helpers/notificationFormat";
+import { filterByConfig, groupByDay, type FilterConfig } from "@shared/helpers/notificationFormat";
 import { NotificationCard } from "../components/NotificationCard";
+import { markAllNotificationsAsRead } from "../notificationActions";
+import { useRouter } from "next/navigation";
+import { CheckCheck } from "lucide-react";
 
-type Kind = Parameters<typeof filterByKind>[1];
 
 const containerV = {
   hidden: {},
@@ -24,49 +26,59 @@ export default function NotificationsDesktop({
 }: {
   data?: NotificationItem[];
 }) {
-  const [kind, setKind] = useState<Kind>("transaksi");
-  const filtered = useMemo(() => filterByKind(data, kind), [data, kind]);
+  const router = useRouter();
+  const [filter, setFilter] = useState<FilterConfig>({ main: "all" });
+  const [isMarking, startMarking] = useTransition(); // Reuse transition or new one
+  const filtered = useMemo(() => filterByConfig(data, filter), [data, filter]);
   const grouped = useMemo(() => groupByDay(filtered), [filtered]);
 
-  return (
-    <div className="mx-auto w-full max-w-screen-xl p-6">
-      {/* Header + filter */}
-      <header className="mb-4 flex flex-wrap items-center gap-4">
-        <h1 className="text-lg font-semibold text-gray-900">Notifikasi</h1>
-        <FilterChips data={data} value={kind} onChange={setKind} />
-      </header>
+  const handleMarkAllRead = () => {
+    startMarking(async () => {
+      await markAllNotificationsAsRead();
+      router.refresh();
+    });
+  };
 
-      {/* Banner status */}
-      {kind === "transaksi" && (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 flex flex-wrap gap-2"
-        >
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-            Transaksi berlangsung
-          </span>
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-            Menunggu pembayaran
-          </span>
-        </motion.div>
-      )}
+  return (
+    <div className="mx-auto w-full max-w-4xl px-4 py-8">
+      {/* Header + filter */}
+      <header className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Notifikasi</h1>
+          <button
+            onClick={handleMarkAllRead}
+            disabled={isMarking}
+            className="group flex items-center gap-2 px-4 py-2 text-xs font-semibold text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+            title="Tandai semua telah dibaca"
+          >
+            <CheckCheck className="w-3.5 h-3.5" />
+            <span>{isMarking ? "Memproses..." : "Tandai semua dibaca"}</span>
+          </button>
+        </div>
+        <FilterChips data={data} value={filter} onChange={setFilter} />
+      </header>
 
       {/* List */}
       <AnimatePresence mode="popLayout">
         {grouped.length === 0 ? (
           <motion.div
             key="empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-500"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 py-16 text-center"
           >
-            Tidak ada notifikasi.
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4 text-primary">
+              <span className="text-2xl">🔔</span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Belum ada notifikasi</h3>
+            <p className="mt-1 text-sm text-gray-500 max-w-xs mx-auto">
+              Notifikasi terbaru Anda akan muncul di sini. Cek kembali nanti ya!
+            </p>
           </motion.div>
         ) : (
           <motion.div
-            key={kind}
+            key={filter.main + (filter.sub || "")}
             variants={containerV}
             initial="hidden"
             animate="show"
@@ -74,9 +86,12 @@ export default function NotificationsDesktop({
           >
             {grouped.map((section) => (
               <motion.section key={section.heading} variants={itemV}>
-                <h3 className="mb-3 text-sm font-semibold text-gray-500">
-                  {section.heading}
-                </h3>
+                <div className="sticky top-[70px] z-10 -mx-4 mb-4 bg-gray-50/95 px-4 py-2 backdrop-blur-sm supports-[backdrop-filter]:bg-gray-50/60">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    {section.heading}
+                  </h3>
+                </div>
+
                 <div className="flex flex-col gap-3">
                   {section.items.map((n) => (
                     <motion.div key={n.id} variants={itemV} layout>

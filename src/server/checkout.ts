@@ -223,3 +223,63 @@ export async function getSession(id: string) {
 
   return s;
 }
+// Helper to restore session from existing transaction
+export async function getSessionFromTransaction(txId: string) {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
+
+  try {
+    const res = await fetch(`${API_URL}/orders/detail/${txId}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      console.error("Failed to fetch transaction detail:", res.status);
+      return null;
+    }
+
+    const data = await res.json();
+    if (!data) return null;
+
+    // Map items to CheckoutLine
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const lines: CheckoutLine[] = (data.items || []).map((item: any) => {
+      const product = item.product || item.Product || {};
+      return {
+        productId: String(product.id || "unknown"),
+        variantId: String(item.variant_id || "0"),
+        name: product.name || "Product",
+        image: product.front_image || product.img || "/placeholder.jpg",
+        qty: Number(item.quantity),
+        price: Number(item.price), // Unit price
+        weight: Number(product.weight_gr || product.weightGr || 100),
+      };
+    });
+
+    // Re-calculate totals based on lines (shipping/discount handled by frontend logic usually)
+    // But we populate initial values.
+    const { subtotal, discount, shipping, grandTotal } = calc(lines);
+
+    const session: CheckoutSession = {
+      id: `restored-${txId}`,
+      orderId: txId, // Important: link to existing order
+      source: "cart",
+      userId: data.user_id || null,
+      anonId: null,
+      currency: "IDR",
+      lines,
+      vouchers: [], // Lost vouchers context unless backend stores it
+      subtotal,
+      discount,
+      shipping,
+      grandTotal,
+      createdAt: new Date().toISOString(),
+      expiresAt: fmtNowPlusMinutes(30),
+    };
+
+    return session;
+
+  } catch (error) {
+    console.error("Error restoring session from tx:", error);
+    return null;
+  }
+}

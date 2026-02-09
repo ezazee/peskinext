@@ -9,13 +9,6 @@ import Image from "next/image";
 import type { OrderItem, UserTransaction } from "@shared/types/types";
 import { resolveUnitPrice, resolveVariantName } from "../utils/utils";
 
-// sumber data
-// import { addressBook } from "@data/address";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const addressBook: Array<{ id: string;[key: string]: any }> = [];
-// import { shippingByTx } from "@data/shippingOrder";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const shippingByTx: Record<string, { [key: string]: any }> = {};
 
 /** Untuk render Info Pengiriman */
 type ShippingInfo = {
@@ -42,7 +35,7 @@ const currency = (n: number) =>
 
 const STATUS_LABEL: Record<UserTransaction["status"], string> = {
   pending: "Menunggu Pembayaran",
-  paid: "Terbayar",
+  paid: "Diproses",
   shipped: "Dikirim",
   delivered: "Selesai",
   cancelled: "Dibatalkan",
@@ -69,29 +62,33 @@ function fmtDate(iso?: string): string | undefined {
 }
 
 /** Rakitan shipping dari addressBook + shippingByTx */
+/** Rakitan shipping dari addressBook + shippingByTx */
 function buildShippingInfo(tx: UserTransaction): ShippingInfo | undefined {
+  if (tx.shippingAddress) {
+    return {
+      courier: tx.courier || "",
+      awb: tx.trackingNumber,
+      recipient: tx.shippingAddress.recipient,
+      phone: tx.shippingAddress.phone,
+      address: `${tx.shippingAddress.addressLine}, ${tx.shippingAddress.city}, ${tx.shippingAddress.province} ${tx.shippingAddress.postalCode}`,
+      eta: undefined,
+      shippedAt: undefined,
+      deliveredAt: undefined,
+    };
+  }
+
   if (!tx.addressId) return undefined;
-  const addr = addressBook.find((a) => a.id === tx.addressId);
-  if (!addr) return undefined;
 
-  const meta = shippingByTx[tx.id]; // bisa undefined utk pending/paid/cancelled
-
-  const courierText =
-    meta?.courier && meta?.service
-      ? `${meta.courier} ${meta.service}`
-      : meta?.courier
-        ? meta.courier
-        : ""; // kosong = belum ada
-
+  // Fallback similar to Desktop (addressBook removed as it was empty)
   return {
-    courier: courierText,
-    awb: meta?.trackingNumber,
-    recipient: addr.recipient,
-    phone: addr.phone,
-    address: `${addr.line1}, ${addr.city}, ${addr.province} ${addr.postalCode}`,
-    eta: meta?.eta,
-    shippedAt: meta?.shippedAt,
-    deliveredAt: meta?.deliveredAt,
+    courier: tx.courier || "",
+    awb: tx.trackingNumber,
+    recipient: "Penerima",
+    phone: "",
+    address: "Alamat pengiriman",
+    eta: undefined,
+    shippedAt: undefined,
+    deliveredAt: undefined,
   };
 }
 
@@ -113,19 +110,24 @@ export default function TransactionDetailMobile({
     [shippingProp, tx]
   );
 
-  // breakdown dummy (belum ada ongkir/diskon riil)
-  const shippingCost = 0;
-  const discountSeller = 0;
-  const discountPlatform = 0;
-  const paymentDiscount = 0;
-  const grandTotal = tx.total ?? itemsSubtotal;
+  // Calculate breakdown
+  const originalShipping = tx.originalShippingCost ?? tx.shippingCost ?? 0;
+  const shippingDiscount = Math.max(0, (tx.originalShippingCost ?? 0) - (tx.shippingCost ?? 0));
+  const promoDiscount = tx.discount ?? 0;
+  const grandTotal = tx.total;
+
+  // Fallback for old transactions: if math doesn't add up, show total discount
+  const expectedTotal = itemsSubtotal + (tx.shippingCost ?? 0);
+  const mathGap = expectedTotal - grandTotal;
+  const hasOldData = !tx.originalShippingCost && mathGap > 0;
+  const fallbackTotalDiscount = hasOldData ? mathGap : 0;
 
   // flag tampilan kurir/resi mengikuti status
   const showCourier =
     tx.status === "shipped" ||
     tx.status === "delivered" ||
     (tx.status === "paid" && Boolean(shipping?.courier));
-  const showAwb = tx.status === "shipped" || tx.status === "delivered";
+  const showAwb = (tx.status === "shipped" || tx.status === "delivered") && Boolean(shipping?.awb);
 
   // catatan status di blok “Info Pengiriman”
   const infoNote: string | undefined =
@@ -134,17 +136,27 @@ export default function TransactionDetailMobile({
       : tx.status === "paid"
         ? "Pesanan menunggu diproses"
         : tx.status === "shipped"
-          ? shipping?.eta
-            ? `Estimasi: ${shipping.eta}`
-            : undefined
+          ? "Pesanan dalam perjalanan"
           : tx.status === "delivered"
-            ? shipping?.deliveredAt
-              ? `Sampai di tujuan • ${fmtDate(shipping.deliveredAt)}`
-              : "Sampai di tujuan"
+            ? "Pesanan telah diterima"
             : "Pesanan dibatalkan";
 
+  const handleComplete = async () => {
+    if (!confirm("Apakah Anda yakin sudah menerima pesanan dengan baik?")) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${tx.id}/complete`, {
+        method: "PUT",
+      });
+      if (!res.ok) throw new Error("Gagal update status");
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Gagal memproses permintaan");
+    }
+  };
+
   return (
-    <div className="min-h-[100dvh] bg-gray-50 pb-24">
+    <div className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto pb-24">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white border-b">
         <div className="flex items-center gap-3 px-4 h-12">
@@ -161,7 +173,7 @@ export default function TransactionDetailMobile({
 
       {/* Ringkasan & status */}
       <section className="mx-3 mt-3">
-        <div className="rounded-xl border bg-white">
+        <div className="rounded-xl bg-white shadow-sm">
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <div className="text-sm font-medium">Pesanan</div>
             <span
@@ -199,7 +211,7 @@ export default function TransactionDetailMobile({
         transition={{ duration: 0.18 }}
         className="mx-3 mt-3"
       >
-        <div className="rounded-xl border bg-white">
+        <div className="rounded-xl bg-white shadow-sm">
           <div className="px-4 py-3 border-b text-sm font-medium">
             Detail Produk
           </div>
@@ -244,7 +256,7 @@ export default function TransactionDetailMobile({
         transition={{ duration: 0.2, delay: 0.05 }}
         className="mx-3 mt-3"
       >
-        <div className="rounded-xl border bg-white">
+        <div className="rounded-xl bg-white shadow-sm">
           <div className="px-4 py-3 border-b text-sm font-medium">
             Info Pengiriman
           </div>
@@ -260,7 +272,7 @@ export default function TransactionDetailMobile({
             {showAwb ? (
               <Row label="No Resi" value={shipping?.awb || "—"} />
             ) : (
-              <Row label="No Resi" value="—" />
+              <Row label="No. Invoice" value={tx.invoiceNumber || tx.id} />
             )}
 
             <div>
@@ -305,30 +317,32 @@ export default function TransactionDetailMobile({
         transition={{ duration: 0.2, delay: 0.1 }}
         className="mx-3 mt-3"
       >
-        <div className="rounded-xl border bg-white">
+        <div className="rounded-xl bg-white shadow-sm">
           <div className="px-4 py-3 border-b text-sm font-medium">
-            Rincian Pembayaran
-          </div>
-          <div className="px-4 py-3 text-sm space-y-2">
-            <Row
-              label="Subtotal Harga Barang"
-              value={currency(itemsSubtotal)}
-            />
-            <Row
-              label="Diskon Barang dari Penjual"
-              value={currency(discountSeller)}
-            />
-            <Row label="Total Ongkos Kirim" value={currency(shippingCost)} />
-            <Row
-              label="Kupon/Diskon Platform"
-              value={currency(discountPlatform)}
-            />
-            <Row
-              label="Diskon Metode Pembayaran"
-              value={currency(paymentDiscount)}
-            />
-            <div className="border-t pt-2" />
-            <Row label="Total" value={currency(grandTotal)} strong />
+            <div className="bg-white rounded-xl p-4 space-y-2 text-sm">
+              <h3 className="font-semibold mb-2">Rincian Pembayaran</h3>
+              <Row
+                label="Subtotal Harga Barang"
+                value={currency(itemsSubtotal)}
+              />
+              <Row label="Total Ongkos Kirim" value={currency(originalShipping)} />
+
+              {/* Always show discount lines if there's any discount */}
+              {(shippingDiscount > 0 || (hasOldData && fallbackTotalDiscount > 0)) && (
+                <Row
+                  label="Diskon Ongkir"
+                  value={`- ${currency(hasOldData ? 0 : shippingDiscount)}`}
+                />
+              )}
+              {(promoDiscount > 0 || (hasOldData && fallbackTotalDiscount > 0)) && (
+                <Row
+                  label="Diskon Promo"
+                  value={`- ${currency(hasOldData ? fallbackTotalDiscount : promoDiscount)}`}
+                />
+              )}
+              <div className="border-t pt-2" />
+              <Row label="Total Belanja" value={currency(grandTotal)} strong />
+            </div>
           </div>
         </div>
       </motion.section>
@@ -362,17 +376,25 @@ export default function TransactionDetailMobile({
           >
             Bayar Sekarang
           </Link>
-        ) : tx.status === "cancelled" ? (
-          <button
-            type="button"
-            onClick={() => {
-              const first = tx.items[0];
-              if (first) onBuyAgain?.(first.product.slug);
-            }}
-            className="w-full h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
-          >
-            Beli Lagi
-          </button>
+        ) : tx.status === "shipped" ? (
+          <div className="flex gap-2">
+            {shipping?.awb && (
+              <a
+                href={`https://biteship.com/id/tracking?w=${shipping.awb}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 h-11 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-sm font-semibold hover:bg-blue-100 flex items-center justify-center"
+              >
+                Lacak Paket
+              </a>
+            )}
+            <button
+              onClick={handleComplete}
+              className="flex-1 h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+            >
+              Pesanan Diterima
+            </button>
+          </div>
         ) : (
           <Link
             href="/account/transaction"

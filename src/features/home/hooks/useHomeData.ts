@@ -9,6 +9,7 @@ type HomeData = {
   main: Banner[];
   carousel: Banner[];
   tiles: Banner[];
+  popup?: Banner[];
 };
 
 export function useHomeData() {
@@ -27,7 +28,7 @@ export function useHomeData() {
           }),
           getBanners().catch(err => {
             console.error("Banner fetch failed, using fallback", err);
-            return { main: [], carousel: [], tiles: [] };
+            return { main: [], carousel: [], tiles: [], popup: [] };
           })
         ]);
 
@@ -37,6 +38,7 @@ export function useHomeData() {
           main: bannerData.main || [],
           carousel: bannerData.carousel,
           tiles: bannerData.tiles,
+          popup: bannerData.popup || [],
         });
       } catch (e) {
         if (!alive) return;

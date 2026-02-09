@@ -5,6 +5,7 @@ import { formatRupiah } from "@shared/helpers/pricing";
 export function MobileActionBar({
   subtotal,
   qty,
+  isCalculating,
   onQtyChange,
   onAddToCart,
   onBuyNow,
@@ -12,6 +13,7 @@ export function MobileActionBar({
 }: {
   subtotal: number;
   qty: number;
+  isCalculating: boolean;
   onQtyChange: (n: number) => void;
   onAddToCart: () => void;
   onBuyNow: () => void;
@@ -24,15 +26,22 @@ export function MobileActionBar({
       <div className="flex items-center justify-between">
         <div>
           <span className="text-sm text-gray-500">Subtotal</span>
-          <p className="font-bold text-lg">{formatRupiah(subtotal)}</p>
+          <div className="font-bold text-lg min-h-[28px]">
+            {isCalculating ? (
+              <div className="h-7 w-24 bg-gray-200 animate-pulse rounded" />
+            ) : (
+              formatRupiah(subtotal)
+            )}
+          </div>
         </div>
 
         <div className="flex items-stretch rounded-lg overflow-hidden shadow-sm">
           <motion.button
             whileTap={{ scale: 0.95 }}
-            className="h-9 w-9 grid place-items-center"
+            className="h-9 w-9 grid place-items-center disabled:opacity-50"
             onClick={() => onQtyChange(clamp(qty - 1))}
             aria-label="Kurangi jumlah"
+            disabled={qty <= 1 || isCalculating}
           >
             −
           </motion.button>
@@ -42,12 +51,14 @@ export function MobileActionBar({
             pattern="[0-9]*"
             onChange={(e) => onQtyChange(clamp(Number(e.target.value) || 1))}
             className="h-9 w-12 text-center outline-none"
+            disabled={isCalculating}
           />
           <motion.button
             whileTap={{ scale: 0.95 }}
-            className="h-9 w-9 grid place-items-center"
+            className="h-9 w-9 grid place-items-center disabled:opacity-50"
             onClick={() => onQtyChange(clamp(qty + 1))}
             aria-label="Tambah jumlah"
+            disabled={qty >= max || isCalculating}
           >
             +
           </motion.button>
@@ -58,16 +69,18 @@ export function MobileActionBar({
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={onBuyNow}
-          className="h-11 rounded-lg text-primary font-medium shadow-sm bg-white"
+          className="h-11 rounded-lg text-primary font-medium shadow-sm bg-white disabled:opacity-50"
+          disabled={isCalculating}
         >
-          Beli Langsung
+          {isCalculating ? "Loading..." : "Beli Langsung"}
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={onAddToCart}
-          className="h-11 rounded-lg bg-primary text-white font-semibold shadow-sm"
+          className="h-11 rounded-lg bg-primary text-white font-semibold shadow-sm disabled:opacity-50"
+          disabled={isCalculating}
         >
-          + Keranjang
+          {isCalculating ? "Loading..." : "+ Keranjang"}
         </motion.button>
       </div>
     </div>

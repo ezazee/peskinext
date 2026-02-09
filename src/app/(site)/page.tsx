@@ -17,20 +17,31 @@ export default function HomePage() {
   const { data, loading, error } = useHomeData();
 
   useEffect(() => {
-    const hasSeenBanner = sessionStorage.getItem("hasSeenWelcomeBanner");
-    if (!hasSeenBanner) {
-      setIsBannerOpen(true);
-      sessionStorage.setItem("hasSeenWelcomeBanner", "true");
+    // Check mute timer
+    const muteUntil = localStorage.getItem("popup_mute_until");
+    if (muteUntil && new Date().getTime() < parseInt(muteUntil)) {
+      // Masih dalam masa mute (2 jam), jangan tampilkan
+      return;
     }
+
+    // Default: Tampilkan (karena user minta sering muncul kecuali dimute)
+    setIsBannerOpen(true);
   }, []);
 
-  const handleCloseBanner = () => setIsBannerOpen(false);
+  const handleCloseBanner = (mute: boolean) => {
+    setIsBannerOpen(false);
+    if (mute) {
+      // Set mute sampai 2 jam ke depan
+      const twoHoursLater = new Date().getTime() + 2 * 60 * 60 * 1000;
+      localStorage.setItem("popup_mute_until", twoHoursLater.toString());
+    }
+  };
 
   // Saat loading, tampilkan skeleton full landing
   if (loading) {
     return (
       <>
-        <WelcomeBanner isOpen={isBannerOpen} onClose={handleCloseBanner} />
+        <WelcomeBanner isOpen={isBannerOpen} onClose={() => handleCloseBanner(false)} />
         <HomePageSkeleton />
       </>
     );
@@ -40,7 +51,7 @@ export default function HomePage() {
   if (error || !data) {
     return (
       <>
-        <WelcomeBanner isOpen={isBannerOpen} onClose={handleCloseBanner} />
+        <WelcomeBanner isOpen={isBannerOpen} onClose={() => handleCloseBanner(false)} />
         <div className="max-w-screen-xl mx-auto p-6 text-red-600">
           Gagal memuat data beranda.
         </div>
@@ -51,7 +62,11 @@ export default function HomePage() {
   // Data siap — render konten asli
   return (
     <>
-      <WelcomeBanner isOpen={isBannerOpen} onClose={handleCloseBanner} />
+      <WelcomeBanner
+        isOpen={isBannerOpen}
+        onClose={handleCloseBanner}
+        bannerData={data.popup?.[0]}
+      />
 
       <div className="max-w-screen-xl mx-auto bg-white md:bg-white">
         <main className="p-0 md:px-8 md:py-6 bg-white md:bg-white">

@@ -10,6 +10,8 @@ type Props = { initial: AccountProfile };
 import { updateProfile } from "../../action";
 import { useToast } from "@shared/components/ui/Toaster";
 
+import { compressImage } from "@shared/utils/imageCompression";
+
 export default function ProfileEditDesktop({ initial }: Props) {
   const router = useRouter();
   const toast = useToast();
@@ -30,26 +32,25 @@ export default function ProfileEditDesktop({ initial }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Limit to 2MB for Base64 storage performance
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Ukuran file maksimal 2MB");
+    // Limit input file to prevent browser crash (e.g. 20MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File terlalu besar (Maks 10MB input)");
       return;
     }
 
     setUploading(true);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      onChange("avatarUrl", base64String);
+    try {
+      // Compress to max 600px width/height, 0.7 quality
+      const compressedBase64 = await compressImage(file, 600, 0.7);
+      onChange("avatarUrl", compressedBase64);
+      toast.success("Foto berhasil diproses & dipilih.");
+    } catch (error) {
+      console.error("Compression error:", error);
+      toast.error("Gagal memproses gambar");
+    } finally {
       setUploading(false);
-      toast.success("Foto berhasil dipilih. Klik Simpan untuk menerapkan.");
-    };
-    reader.onerror = () => {
-      toast.error("Gagal membaca file");
-      setUploading(false);
-    };
-    reader.readAsDataURL(file);
+    }
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -72,8 +73,8 @@ export default function ProfileEditDesktop({ initial }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-4xl">
-      <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-6">
+    <form onSubmit={onSubmit} className="bg-white rounded-2xl shadow-sm p-8 max-w-4xl">
+      <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-50">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Ubah Profil</h1>
           <p className="text-sm text-gray-500 mt-1">Perbarui informasi pribadi Anda</p>
@@ -124,7 +125,8 @@ export default function ProfileEditDesktop({ initial }: Props) {
               {uploading ? "Mengupload..." : "Pilih Foto Baru"}
             </button>
             <p className="text-xs text-gray-400 mt-1">
-              Maks. 10MB (JPG/PNG)
+              Otomatis dikompres &lt; 200KB<br />
+              Format: JPG/PNG
             </p>
           </div>
 

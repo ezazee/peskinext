@@ -6,17 +6,11 @@ import { NotificationCardSkeleton } from "../components/NotificationCardSkeleton
 
 export default function NotificationsDesktopSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-screen-xl p-6">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8">
       {/* Header + filter */}
-      <div className="mb-4 flex flex-wrap items-center gap-4">
-        <Skeleton.Block width={140} height={20} className="rounded" />
+      <div className="mb-8">
+        <Skeleton.Block width={180} height={32} className="mb-6 rounded" />
         <FilterChipsSkeleton />
-      </div>
-
-      {/* Banner status */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <Skeleton.Block width={170} height={24} radius={9999} />
-        <Skeleton.Block width={210} height={24} radius={9999} />
       </div>
 
       {/* Sections */}

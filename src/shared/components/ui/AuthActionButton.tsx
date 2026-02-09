@@ -7,17 +7,20 @@ export function AuthActionButton({
   onClick,
   children,
   className = "",
+  disabled,
 }: {
   isLoggedIn: boolean;
   openAuthModal: () => void;
   onClick: () => void;
   children: ReactNode;
   className?: string;
+  disabled?: boolean;
 }) {
   return (
     <button
       onClick={() => (!isLoggedIn ? openAuthModal() : onClick())}
-      className={className}
+      className={`${className} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      disabled={disabled}
     >
       {children}
     </button>

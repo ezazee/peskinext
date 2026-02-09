@@ -440,8 +440,8 @@ export default function DesktopCheckout({
                       return;
                     }
 
-                    // 1. Get existing order ID from URL params
-                    const orderId = searchParams.get('oid');
+                    // 1. Get existing order ID from URL params (support both oid and tx)
+                    const orderId = searchParams.get('oid') || searchParams.get('tx');
                     if (!orderId) {
                       alert("Order tidak ditemukan. Silakan checkout ulang dari cart.");
                       return;
@@ -452,11 +452,17 @@ export default function DesktopCheckout({
                     // 2. Update order with complete address and shipping info
                     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
 
+                    // Calculate net shipping cost (after discount)
+                    const shippingDiscountCapped = Math.min(Math.max(0, shippingDiscount), shippingFee);
+                    const netShippingCost = Math.max(0, shippingFee - shippingDiscountCapped);
+
                     const updatePayload = {
                       address_id: primary.id,
                       courier: shipSelected.courier,
                       shipping_service: shipSelected.service,
-                      shipping_cost: shipSelected.price,
+                      shipping_cost: netShippingCost, // Net cost after discount
+                      original_shipping_cost: shipSelected.price, // Base price before discount
+                      discount: promoDiscountList + promoDiscountCode, // Total promo discount
                       total_amount: grandTotal
                     };
 

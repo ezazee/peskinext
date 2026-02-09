@@ -63,23 +63,23 @@ export default function OrderSummaryMobile({
         value={
           shippingLoading ? (
             <Skeleton width={80} height={14} />
-          ) : shippingAfter === 0 ? (
+          ) : shippingFee > 0 && shippingAfter === 0 ? (
+            // Logic Free: Coret + Gratis
             <span>
-              {shippingFee > 0 && (
-                <span className="mr-2 text-gray-400 line-through">
-                  {formatRupiah(shippingFee)}
-                </span>
-              )}
-              <span className="text-primary font-medium">Gratis</span>
+              <span className="mr-2 text-gray-400 line-through">
+                {formatRupiah(shippingFee)}
+              </span>
+              <span className="text-emerald-600 font-medium">Gratis</span>
             </span>
           ) : (
-            formatRupiah(shippingAfter)
+            // Logic Partial/None: Show Base Price (diskon tampil di bawah)
+            formatRupiah(shippingFee)
           )
         }
       />
 
       {/* Diskon-diskon */}
-      {shippingDiscountCapped > 0 && (
+      {shippingDiscountCapped > 0 && shippingAfter > 0 && (
         <Row
           label="Diskon ongkir"
           value={

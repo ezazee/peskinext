@@ -43,8 +43,13 @@ export const CartIcon = ({ withBadge, count = 0 }: { withBadge?: boolean; count?
   </div>
 );
 
-export const BellIcon = () => (
-  <div className="p-2 rounded-full hover:bg-tertiary cursor-pointer">
+export const BellIcon = ({ withBadge, count = 0 }: { withBadge?: boolean; count?: number }) => (
+  <div className="p-2 rounded-full hover:bg-tertiary cursor-pointer relative">
+    {withBadge && count > 0 && (
+      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
+        {count > 99 ? "99+" : count}
+      </span>
+    )}
     <svg
       xmlns="http://www.w3.org/2000/svg"
       className="h-6 w-6 text-secondary"
@@ -404,7 +409,7 @@ export const HeartIcon = () => (
     />
   </svg>
 );
-export const ShareIcon = ({}: { className?: string }) => (
+export const ShareIcon = ({ }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
@@ -442,7 +447,7 @@ export const BusIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
 
 
 
-export const IconTrash =  ({ className = "h-4 w-4" }: { className?: string }) => (
+export const IconTrash = ({ className = "h-4 w-4" }: { className?: string }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" className={className}>
     <path d="M3 6h18v2H3V6zm2 3h14l-1 12H6L5 9zm4-5h6v2H9V4z" />
   </svg>

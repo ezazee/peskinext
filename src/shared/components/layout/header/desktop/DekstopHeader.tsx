@@ -30,6 +30,8 @@ import { searchProducts } from "@features/search/searchService";
 import type { Product } from "@shared/types/types";
 import { useToast } from "@shared/components/ui/Toaster";
 import { getCartItemCount, setCurrentUserId as setCartUserId } from "@features/cart/cartService";
+import { getUnreadNotificationCount } from "@features/notifications/notificationActions";
+
 import { Avatar } from "@shared/components/ui/Avatar";
 
 type OptionForModal = AddressListEntry & {
@@ -122,6 +124,16 @@ export const DesktopHeader = () => {
     checkAuth();
   }, []);
 
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      getUnreadNotificationCount().then((count) => {
+        setNotificationCount(count);
+      });
+    }
+  }, [isLoggedIn]);
+
   useEffect(() => {
     const updateCount = () => {
       setCartCount(getCartItemCount(currentUserId));
@@ -139,6 +151,8 @@ export const DesktopHeader = () => {
       window.removeEventListener('profileUpdated', handleProfileUpdate);
     };
   }, [currentUserId]);
+
+
 
   // Callback after successful login
   const handleLoginSuccess = () => {
@@ -513,7 +527,7 @@ export const DesktopHeader = () => {
                 onRequireAuth={() => setIsAuthModalOpen(true)}
                 href="/notification"
               >
-                <BellIcon />
+                <BellIcon withBadge count={notificationCount} />
               </AuthAction>
 
               <div className="border-l h-8 mx-2" />

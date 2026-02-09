@@ -2,10 +2,15 @@
 
 import React from "react";
 import { Calendar, ChevronDown, Search, X } from "lucide-react";
-import type { UserTransaction } from "@shared/types/types";
 
 /* ====== Types ====== */
-export type StatusGroup = "all" | "progress" | "success" | "failed";
+export type TxFilter =
+  | "all"
+  | "pending"
+  | "paid"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 export type DateFilter =
   | { kind: "all" }
@@ -13,7 +18,6 @@ export type DateFilter =
   | { kind: "range"; from: string; to: string };
 
 type Props = {
-  data: ReadonlyArray<UserTransaction>;
 
   // Product select
   product: string | "all";
@@ -27,36 +31,27 @@ type Props = {
   date: DateFilter;
   onDateChange: (v: DateFilter) => void;
 
-  // Grouped status (desktop pills)
-  group: StatusGroup;
-  onGroupChange: (g: StatusGroup) => void;
+  // Status (shared)
+  status: TxFilter;
+  onStatusChange: (v: TxFilter) => void;
 
   // Reset all filters
   onReset: () => void;
-
-  status?: unknown;
-  onStatusChange?: (v: unknown) => void;
 };
 
 /* ====== Component ====== */
+/* ====== Component ====== */
 export default function TransactionFiltersDesktop({
-  data,
   product,
   onProductChange,
   search,
   onSearchChange,
   date,
   onDateChange,
-  group,
-  onGroupChange,
+  status,
+  onStatusChange,
   onReset,
 }: Props) {
-  const productOptions = React.useMemo<ReadonlyArray<string>>(() => {
-    const s = new Set<string>();
-    data.forEach((t) => t.items.forEach((it) => s.add(it.product.name)));
-    return Array.from(s).sort((a, b) => a.localeCompare(b));
-  }, [data]);
-
   const [dateOpen, setDateOpen] = React.useState(false);
   const [tmpDate, setTmpDate] = React.useState<DateFilter>(date);
   React.useEffect(() => setTmpDate(date), [date, dateOpen]);
@@ -70,7 +65,7 @@ export default function TransactionFiltersDesktop({
   }
 
   return (
-    <div className="rounded-xl border bg-white p-4">
+    <div className="rounded-xl shadow-sm bg-white p-4">
       {/* Top bar */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Search */}
@@ -84,19 +79,16 @@ export default function TransactionFiltersDesktop({
           />
         </label>
 
-        {/* Product */}
+        {/* Product Category (Single/Bundle) */}
         <div className="relative">
           <select
             value={product}
             onChange={(e) => onProductChange(e.target.value as "all" | string)}
             className="h-10 w-[240px] appearance-none rounded-lg border border-gray-300 pl-3 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
-            <option value="all">Semua Produk</option>
-            {productOptions.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
+            <option value="all">Semua Kategori</option>
+            <option value="single">Single Product</option>
+            <option value="bundle">Bundle Product</option>
           </select>
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         </div>
@@ -117,99 +109,103 @@ export default function TransactionFiltersDesktop({
 
           {dateOpen && (
             <div
-              className="absolute z-30 mt-2 w-[420px] rounded-xl border bg-white shadow-xl"
+              className="absolute z-30 mt-2 w-[320px] rounded-xl bg-white shadow-xl ring-1 ring-black/5"
               role="dialog"
             >
-              <div className="flex items-center justify-between border-b px-4 py-3">
-                <div className="font-semibold">Pilih tanggal</div>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <div className="font-semibold text-gray-900">Filter Tanggal</div>
                 <button
                   type="button"
                   aria-label="Tutup"
                   onClick={() => setDateOpen(false)}
-                  className="rounded p-1 hover:bg-gray-50"
+                  className="rounded-full p-1 hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <X className="h-4 w-4 text-gray-500" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="p-3">
+              <div className="p-4 space-y-4">
+                {/* Presets */}
                 <div className="space-y-2">
-                  <RadioRow
-                    name="date-desktop"
-                    label="Semua Tanggal Transaksi"
-                    checked={tmpDate.kind === "all"}
-                    onChange={() => setTmpDate({ kind: "all" })}
-                  />
-                  <RadioRow
-                    name="date-desktop"
-                    label="30 Hari Terakhir"
-                    checked={tmpDate.kind === "last" && tmpDate.days === 30}
-                    onChange={() => setTmpDate({ kind: "last", days: 30 })}
-                  />
-                  <RadioRow
-                    name="date-desktop"
-                    label="90 Hari Terakhir"
-                    checked={tmpDate.kind === "last" && tmpDate.days === 90}
-                    onChange={() => setTmpDate({ kind: "last", days: 90 })}
-                  />
-                  <div className="rounded-lg border">
-                    <RadioRow
-                      name="date-desktop"
-                      label="Pilih Tanggal Sendiri"
-                      checked={tmpDate.kind === "range"}
-                      onChange={() =>
-                        setTmpDate({
-                          kind: "range",
-                          from: tmpDate.kind === "range" ? tmpDate.from : "",
-                          to: tmpDate.kind === "range" ? tmpDate.to : "",
-                        })
-                      }
-                      className="px-3 py-2"
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pilih Cepat
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <DatePresetBtn
+                      label="Semua"
+                      active={tmpDate.kind === "all"}
+                      onClick={() => setTmpDate({ kind: "all" })}
                     />
-                    {tmpDate.kind === "range" && (
-                      <div className="grid grid-cols-2 gap-3 px-3 pb-3">
-                        <DateInput
-                          label="Mulai dari"
-                          value={tmpDate.from}
-                          onChange={(v) =>
-                            setTmpDate({
-                              kind: "range",
-                              from: v,
-                              to: tmpDate.to,
-                            })
-                          }
-                        />
-                        <DateInput
-                          label="Sampai"
-                          value={tmpDate.to}
-                          onChange={(v) =>
-                            setTmpDate({
-                              kind: "range",
-                              from: tmpDate.from,
-                              to: v,
-                            })
-                          }
-                        />
-                      </div>
-                    )}
+                    <DatePresetBtn
+                      label="30 Hari"
+                      active={tmpDate.kind === "last" && tmpDate.days === 30}
+                      onClick={() => setTmpDate({ kind: "last", days: 30 })}
+                    />
+                    <DatePresetBtn
+                      label="90 Hari"
+                      active={tmpDate.kind === "last" && tmpDate.days === 90}
+                      onClick={() => setTmpDate({ kind: "last", days: 90 })}
+                    />
                   </div>
+                </div>
 
-                  <div className="flex justify-between pt-2">
-                    <button
-                      type="button"
-                      onClick={resetDate}
-                      className="h-10 rounded-lg border px-3 text-sm"
-                    >
-                      Reset
-                    </button>
-                    <button
-                      type="button"
-                      onClick={applyDate}
-                      className="h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:opacity-90"
-                    >
-                      Terapkan
-                    </button>
+                <div className="h-px bg-gray-100" />
+
+                {/* Manual Range */}
+                <div className="space-y-3">
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Manual
                   </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-gray-400">Dari</span>
+                      <input
+                        type="date"
+                        value={tmpDate.kind === "range" ? tmpDate.from : ""}
+                        onChange={(e) =>
+                          setTmpDate({
+                            kind: "range",
+                            from: e.target.value,
+                            to: tmpDate.kind === "range" ? tmpDate.to : "",
+                          })
+                        }
+                        className="w-full rounded-lg bg-gray-50 border-0 px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-gray-400">Sampai</span>
+                      <input
+                        type="date"
+                        value={tmpDate.kind === "range" ? tmpDate.to : ""}
+                        onChange={(e) =>
+                          setTmpDate({
+                            kind: "range",
+                            from: tmpDate.kind === "range" ? tmpDate.from : "",
+                            to: e.target.value,
+                          })
+                        }
+                        className="w-full rounded-lg bg-gray-50 border-0 px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-primary/20"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="pt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={resetDate}
+                    className="flex-1 h-9 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={applyDate}
+                    className="flex-1 h-9 rounded-lg bg-primary text-xs font-semibold text-white shadow-sm hover:bg-primary/90 transition-colors"
+                  >
+                    Terapkan
+                  </button>
                 </div>
               </div>
             </div>
@@ -225,8 +221,8 @@ export default function TransactionFiltersDesktop({
         </button>
       </div>
 
-      {/* Pills status (UI sesuai gambar-1, isi ikut grup mobile) */}
-      <StatusPills group={group} onGroupChange={onGroupChange} />
+      {/* Pills status */}
+      <StatusPills status={status} onStatusChange={onStatusChange} />
     </div>
   );
 }
@@ -234,108 +230,44 @@ export default function TransactionFiltersDesktop({
 /* ====== Sub components ====== */
 
 function StatusPills({
-  group,
-  onGroupChange,
+  status,
+  onStatusChange,
 }: {
-  group: StatusGroup;
-  onGroupChange: (g: StatusGroup) => void;
+  status: TxFilter;
+  onStatusChange: (s: TxFilter) => void;
 }) {
-  const base = "h-9 px-4 rounded-full border text-sm";
-  const active = "border-sky-400 ring-1 ring-sky-200 text-sky-700 bg-sky-50";
-  const normal = "border-gray-200 text-gray-700 hover:bg-gray-50";
+  const base = "h-9 px-4 rounded-full text-sm font-medium transition-colors";
+  const active = "text-sky-700 bg-sky-100 shadow-sm";
+  const normal = "text-gray-600 bg-gray-100 hover:bg-gray-200";
+
+  const tabs: { val: TxFilter; label: string }[] = [
+    { val: "all", label: "Semua" },
+    { val: "pending", label: "Menunggu Pembayaran" },
+    { val: "paid", label: "Diproses" },
+    { val: "shipped", label: "Dikirim" },
+    { val: "delivered", label: "Selesai" },
+    { val: "cancelled", label: "Dibatalkan" },
+  ];
 
   return (
     <div className="mt-4">
       <div className="mb-2 text-sm font-semibold">Status</div>
       <div className="flex flex-wrap gap-2">
-        <button
-          className={`${base} ${group === "all" ? active : normal}`}
-          onClick={() => onGroupChange("all")}
-        >
-          Semua
-        </button>
-        <button
-          className={`${base} ${group === "progress" ? active : normal}`}
-          onClick={() => onGroupChange("progress")}
-        >
-          Berlangsung
-        </button>
-        <button
-          className={`${base} ${group === "success" ? active : normal}`}
-          onClick={() => onGroupChange("success")}
-        >
-          Berhasil
-        </button>
-        <button
-          className={`${base} ${group === "failed" ? active : normal}`}
-          onClick={() => onGroupChange("failed")}
-        >
-          Tidak Berhasil
-        </button>
-        <button
-          className={`${base} border-gray-200 text-gray-300 cursor-not-allowed`}
-          disabled
-        >
-          E-tiket &amp; E-voucher Aktif
-        </button>
+        {tabs.map((tab) => (
+          <button
+            key={tab.val}
+            className={`${base} ${status === tab.val ? active : normal}`}
+            onClick={() => onStatusChange(tab.val)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
     </div>
   );
 }
 
-function RadioRow({
-  name,
-  label,
-  checked,
-  onChange,
-  className,
-}: {
-  name: string;
-  label: string;
-  checked: boolean;
-  onChange: () => void;
-  className?: string;
-}) {
-  return (
-    <label
-      className={[
-        "flex items-center justify-between rounded-lg hover:bg-gray-50",
-        className ?? "px-2 py-2",
-      ].join(" ")}
-    >
-      <span className="text-sm">{label}</span>
-      <input
-        type="radio"
-        name={name}
-        checked={checked}
-        onChange={onChange}
-        className="h-4 w-4 accent-primary"
-      />
-    </label>
-  );
-}
 
-function DateInput({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <label className="block">
-      <div className="mb-1 text-xs text-gray-500">{label}</div>
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-    </label>
-  );
-}
 
 /* ====== helpers ====== */
 function dateLabel(v: DateFilter): string {
@@ -352,4 +284,27 @@ function fmt(iso: string): string {
     month: "short",
     year: "numeric",
   });
+}
+
+function DatePresetBtn({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${active
+        ? "bg-primary text-white shadow-md shadow-primary/20 ring-1 ring-primary/50"
+        : "bg-gray-50 text-gray-600 hover:bg-gray-100 ring-1 ring-gray-100"
+        }`}
+    >
+      {label}
+    </button>
+  );
 }

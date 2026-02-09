@@ -13,17 +13,25 @@ import { getCurrentUser } from "@features/auth/action";
 export function BuyBox({
   product,
   variant,
+  qty,
+  setQty,
+  subtotal,
+  isCalculating,
   onAdd,
   onAuthRequired,
+  currentStock,
 }: {
   product: Product;
   variant: Variant;
+  qty: number;
+  setQty: (q: number) => void;
+  subtotal: number;
+  isCalculating: boolean;
   onAdd: (qty: number) => void;
   onAuthRequired: () => void;
+  currentStock?: number;
 }) {
   const toast = useToast();
-
-  const [qty, setQty] = useState(1);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const buyNowFormRef = useRef<HTMLFormElement>(null);
@@ -39,8 +47,6 @@ export function BuyBox({
 
   const maxQty = Math.max(0, variant.stock);
   const clamp = (n: number) => Math.min(Math.max(1, n), maxQty);
-
-  const subtotal = variant.price * qty;
 
   const handleCopyLink = async () => {
     const ok = await copyProductLink(product.slug);
@@ -69,7 +75,11 @@ export function BuyBox({
               {variant.name}
             </div>
             <div className="text-gray-500">
-              Stok: {variant.stock.toLocaleString("id-ID")}
+              {isCalculating ? (
+                <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+              ) : (
+                `Stok: ${(currentStock ?? variant.stock).toLocaleString("id-ID")}`
+              )}
             </div>
           </div>
         </div>
@@ -92,9 +102,9 @@ export function BuyBox({
         <div className="flex items-center border rounded-lg overflow-hidden">
           <button
             className="px-3 py-2 hover:bg-gray-50 disabled:opacity-50"
-            onClick={() => setQty((q) => clamp(q - 1))}
+            onClick={() => setQty(clamp(qty - 1))}
             aria-label="Kurangi jumlah"
-            disabled={qty <= 1}
+            disabled={qty <= 1 || isCalculating}
           >
             −
           </button>
@@ -107,12 +117,13 @@ export function BuyBox({
             onChange={(e) => setQty(clamp(Number(e.target.value) || 1))}
             className="w-14 text-center outline-none py-2"
             aria-label="Jumlah"
+            disabled={isCalculating}
           />
           <button
             className="px-3 py-2 hover:bg-gray-50 disabled:opacity-50"
-            onClick={() => setQty((q) => clamp(q + 1))}
+            onClick={() => setQty(clamp(qty + 1))}
             aria-label="Tambah jumlah"
-            disabled={qty >= maxQty}
+            disabled={qty >= maxQty || isCalculating}
           >
             +
           </button>
@@ -121,7 +132,13 @@ export function BuyBox({
 
       <div className="mt-4 flex justify-between items-center">
         <span className="text-sm text-gray-500">Subtotal</span>
-        <span className="text-2xl font-bold">{formatRupiah(subtotal)}</span>
+        <span className="text-2xl font-bold">
+          {isCalculating ? (
+            <div className="h-8 w-32 bg-gray-200 animate-pulse rounded" />
+          ) : (
+            formatRupiah(subtotal)
+          )}
+        </span>
       </div>
 
       <form ref={buyNowFormRef} action={createCheckoutFromBuyNow}>
@@ -137,8 +154,9 @@ export function BuyBox({
           openAuthModal={onAuthRequired}
           onClick={() => onAdd(qty)}
           className="w-full bg-primary cursor-pointer text-white py-3 rounded-lg hover:opacity-90 font-semibold"
+          disabled={isCalculating}
         >
-          + Keranjang
+          {isCalculating ? "Menghitung..." : "+ Keranjang"}
         </AuthActionButton>
 
         {/* Beli Langsung → submit form ke server action */}
@@ -149,8 +167,9 @@ export function BuyBox({
             buyNowFormRef.current?.requestSubmit();
           }}
           className="w-full border cursor-pointer border-primary text-primary py-3 rounded-lg hover:bg-primary/5 font-semibold"
+          disabled={isCalculating}
         >
-          Beli Langsung
+          {isCalculating ? "Menghitung..." : "Beli Langsung"}
         </AuthActionButton>
       </div>
     </div>

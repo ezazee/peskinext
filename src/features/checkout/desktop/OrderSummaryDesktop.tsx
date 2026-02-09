@@ -41,10 +41,6 @@ export default function OrderSummaryDesktop({
   );
   const shippingAfter = Math.max(0, shippingFee - shippingDiscountCapped);
 
-  const totalDiscount =
-    Math.max(0, shippingDiscountCapped) +
-    Math.max(0, promoDiscountList) +
-    Math.max(0, promoDiscountCode);
 
   const logos: ReadonlyArray<{
     src: string;
@@ -66,29 +62,27 @@ export default function OrderSummaryDesktop({
       <div className="space-y-2 text-sm">
         <Row label={`Subtotal (${itemsCount} produk)`} value={fmt(subtotal)} />
 
-        {/* Ongkir: tampil "Gratis" jika after=0, dan coret harga awal jika ada */}
+        {/* Ongkir: Logic baru (Free = Coret + Gratis, Partial = Harga Asli + Line Diskon) */}
         <Row
           label="Ongkir"
           value={
             !hasShippingSelected ? (
               <span className="text-gray-400 italic">Pilih pengiriman</span>
-            ) : shippingAfter === 0 ? (
-              <span>
-                {shippingFee > 0 && (
-                  <span className="mr-2 text-gray-400 line-through">
-                    {fmt(shippingFee)}
-                  </span>
-                )}
-                <span className="text-primary font-medium">Gratis</span>
+            ) : shippingFee > 0 && shippingAfter === 0 ? (
+              <span className="font-medium text-emerald-600">
+                <span className="line-through text-gray-400 mr-1 font-normal text-xs">
+                  {fmt(shippingFee)}
+                </span>
+                Gratis
               </span>
             ) : (
-              fmt(shippingAfter)
+              fmt(shippingFee)
             )
           }
         />
 
-        {/* Diskon-diskon */}
-        {shippingDiscountCapped > 0 && (
+        {/* Diskon ongkir: Hanya tampil jika partial discount (kalau free, sudah dihandle di atas) */}
+        {shippingDiscountCapped > 0 && shippingAfter > 0 && (
           <Row
             label="Diskon ongkir"
             value={
@@ -98,6 +92,9 @@ export default function OrderSummaryDesktop({
             }
           />
         )}
+
+        {/* Diskon-diskon */}
+
 
         {promoDiscountList > 0 && (
           <Row
@@ -124,11 +121,7 @@ export default function OrderSummaryDesktop({
           value={<span className="font-semibold">{fmt(grandTotal)}</span>}
         />
 
-        {totalDiscount > 0 && (
-          <div className="text-xs text-primary">
-            Kamu hemat {fmt(totalDiscount)}
-          </div>
-        )}
+
       </div>
 
       <button

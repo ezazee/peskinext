@@ -6,6 +6,7 @@ export interface BannersResponse {
     main: Banner[];
     carousel: Banner[];
     tiles: Banner[];
+    popup?: Banner[];
 }
 
 export async function getBanners(): Promise<BannersResponse> {

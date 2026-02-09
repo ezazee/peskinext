@@ -1,6 +1,22 @@
 import type { Product } from "@shared/types/types";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
+export async function calculatePrice(data: { productId: string; variantId: number; qty: number; channel?: string }) {
+    const res = await fetch(`${API_URL}/products/calculate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        cache: "no-store",
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: "Unknown error" }));
+        throw new Error(err.message || "Gagal menghitung harga");
+    }
+
+    return res.json();
+}
 
 // Matches Backend's formatProductToFrontend
 interface FormattedBackendProduct {
@@ -33,7 +49,7 @@ interface FormattedBackendProduct {
 }
 
 export async function getProducts(): Promise<Product[]> {
-    const res = await fetch(`${BACKEND_URL}/products`, {
+    const res = await fetch(`${API_URL}/products`, {
         cache: "no-store",
     });
 

@@ -87,8 +87,11 @@ export async function updateProfile(data: any): Promise<UpdateProfileResult> {
         });
 
         if (!res.ok) {
-            const err = await res.json();
-            return { success: false, error: err.message || "Gagal update profile" };
+            if (res.status === 413) {
+                return { success: false, error: "Ukuran file terlalu besar (Maks 2MB)" };
+            }
+            const err = await res.json().catch(() => ({}));
+            return { success: false, error: err.error || err.message || "Gagal update profile" };
         }
 
         const result = await res.json();

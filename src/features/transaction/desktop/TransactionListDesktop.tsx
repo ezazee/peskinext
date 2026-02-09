@@ -52,10 +52,10 @@ export default function TransactionListDesktop({
             initial={{ opacity: 0, y: 10, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.2, delay: i * 0.05 }}
-            className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300"
+            className="bg-white rounded-3xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-50 pb-4 mb-4">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-50">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 text-xs font-semibold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600">
                   <ShoppingBag size={14} />
@@ -67,7 +67,7 @@ export default function TransactionListDesktop({
                   {fmtDate(t.dateISO)}
                 </span>
                 <span className="text-gray-300">|</span>
-                <span className="text-sm text-gray-400 font-mono tracking-wide">{t.id}</span>
+                <span className="text-sm text-gray-400 font-mono tracking-wide">{t.invoiceNumber || t.id}</span>
               </div>
               <div>
                 {badge(t.status)}
@@ -82,7 +82,7 @@ export default function TransactionListDesktop({
                   alt={title}
                   width={80}
                   height={80}
-                  className="w-20 h-20 rounded-xl object-cover border border-gray-100 group-hover:scale-105 transition-transform duration-300"
+                  className="w-20 h-20 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
 
@@ -142,12 +142,12 @@ function renderActions(status: TxStatus, id: string, slug: string) {
     );
   }
 
-  // Berlangsung
-  if (status === "paid" || status === "shipped") {
+  // Dikirim → Lacak Pesanan
+  if (status === "shipped") {
     return (
       <Link
         href={`/account/transaction/${id}`}
-        className={`${base} bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300`}
+        className={`${base} bg-white shadow-sm text-gray-700 hover:bg-gray-50 hover:shadow-md`}
       >
         Lacak Pesanan
       </Link>
@@ -166,7 +166,7 @@ function renderActions(status: TxStatus, id: string, slug: string) {
         </Link>
         <Link
           href={`/account/transaction/${id}?tab=review`}
-          className={`${base} border border-green-200 text-green-700 bg-green-50 hover:bg-green-100`}
+          className={`${base} shadow-sm text-green-700 bg-green-50 hover:bg-green-100 hover:shadow-md`}
         >
           Beri Nilai
         </Link>
@@ -174,11 +174,11 @@ function renderActions(status: TxStatus, id: string, slug: string) {
     );
   }
 
-  // Lainnya
+  // Lainnya (status === 'paid' goes here -> Detail)
   return (
     <Link
       href={`/account/transaction/${id}`}
-      className={`${base} bg-white border border-gray-200 text-gray-700 hover:bg-gray-50`}
+      className={`${base} bg-white shadow-sm text-gray-700 hover:bg-gray-50 hover:shadow-md`}
     >
       Detail
     </Link>

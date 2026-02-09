@@ -9,11 +9,11 @@ const currency = (n: number) =>
   `Rp ${n.toLocaleString("id-ID", { maximumFractionDigits: 0 })}`;
 
 const STATUS_LABEL: Record<UserTransaction["status"], string> = {
-  pending: "Pending",
-  paid: "Paid",
-  shipped: "Shipped",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
+  pending: "Menunggu Pembayaran",
+  paid: "Diproses",
+  shipped: "Dikirim",
+  delivered: "Selesai",
+  cancelled: "Dibatalkan",
 };
 
 const STATUS_BADGE: Record<UserTransaction["status"], string> = {
@@ -37,7 +37,7 @@ export default function TransactionListMobile({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18 }}
-          className="rounded-xl border bg-white overflow-hidden"
+          className="rounded-xl bg-white overflow-hidden shadow-sm"
         >
           {/* Header ringkas */}
           <div className="px-4 py-3 border-b text-sm text-gray-600 flex items-center justify-between">
@@ -52,7 +52,7 @@ export default function TransactionListMobile({
                 })}
               </span>
               <span>•</span>
-              <span className="text-gray-700">{t.id}</span>
+              <span className="text-gray-700">{t.invoiceNumber || t.id}</span>
             </div>
 
             {/* Status badge kanan atas */}
@@ -91,15 +91,6 @@ export default function TransactionListMobile({
 
             {/* Tombol aksi */}
             <div className="mt-3 flex items-center justify-end gap-2">
-              {t.status === "pending" && (
-                <Link
-                  href={`/account/transaction/${t.id}`}
-                  className="h-9 px-3 rounded-lg border text-sm font-semibold hover:bg-gray-50 active:bg-gray-50 flex items-center justify-center"
-                >
-                  Detail
-                </Link>
-              )}
-
               {t.status === "pending" ? (
                 <Link
                   href={`/payment/${t.id}`}
@@ -107,6 +98,15 @@ export default function TransactionListMobile({
                 >
                   Bayar Sekarang
                 </Link>
+              ) : t.status === "shipped" && t.trackingNumber ? (
+                <a
+                  href={`https://biteship.com/id/tracking?w=${t.trackingNumber}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-9 px-4 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-sm font-semibold hover:bg-blue-100 flex items-center justify-center"
+                >
+                  Lacak Paket
+                </a>
               ) : (
                 <Link
                   href={`/account/transaction/${t.id}`}

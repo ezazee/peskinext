@@ -12,6 +12,7 @@ import {
 import { AuthAction } from "@features/auth/AuthAction";
 import { getCurrentUser } from "@features/auth/action";
 import { getCartItemCount } from "@features/cart/cartService";
+import { getUnreadNotificationCount } from "@features/notifications/notificationActions";
 
 import SearchOverlay from "../SearchOverlay";
 import { AuthModal } from "@features/auth/components/AuthModal";
@@ -33,6 +34,15 @@ export const MobileHeader = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      getUnreadNotificationCount().then((count) => {
+        setNotificationCount(count);
+      });
+    }
+  }, [isLoggedIn]);
   const [userProfile, setUserProfile] = useState<{
     id: string;
     name: string;
@@ -182,7 +192,7 @@ export const MobileHeader = () => {
             openAuthModal={openAuthModal}
             href="/notification"
           >
-            <BellIcon />
+            <BellIcon withBadge count={notificationCount} />
           </AuthAction>
           <AuthAction
             isLoggedIn={isLoggedIn}

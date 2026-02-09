@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ cs?: string }>;
+  searchParams: Promise<{ cs?: string; tx?: string }>;
 }) {
   // Check if user is logged in
   const user = await getCurrentUser();
@@ -33,6 +33,18 @@ export default async function Page({
       redirect("/cart?error=session_expired");
     }
   } else {
+    // Check if we have transaction ID (re-payment flow)
+    const txId = params.tx;
+    if (txId && typeof txId === "string") {
+      const { getSessionFromTransaction } = await import("@server/checkout");
+      const restoredSession = await getSessionFromTransaction(txId);
+      if (restoredSession) {
+        checkoutSession = restoredSession;
+      } else {
+        // creating empty session or fallback?
+        // console.warn("Could not restore session from txId", txId);
+      }
+    }
   }
 
   return <CheckoutClient checkoutSession={checkoutSession} />;

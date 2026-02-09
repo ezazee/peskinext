@@ -7,7 +7,7 @@ type Props = {
 
 export default function AddressCardMobile({ label, onOpen }: Props) {
   return (
-    <header className="sticky top-0 z-40 bg-white border-b px-4 py-3">
+    <header className="sticky top-0 z-40 bg-white shadow-sm px-4 py-3">
       <div className="text-[11px] text-gray-500">Dikirim ke</div>
       <button
         onClick={onOpen}

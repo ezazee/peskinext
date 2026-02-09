@@ -6,10 +6,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { type NotificationItem } from "@shared/types/types";
 const notificationsSeed: NotificationItem[] = [];
 import { FilterChips } from "../components/FilterChips";
-import { filterByKind, groupByDay } from "@shared/helpers/notificationFormat";
+import {
+  filterByConfig,
+  groupByDay,
+  type FilterConfig
+} from "@shared/helpers/notificationFormat";
 import { NotificationCard } from "../components/NotificationCard";
-
-type Kind = Parameters<typeof filterByKind>[1];
+import { markAllNotificationsAsRead } from "../notificationActions";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { CheckCheck } from "lucide-react";
 
 const listV = {
   hidden: {},
@@ -25,58 +31,70 @@ export default function NotificationsMobile({
 }: {
   data?: NotificationItem[];
 }) {
-  const [kind, setKind] = useState<Kind>("transaksi");
-  const filtered = useMemo(() => filterByKind(data, kind), [data, kind]);
+  const router = useRouter();
+  const [filter, setFilter] = useState<FilterConfig>({ main: "all" });
+  const [isMarking, startMarking] = useTransition();
+  const filtered = useMemo(() => filterByConfig(data, filter), [data, filter]);
   const grouped = useMemo(() => groupByDay(filtered), [filtered]);
 
+  const handleMarkAllRead = () => {
+    startMarking(async () => {
+      await markAllNotificationsAsRead();
+      router.refresh();
+    });
+  };
+
   return (
-    // Jadikan ini SCROLLER halaman → sticky akan nempel di sini
-    // 👇 SATU-SATUNYA PERUBAHAN ADA DI BARIS INI
-    <div className="h-[100dvh] bg-white pt-[env(safe-area-inset-top)]">
-      {/* Header benar-benar sticky di scroller di atas */}
-      <div className="sticky top-0 z-40 border-b bg-white/90 supports-[backdrop-filter]:bg-white/60 backdrop-blur">
-        <div className="flex items-center gap-3 px-4 py-5">
-          <div className="text-base font-semibold">Notifikasi</div>
-        </div>
-        <div className="px-0 pb-3">
-          <FilterChips data={data} value={kind} onChange={setKind} scrollable />
+    <div className="min-h-[100dvh] bg-gray-50 pt-[env(safe-area-inset-top)]">
+      {/* Header Title - Scrolls away */}
+      {/* Header Title - Scrolls away */}
+      <div className="bg-white px-4 pt-4 pb-2 flex items-center justify-between">
+        <div className="text-xl font-bold text-gray-900">Notifikasi</div>
+        <button
+          onClick={handleMarkAllRead}
+          disabled={isMarking}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-full transition-all active:scale-95 disabled:opacity-50"
+        >
+          {isMarking ? (
+            <span className="text-[10px] font-medium">...</span>
+          ) : (
+            <>
+              <CheckCheck className="w-3.5 h-3.5" />
+              <span>Tandai dibaca</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Filter Chips - Sticky */}
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm supports-[backdrop-filter]:bg-white/80 border-b border-gray-200/50 shadow-sm">
+        <div className="px-4 pb-3 pt-1">
+          <FilterChips data={data} value={filter} onChange={setFilter} scrollable />
         </div>
       </div>
 
-      {/* Banner status */}
-      {kind === "transaksi" && (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="px-4 pt-3"
-        >
-          <div className="mb-3 flex gap-2">
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-              Transaksi berlangsung
-            </span>
-            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-              Menunggu pembayaran
-            </span>
-          </div>
-        </motion.div>
-      )}
-
       {/* List */}
-      <div className="px-4 pb-6 pt-5">
+      <div className="px-4 pb-24 pt-4">
         <AnimatePresence mode="popLayout">
           {grouped.length === 0 ? (
             <motion.div
-              key="empty-m"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="mt-6 rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-500"
+              key="empty"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-12 text-center"
             >
-              Tidak ada notifikasi.
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 shadow-sm mb-4 text-primary">
+                <span className="text-3xl">🔔</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Belum ada notifikasi</h3>
+              <p className="mt-1 text-sm text-gray-500 max-w-[200px] mx-auto">
+                Notifikasi terbaru Anda akan muncul di sini.
+              </p>
             </motion.div>
           ) : (
             <motion.div
-              key={kind}
+              key={filter.main + (filter.sub || "")}
               variants={listV}
               initial="hidden"
               animate="show"
@@ -84,7 +102,7 @@ export default function NotificationsMobile({
             >
               {grouped.map((section) => (
                 <motion.section key={section.heading} variants={rowV}>
-                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-500 ml-1">
                     {section.heading}
                   </h3>
                   <div className="flex flex-col gap-3">

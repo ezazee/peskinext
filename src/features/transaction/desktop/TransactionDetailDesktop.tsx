@@ -8,11 +8,7 @@ import { resolveUnitPrice, resolveVariantName } from "../utils/utils";
 
 // sumber data untuk Info Pengiriman
 // import { addressBook } from "@data/address";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const addressBook: Array<{ id: string;[key: string]: any }> = [];
 // import { shippingByTx } from "@data/shippingOrder";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const shippingByTx: Record<string, { [key: string]: any }> = {};
 
 /* ================= helpers ================= */
 
@@ -57,29 +53,34 @@ type ShippingInfo = {
   deliveredAt?: string;
 };
 
+
 function buildShippingInfo(tx: UserTransaction): ShippingInfo | undefined {
+  // Use mapped shippingAddress if available
+  if (tx.shippingAddress) {
+    return {
+      courier: tx.courier || "",
+      awb: tx.trackingNumber,
+      recipient: tx.shippingAddress.recipient,
+      phone: tx.shippingAddress.phone,
+      address: `${tx.shippingAddress.addressLine}, ${tx.shippingAddress.city}, ${tx.shippingAddress.province} ${tx.shippingAddress.postalCode}`,
+      eta: undefined,
+      shippedAt: undefined,
+      deliveredAt: undefined,
+    };
+  }
+
   if (!tx.addressId) return undefined;
-  const addr = addressBook.find((a) => a.id === tx.addressId);
-  if (!addr) return undefined;
 
-  const meta = shippingByTx[tx.id];
-
-  const courierText =
-    meta?.courier && meta?.service
-      ? `${meta.courier} ${meta.service}`
-      : meta?.courier
-        ? meta.courier
-        : "";
-
+  // Fallback if addressBook is empty or not found (since we don't have full address book in context yet)
   return {
-    courier: courierText,
-    awb: meta?.trackingNumber,
-    recipient: addr.recipient,
-    phone: addr.phone,
-    address: `${addr.line1}, ${addr.city}, ${addr.province} ${addr.postalCode}`,
-    eta: meta?.eta,
-    shippedAt: meta?.shippedAt,
-    deliveredAt: meta?.deliveredAt,
+    courier: tx.courier || "",
+    awb: tx.trackingNumber,
+    recipient: "Penerima",
+    phone: "",
+    address: "Alamat pengiriman",
+    eta: undefined,
+    shippedAt: undefined,
+    deliveredAt: undefined,
   };
 }
 
@@ -90,13 +91,18 @@ export default function TransactionDetailDesktop({
 }: {
   tx: UserTransaction;
 }) {
-  // sama seperti mobile
+  // Calculate breakdown
   const itemsSubtotal = tx.items.reduce((s, it) => s + it.subtotal, 0);
-  const shippingCost = 0;
-  const discountSeller = 0;
-  const discountPlatform = 0;
-  const paymentDiscount = 0;
-  const grandTotal = tx.total ?? itemsSubtotal;
+  const originalShipping = tx.originalShippingCost ?? tx.shippingCost ?? 0;
+  const shippingDiscount = Math.max(0, (tx.originalShippingCost ?? 0) - (tx.shippingCost ?? 0));
+  const promoDiscount = tx.discount ?? 0;
+  const grandTotal = tx.total;
+
+  // Fallback for old transactions: if math doesn't add up, show total discount
+  const expectedTotal = itemsSubtotal + (tx.shippingCost ?? 0);
+  const mathGap = expectedTotal - grandTotal;
+  const hasOldData = !tx.originalShippingCost && mathGap > 0;
+  const fallbackTotalDiscount = hasOldData ? mathGap : 0;
 
   const firstSlug = tx.items[0]?.product.slug ?? "";
 
@@ -106,7 +112,7 @@ export default function TransactionDetailDesktop({
     tx.status === "shipped" ||
     tx.status === "delivered" ||
     (tx.status === "paid" && Boolean(shipping?.courier));
-  const showAwb = tx.status === "shipped" || tx.status === "delivered";
+  const showAwb = (tx.status === "shipped" || tx.status === "delivered") && Boolean(shipping?.awb);
 
   const infoNote: string | undefined =
     tx.status === "pending"
@@ -114,14 +120,95 @@ export default function TransactionDetailDesktop({
       : tx.status === "paid"
         ? "Pesanan menunggu diproses"
         : tx.status === "shipped"
-          ? shipping?.eta
-            ? `Estimasi: ${shipping.eta}`
-            : undefined
+          ? "Pesanan sedan dalam perjalanan"
           : tx.status === "delivered"
-            ? shipping?.deliveredAt
-              ? `Sampai di tujuan • ${fmtDate(shipping.deliveredAt)}`
-              : "Sampai di tujuan"
+            ? "Pesanan telah diterima"
             : "Pesanan dibatalkan";
+
+  const handleComplete = async () => {
+    if (!confirm("Apakah Anda yakin sudah menerima pesanan dengan baik?")) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${tx.id}/complete`, {
+        method: "PUT",
+      });
+      if (!res.ok) throw new Error("Gagal update status");
+      window.location.reload(); // Refresh to see new status
+    } catch (err) {
+      console.error(err);
+      alert("Gagal memproses permintaan");
+    }
+  };
+
+  const renderActions = () => {
+    if (tx.status === "pending") {
+      return (
+        <Link
+          href={`/checkout?tx=${encodeURIComponent(tx.id)}`}
+          className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
+        >
+          Bayar Sekarang
+        </Link>
+      );
+    }
+    if (tx.status === "paid") {
+      return (
+        <Link
+          href={`/account/transaction`}
+          className="h-10 px-3 rounded-lg border text-sm hover:bg-gray-50 inline-flex items-center justify-center"
+        >
+          Kembali ke Riwayat
+        </Link>
+      );
+    }
+    if (tx.status === "shipped") {
+      return (
+        <div className="flex gap-2">
+          {tx.trackingNumber && (
+            <a
+              href={`https://biteship.com/id/tracking?w=${tx.trackingNumber}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-10 px-3 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-sm hover:bg-blue-100 inline-flex items-center justify-center"
+            >
+              Lacak Paket
+            </a>
+          )}
+          <button
+            onClick={handleComplete}
+            className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
+          >
+            Pesanan Diterima
+          </button>
+        </div>
+      );
+    }
+    if (tx.status === "delivered") {
+      return (
+        <>
+          <Link
+            href={`/product/${firstSlug}`}
+            className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
+          >
+            Beli Lagi
+          </Link>
+          <Link
+            href={`/account/transaction/${tx.id}?tab=review`}
+            className="h-10 px-3 rounded-lg border text-sm hover:bg-gray-50 inline-flex items-center justify-center"
+          >
+            Beri Nilai
+          </Link>
+        </>
+      );
+    }
+    return (
+      <Link
+        href={`/account/transaction`}
+        className="h-10 px-3 rounded-lg border text-sm hover:bg-gray-50 inline-flex items-center justify-center"
+      >
+        Kembali ke Riwayat
+      </Link>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -130,7 +217,7 @@ export default function TransactionDetailDesktop({
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18 }}
-        className="bg-white border rounded-2xl p-5 shadow-sm"
+        className="bg-white rounded-2xl p-5 shadow-sm"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">Pesanan</h2>
@@ -140,7 +227,7 @@ export default function TransactionDetailDesktop({
         <div className="mt-3 space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-gray-500">No. Invoice</span>
-            <span className="font-medium">{tx.id}</span>
+            <span className="font-medium">{tx.invoiceNumber || tx.id}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-500">Tanggal Pembelian</span>
@@ -163,7 +250,7 @@ export default function TransactionDetailDesktop({
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18, delay: 0.05 }}
-        className="bg-white border rounded-2xl p-5 shadow-sm"
+        className="bg-white rounded-2xl p-5 shadow-sm"
       >
         <h2 className="text-sm font-semibold">Detail Produk</h2>
 
@@ -205,7 +292,7 @@ export default function TransactionDetailDesktop({
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18, delay: 0.1 }}
-        className="bg-white border rounded-2xl p-5 shadow-sm"
+        className="bg-white rounded-2xl p-5 shadow-sm"
       >
         <h2 className="text-sm font-semibold">Info Pengiriman</h2>
 
@@ -260,32 +347,35 @@ export default function TransactionDetailDesktop({
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18, delay: 0.15 }}
-        className="bg-white border rounded-2xl p-5 shadow-sm"
+        className="bg-white rounded-2xl p-5 shadow-sm"
       >
-        <h2 className="text-sm font-semibold">Rincian Pembayaran</h2>
-
-        <div className="mt-3 space-y-2 text-sm">
+        {/* Rincian Pembayaran */}
+        <section className="space-y-3">
+          <h3 className="font-semibold">Rincian Pembayaran</h3>
           <Row label="Subtotal Harga Barang" value={currency(itemsSubtotal)} />
-          <Row
-            label="Diskon Barang dari Penjual"
-            value={currency(discountSeller)}
-          />
-          <Row label="Total Ongkos Kirim" value={currency(shippingCost)} />
-          <Row
-            label="Kupon/Diskon Platform"
-            value={currency(discountPlatform)}
-          />
-          <Row
-            label="Diskon Metode Pembayaran"
-            value={currency(paymentDiscount)}
-          />
+          <Row label="Total Ongkos Kirim" value={currency(originalShipping)} />
+
+          {/* Always show discount lines if there's any discount */}
+          {(shippingDiscount > 0 || (hasOldData && fallbackTotalDiscount > 0)) && (
+            <Row
+              label="Diskon Ongkir"
+              value={`- ${currency(hasOldData ? 0 : shippingDiscount)}`}
+            />
+          )}
+          {(promoDiscount > 0 || (hasOldData && fallbackTotalDiscount > 0)) && (
+            <Row
+              label="Diskon Promo"
+              value={`- ${currency(hasOldData ? fallbackTotalDiscount : promoDiscount)}`}
+            />
+          )}
+
           <div className="border-t pt-2" />
-          <Row label="Total" value={currency(grandTotal)} />
-        </div>
+          <Row label="Total Belanja" value={currency(grandTotal)} />
+        </section>
 
         {/* Aksi bawah – disamakan dengan mobile */}
         <div className="mt-4 flex items-center justify-end gap-2">
-          {renderActions(tx.status, tx.id, firstSlug)}
+          {renderActions()}
         </div>
       </motion.section>
     </div>
@@ -300,50 +390,6 @@ function Row({ label, value }: { label: string; value: string }) {
       <div className="text-gray-500">{label}</div>
       <div className="font-medium">{value}</div>
     </div>
-  );
-}
-
-function renderActions(
-  status: UserTransaction["status"],
-  id: string,
-  slug: string
-) {
-  if (status === "pending") {
-    return (
-      <Link
-        href={`/checkout?tx=${encodeURIComponent(id)}`}
-        className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
-      >
-        Bayar Sekarang
-      </Link>
-    );
-  }
-  if (status === "paid" || status === "shipped" || status === "cancelled") {
-    return (
-      <Link
-        href={`/account/transaction/${id}`}
-        className="h-10 px-3 rounded-lg border text-sm hover:bg-gray-50 inline-flex items-center justify-center"
-      >
-        Kembali ke Riwayat
-      </Link>
-    );
-  }
-  // delivered
-  return (
-    <>
-      <Link
-        href={`/product/${slug}`}
-        className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
-      >
-        Beli Lagi
-      </Link>
-      <Link
-        href={`/account/transaction/${id}?tab=review`}
-        className="h-10 px-3 rounded-lg border text-sm hover:bg-gray-50 inline-flex items-center justify-center"
-      >
-        Beri Nilai
-      </Link>
-    </>
   );
 }
 

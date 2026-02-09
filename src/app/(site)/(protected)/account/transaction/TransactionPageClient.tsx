@@ -13,7 +13,6 @@ import TransactionFiltersMobile, {
 } from "@features/transaction/mobile/TransactionFiltersMobile";
 
 import TransactionFiltersDesktop, {
-  type StatusGroup,
   type DateFilter as DesktopDateFilter,
 } from "@features/transaction/desktop/TransactionFiltersDesktop";
 import type { TxFilter } from "@features/transaction/TransactionFilters";
@@ -46,13 +45,17 @@ export default function TransactionPageClient({ userId }: { userId: string }): J
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const mapped: UserTransaction[] = data.map((order: any) => ({
             id: order.id,
+            invoiceNumber: `INV/${new Date(order.created_at).toISOString().slice(0, 10).replace(/-/g, "")}/${order.id.split("-")[0].toUpperCase()}`,
             dateISO: order.created_at,
             status: order.status,
             total: parseFloat(order.total_amount),
+            shippingCost: parseFloat(order.shipping_cost || 0),
+            discount: parseFloat(order.discount || 0),
             addressId: order.address_id,
+            courier: order.courier,
+            trackingNumber: order.tracking_number,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             items: (order.items || []).map((item: any) => {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const product = item.Product || item.product || {};
               return {
                 product: {
@@ -84,9 +87,7 @@ export default function TransactionPageClient({ userId }: { userId: string }): J
   }, [userId]);
 
   /* ====== State filters ====== */
-  // desktop pills group
-  const [group, setGroup] = React.useState<StatusGroup>("all");
-  // mobile exact status
+  // shared status (desktop & mobile)
   const [status, setStatus] = React.useState<TxFilter>("all");
   // shared
   const [product, setProduct] = React.useState<string | "all">("all");
@@ -118,31 +119,21 @@ export default function TransactionPageClient({ userId }: { userId: string }): J
   );
 
   const filtered = React.useMemo<ReadonlyArray<UserTransaction>>(() => {
-    // 1) group (desktop)
     let base: ReadonlyArray<UserTransaction> = transactions;
-    if (group !== "all") {
-      const allow: ReadonlyArray<TxFilter> =
-        group === "progress"
-          ? ["pending", "paid", "shipped"]
-          : group === "success"
-            ? ["delivered"]
-            : ["cancelled"]; // failed
-      base = base.filter((t) => allow.includes(t.status));
-    }
 
-    // 2) exact status (mobile)
+    // 1) status (shared)
     if (status !== "all") {
       base = base.filter((t) => t.status === status);
     }
 
-    // 3) product
+    // 2) product category (single/bundle)
     if (product !== "all") {
       base = base.filter((t) =>
-        t.items.some((it) => it.product.name === product)
+        t.items.some((it) => it.product.type === product)
       );
     }
 
-    // 4) search
+    // 3) search
     if (search.trim()) {
       const q = search.toLowerCase();
       base = base.filter(
@@ -152,29 +143,33 @@ export default function TransactionPageClient({ userId }: { userId: string }): J
       );
     }
 
-    // 5) date
+    // 4) date
     base = applyDateFilter(base);
 
-    console.log("Filtered transactions:", base.length, "out of", transactions.length);
-    console.log("Filter settings:", { group, status, product, search, date });
-
     return base;
-  }, [transactions, group, status, product, search, applyDateFilter, date]);
+  }, [transactions, status, product, search, applyDateFilter]);
 
   function handleReset(): void {
-    setGroup("all");
     setStatus("all");
     setProduct("all");
     setSearch("");
     setDate({ kind: "all" });
   }
 
+  /* ====== Filtering Effect ====== */
+  const [filtering, setFiltering] = React.useState(false);
+
+  React.useEffect(() => {
+    setFiltering(true);
+    const timer = setTimeout(() => setFiltering(false), 500);
+    return () => clearTimeout(timer);
+  }, [status, product, search, date]);
+
   return (
     <div className="w-full">
       {/* MOBILE Filter (pills + bottom-sheets) */}
       <div className="mb-3 block md:hidden">
         <TransactionFiltersMobile
-          data={transactions}
           status={status}
           onStatusChange={setStatus}
           product={product}
@@ -188,29 +183,28 @@ export default function TransactionPageClient({ userId }: { userId: string }): J
         {/* DESKTOP Filter */}
         <div className="hidden md:block">
           <TransactionFiltersDesktop
-            data={transactions}
             product={product}
             onProductChange={setProduct}
             search={search}
             onSearchChange={setSearch}
             date={date}
             onDateChange={setDate}
-            group={group}
-            onGroupChange={setGroup}
+            status={status}
+            onStatusChange={setStatus}
             onReset={handleReset}
           />
         </div>
 
         {/* LIST */}
         <div className="hidden md:block">
-          {loading ? (
+          {loading || filtering ? (
             <TransactionSkeletonDesktop />
           ) : (
             <TransactionListDesktop data={[...filtered]} />
           )}
         </div>
         <div className="block md:hidden">
-          {loading ? (
+          {loading || filtering ? (
             <TransactionSkeletonMobile />
           ) : (
             <TransactionListMobile data={[...filtered]} />

@@ -25,7 +25,7 @@ export default function AddressListDesktop({
 
     <>
       {/* Panel kanan */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 h-full">
+      <div className="bg-white rounded-2xl shadow-sm p-6 h-full">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Alamat Saya</h1>
@@ -52,10 +52,10 @@ export default function AddressListDesktop({
                   exit={{ opacity: 0, y: -6, scale: 0.98 }}
                   transition={{ duration: 0.2 }}
                   className={[
-                    "rounded-2xl border p-5 transition-colors",
+                    "rounded-2xl p-5 transition-colors shadow-sm",
                     isPrimary
-                      ? "bg-sky-50/50 border-sky-200 ring-1 ring-sky-100" // active
-                      : "bg-white border-gray-100 hover:border-gray-200",
+                      ? "bg-sky-50/50 ring-1 ring-sky-100" // active
+                      : "bg-white hover:bg-gray-50",
                   ].join(" ")}
                 >
                   <div className="flex items-start justify-between gap-4">
