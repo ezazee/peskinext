@@ -54,6 +54,7 @@ export default function TransactionPageClient({ userId }: { userId: string }): J
             addressId: order.address_id,
             courier: order.courier,
             trackingNumber: order.tracking_number,
+            expiresAt: order.expires_at, // Add expiry mapping
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             items: (order.items || []).map((item: any) => {
               const product = item.Product || item.product || {};
@@ -69,7 +70,9 @@ export default function TransactionPageClient({ userId }: { userId: string }): J
                 quantity: item.quantity,
                 unitPrice: parseFloat(item.price),
                 subtotal: item.quantity * parseFloat(item.price),
-                variantId: item.variant_id
+                variantId: item.variant_id,
+                variant: item.variant,
+                review: item.review // Include review data
               };
             })
           }));

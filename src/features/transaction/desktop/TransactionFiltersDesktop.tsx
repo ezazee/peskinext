@@ -8,6 +8,7 @@ export type TxFilter =
   | "all"
   | "pending"
   | "paid"
+  | "processing"
   | "shipped"
   | "delivered"
   | "cancelled";

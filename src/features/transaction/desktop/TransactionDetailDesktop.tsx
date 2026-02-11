@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import * as React from "react";
 import { motion } from "framer-motion";
+import { X } from "lucide-react";
 import type { OrderItem, UserTransaction } from "@shared/types/types";
 import { resolveUnitPrice, resolveVariantName } from "../utils/utils";
+import TrackingTimeline from "../components/TrackingTimeline";
+import { PaymentTimer } from "../components/PaymentTimer";
 
 // sumber data untuk Info Pengiriman
 // import { addressBook } from "@data/address";
@@ -91,6 +95,11 @@ export default function TransactionDetailDesktop({
 }: {
   tx: UserTransaction;
 }) {
+  // State for Tracking Modal
+  const [showTrackingModal, setShowTrackingModal] = React.useState(false);
+  const [trackingHistory, setTrackingHistory] = React.useState<any[]>([]);
+  const [loadingTracking, setLoadingTracking] = React.useState(false);
+
   // Calculate breakdown
   const itemsSubtotal = tx.items.reduce((s, it) => s + it.subtotal, 0);
   const originalShipping = tx.originalShippingCost ?? tx.shippingCost ?? 0;
@@ -111,6 +120,7 @@ export default function TransactionDetailDesktop({
   const showCourier =
     tx.status === "shipped" ||
     tx.status === "delivered" ||
+    tx.status === "processing" ||
     (tx.status === "paid" && Boolean(shipping?.courier));
   const showAwb = (tx.status === "shipped" || tx.status === "delivered") && Boolean(shipping?.awb);
 
@@ -119,11 +129,37 @@ export default function TransactionDetailDesktop({
       ? "Menunggu pembayaran"
       : tx.status === "paid"
         ? "Pesanan menunggu diproses"
-        : tx.status === "shipped"
-          ? "Pesanan sedan dalam perjalanan"
-          : tx.status === "delivered"
-            ? "Pesanan telah diterima"
-            : "Pesanan dibatalkan";
+        : tx.status === "processing"
+          ? "Pesanan sedang diproses"
+          : tx.status === "shipped"
+            ? "Pesanan sedang dalam perjalanan"
+            : tx.status === "delivered"
+              ? "Pesanan telah diterima"
+              : "Pesanan dibatalkan";
+
+  const fetchTracking = async () => {
+    if (trackingHistory.length > 0) {
+      setShowTrackingModal(true);
+      return;
+    }
+
+    setLoadingTracking(true);
+    setShowTrackingModal(true);
+
+    try {
+      // Use internal API which calls Biteship
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shipping/tracking/${tx.id}`);
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.history)) {
+        setTrackingHistory(data.history);
+      }
+    } catch (err) {
+      console.error("Failed to fetch tracking", err);
+    } finally {
+      setLoadingTracking(false);
+    }
+  };
 
   const handleComplete = async () => {
     if (!confirm("Apakah Anda yakin sudah menerima pesanan dengan baik?")) return;
@@ -142,12 +178,15 @@ export default function TransactionDetailDesktop({
   const renderActions = () => {
     if (tx.status === "pending") {
       return (
-        <Link
-          href={`/checkout?tx=${encodeURIComponent(tx.id)}`}
-          className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
-        >
-          Bayar Sekarang
-        </Link>
+        <div className="flex flex-col items-center gap-2">
+          <Link
+            href={`/checkout?tx=${encodeURIComponent(tx.id)}`}
+            className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
+          >
+            Bayar Sekarang
+          </Link>
+          {tx.expiresAt && <PaymentTimer expiresAt={tx.expiresAt} />}
+        </div>
       );
     }
     if (tx.status === "paid") {
@@ -164,14 +203,12 @@ export default function TransactionDetailDesktop({
       return (
         <div className="flex gap-2">
           {tx.trackingNumber && (
-            <a
-              href={`https://biteship.com/id/tracking?w=${tx.trackingNumber}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={fetchTracking}
               className="h-10 px-3 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-sm hover:bg-blue-100 inline-flex items-center justify-center"
             >
               Lacak Paket
-            </a>
+            </button>
           )}
           <button
             onClick={handleComplete}
@@ -183,6 +220,10 @@ export default function TransactionDetailDesktop({
       );
     }
     if (tx.status === "delivered") {
+      // Check if all items have been reviewed
+      const allItemsReviewed = tx.items.every(item => item.review);
+      const hasAnyReview = tx.items.some(item => item.review);
+
       return (
         <>
           <Link
@@ -193,9 +234,12 @@ export default function TransactionDetailDesktop({
           </Link>
           <Link
             href={`/account/transaction/${tx.id}?tab=review`}
-            className="h-10 px-3 rounded-lg border text-sm hover:bg-gray-50 inline-flex items-center justify-center"
+            className={`h-10 px-3 rounded-lg text-sm hover:opacity-90 inline-flex items-center justify-center ${hasAnyReview
+              ? 'bg-blue-50 text-blue-600 border border-blue-200'
+              : 'border hover:bg-gray-50'
+              }`}
           >
-            Beri Nilai
+            {allItemsReviewed ? 'Lihat Review' : hasAnyReview ? 'Lihat/Beri Nilai' : 'Beri Nilai'}
           </Link>
         </>
       );
@@ -319,7 +363,14 @@ export default function TransactionDetailDesktop({
                 <>
                   <div className="font-medium">{shipping.recipient}</div>
                   {shipping.phone && <div>{shipping.phone}</div>}
-                  <div className="text-gray-700">{shipping.address}</div>
+                  <div className="text-gray-700">
+                    {[
+                      tx.shippingAddress?.addressLine,
+                      tx.shippingAddress?.city,
+                      tx.shippingAddress?.province,
+                      tx.shippingAddress?.postalCode
+                    ].filter(Boolean).join(", ") || shipping.address}
+                  </div>
                 </>
               ) : (
                 "—"
@@ -331,10 +382,10 @@ export default function TransactionDetailDesktop({
             {tx.status === "pending" && (
               <div className="mt-3">
                 <Link
-                  href="/account/address"
-                  className="inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-gray-50"
+                  href={`/checkout?oid=${tx.id}`}
+                  className="inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-gray-50 text-primary border-primary/20 bg-primary/5"
                 >
-                  Ubah Alamat
+                  Ubah Alamat & Bayar
                 </Link>
               </div>
             )}
@@ -378,6 +429,33 @@ export default function TransactionDetailDesktop({
           {renderActions()}
         </div>
       </motion.section>
+
+      {/* === TRACKING MODAL === */}
+      {showTrackingModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="font-semibold text-gray-800">Status Pengiriman</h3>
+              <button onClick={() => setShowTrackingModal(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-0 overflow-y-auto flex-1">
+              <TrackingTimeline
+                history={trackingHistory}
+                loading={loadingTracking}
+                trackingNumber={tx.trackingNumber}
+                courier={tx.courier}
+              />
+            </div>
+          </motion.div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -401,27 +479,32 @@ function StatusBadge({ status }: { status: UserTransaction["status"] }) {
     pending: {
       bg: "bg-amber-50 border-amber-200",
       fg: "text-amber-700",
-      text: "Pending",
+      text: "Menunggu Pembayaran",
     },
     paid: {
       bg: "bg-blue-50 border-blue-200",
       fg: "text-blue-700",
-      text: "Paid",
+      text: "Menunggu Konfirmasi",
+    },
+    processing: {
+      bg: "bg-orange-50 border-orange-200",
+      fg: "text-orange-700",
+      text: "Sedang Dikemas",
     },
     shipped: {
       bg: "bg-sky-50 border-sky-200",
       fg: "text-sky-700",
-      text: "Shipped",
+      text: "Sedang Dikirim",
     },
     delivered: {
       bg: "bg-green-50 border-green-200",
       fg: "text-green-700",
-      text: "Delivered",
+      text: "Selesai",
     },
     cancelled: {
       bg: "bg-rose-50 border-rose-200",
       fg: "text-rose-700",
-      text: "Cancelled",
+      text: "Dibatalkan",
     },
   };
   const s = map[status];

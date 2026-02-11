@@ -169,7 +169,8 @@ export interface CheckoutSession {
   shipping: number;
   grandTotal: number;
   createdAt: string;
-  expiresAt: string;
+  expiresAt: string; // Session expiry
+  orderExpiresAt?: string; // Order expiry (for payment timer)
 }
 
 /* ================= Address ================= */
@@ -275,6 +276,7 @@ export interface AccountData {
 export type TransactionStatus =
   | "pending"
   | "paid"
+  | "processing"
   | "shipped"
   | "delivered"
   | "cancelled";
@@ -290,6 +292,18 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  variant?: {
+    id: number;
+    variant_name: string;
+    price?: number;
+  } | null;
+  review?: {
+    id: number;
+    rating: number;
+    comment: string;
+    images: string[];
+    created_at: string;
+  };
 }
 
 export interface UserTransaction {
@@ -313,6 +327,7 @@ export interface UserTransaction {
     province: string;
     postalCode: string;
   };
+  expiresAt?: string;
 }
 
 export type ShippingOrder = {

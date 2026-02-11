@@ -184,7 +184,7 @@ export async function createSessionFromBuyNow(input: {
   const line: CheckoutLine = {
     productId: input.productId,
     variantId: input.variantId,
-    name: `${product.name} - ${variant.name}`,
+    name: `${product.name} - ${variant.variant_name || variant.name || 'Default'}`,
     image: product.img,
     qty: input.qty,
     price: variant.price,
@@ -274,6 +274,7 @@ export async function getSessionFromTransaction(txId: string) {
       grandTotal,
       createdAt: new Date().toISOString(),
       expiresAt: fmtNowPlusMinutes(30),
+      orderExpiresAt: data.expires_at, // Map payment timer
     };
 
     return session;

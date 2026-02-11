@@ -10,6 +10,8 @@ import type {
   VoucherConditions,
   CheckoutSession,
 } from "@shared/types/types";
+import { PaymentTimer } from "@features/transaction/components/PaymentTimer";
+
 
 import { AddressModal } from "@shared/components/ui/AddressModal";
 import { useAddressBook } from "@features/address/useAddressBook";
@@ -356,6 +358,13 @@ export default function MobileCheckout({
       />
 
       <main className="px-4 py-4 space-y-4">
+        {checkoutSession?.orderExpiresAt && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center justify-between">
+            <span className="text-sm text-orange-800 font-medium">Batas Waktu:</span>
+            <PaymentTimer expiresAt={checkoutSession.orderExpiresAt} />
+          </div>
+        )}
+
         <SellerCartCard
           items={items}
           current={shippingCurrent}

@@ -8,6 +8,7 @@ import Image from "next/image";
 
 import type { OrderItem, UserTransaction } from "@shared/types/types";
 import { resolveUnitPrice, resolveVariantName } from "../utils/utils";
+import { PaymentTimer } from "../components/PaymentTimer";
 
 
 /** Untuk render Info Pengiriman */
@@ -35,8 +36,9 @@ const currency = (n: number) =>
 
 const STATUS_LABEL: Record<UserTransaction["status"], string> = {
   pending: "Menunggu Pembayaran",
-  paid: "Diproses",
-  shipped: "Dikirim",
+  paid: "Menunggu Konfirmasi",
+  processing: "Sedang Dikemas",
+  shipped: "Sedang Dikirim",
   delivered: "Selesai",
   cancelled: "Dibatalkan",
 };
@@ -44,6 +46,7 @@ const STATUS_LABEL: Record<UserTransaction["status"], string> = {
 const STATUS_BADGE: Record<UserTransaction["status"], string> = {
   pending: "bg-amber-100 text-amber-700",
   paid: "bg-blue-100 text-blue-700",
+  processing: "bg-orange-100 text-orange-700",
   shipped: "bg-sky-100 text-sky-700",
   delivered: "bg-emerald-100 text-emerald-700",
   cancelled: "bg-rose-100 text-rose-700",
@@ -92,6 +95,12 @@ function buildShippingInfo(tx: UserTransaction): ShippingInfo | undefined {
   };
 }
 
+// ... (imports)
+import TrackingTimeline from "../components/TrackingTimeline";
+import { X } from "lucide-react";
+
+// ... (existing code)
+
 export default function TransactionDetailMobile({
   tx,
   onBack,
@@ -99,6 +108,13 @@ export default function TransactionDetailMobile({
   onBuyAgain,
   onReview,
 }: Props) {
+  // State for Tracking Modal
+  const [showTrackingModal, setShowTrackingModal] = React.useState(false);
+  const [trackingHistory, setTrackingHistory] = React.useState<any[]>([]);
+  const [loadingTracking, setLoadingTracking] = React.useState(false);
+
+  // ... (existing helper vars)
+
   const itemsSubtotal = React.useMemo(
     () => tx.items.reduce((acc, it) => acc + it.subtotal, 0),
     [tx.items]
@@ -116,32 +132,58 @@ export default function TransactionDetailMobile({
   const promoDiscount = tx.discount ?? 0;
   const grandTotal = tx.total;
 
-  // Fallback for old transactions: if math doesn't add up, show total discount
+  // Fallback for old transactions
   const expectedTotal = itemsSubtotal + (tx.shippingCost ?? 0);
   const mathGap = expectedTotal - grandTotal;
   const hasOldData = !tx.originalShippingCost && mathGap > 0;
   const fallbackTotalDiscount = hasOldData ? mathGap : 0;
 
-  // flag tampilan kurir/resi mengikuti status
+  // flag tampilan kurir/resi
   const showCourier =
     tx.status === "shipped" ||
     tx.status === "delivered" ||
+    tx.status === "processing" ||
     (tx.status === "paid" && Boolean(shipping?.courier));
   const showAwb = (tx.status === "shipped" || tx.status === "delivered") && Boolean(shipping?.awb);
 
-  // catatan status di blok “Info Pengiriman”
   const infoNote: string | undefined =
     tx.status === "pending"
       ? "Menunggu pembayaran"
       : tx.status === "paid"
         ? "Pesanan menunggu diproses"
-        : tx.status === "shipped"
-          ? "Pesanan dalam perjalanan"
-          : tx.status === "delivered"
-            ? "Pesanan telah diterima"
-            : "Pesanan dibatalkan";
+        : tx.status === "processing"
+          ? "Pesanan sedang diproses"
+          : tx.status === "shipped"
+            ? "Pesanan dalam perjalanan"
+            : tx.status === "delivered"
+              ? "Pesanan telah diterima"
+              : "Pesanan dibatalkan";
+
+  const fetchTracking = async () => {
+    if (trackingHistory.length > 0) {
+      setShowTrackingModal(true);
+      return;
+    }
+
+    setLoadingTracking(true);
+    setShowTrackingModal(true);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shipping/tracking/${tx.id}`);
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.history)) {
+        setTrackingHistory(data.history);
+      }
+    } catch (err) {
+      console.error("Failed to fetch tracking", err);
+    } finally {
+      setLoadingTracking(false);
+    }
+  };
 
   const handleComplete = async () => {
+    // ... (existing code)
     if (!confirm("Apakah Anda yakin sudah menerima pesanan dengan baik?")) return;
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${tx.id}/complete`, {
@@ -157,6 +199,8 @@ export default function TransactionDetailMobile({
 
   return (
     <div className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto pb-24">
+      {/* ... (existing header & sections) */}
+
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white border-b">
         <div className="flex items-center gap-3 px-4 h-12">
@@ -176,11 +220,16 @@ export default function TransactionDetailMobile({
         <div className="rounded-xl bg-white shadow-sm">
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <div className="text-sm font-medium">Pesanan</div>
-            <span
-              className={`text-xs px-2 py-1 rounded ${STATUS_BADGE[tx.status]}`}
-            >
-              {STATUS_LABEL[tx.status]}
-            </span>
+            <div className="flex flex-col items-end gap-1">
+              <span
+                className={`text-xs px-2 py-1 rounded ${STATUS_BADGE[tx.status]}`}
+              >
+                {STATUS_LABEL[tx.status]}
+              </span>
+              {tx.status === "pending" && tx.expiresAt && (
+                <PaymentTimer expiresAt={tx.expiresAt} compact />
+              )}
+            </div>
           </div>
           <div className="px-4 py-3 space-y-2 text-sm">
             <div className="flex items-center justify-between">
@@ -282,7 +331,14 @@ export default function TransactionDetailMobile({
                   <>
                     <div className="font-medium">{shipping.recipient}</div>
                     {shipping.phone && <div>{shipping.phone}</div>}
-                    <div className="text-gray-700">{shipping.address}</div>
+                    <div className="text-gray-700">
+                      {[
+                        tx.shippingAddress?.addressLine,
+                        tx.shippingAddress?.city,
+                        tx.shippingAddress?.province,
+                        tx.shippingAddress?.postalCode
+                      ].filter(Boolean).join(", ") || shipping.address}
+                    </div>
                   </>
                 ) : (
                   "—"
@@ -298,10 +354,10 @@ export default function TransactionDetailMobile({
               {tx.status === "pending" && (
                 <div className="mt-3">
                   <Link
-                    href="/account/address"
-                    className="inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-gray-50"
+                    href={`/checkout?oid=${tx.id}`}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-gray-50 text-primary border-primary/20 bg-primary/5"
                   >
-                    Ubah Alamat
+                    Ubah Alamat & Bayar
                   </Link>
                 </div>
               )}
@@ -379,14 +435,12 @@ export default function TransactionDetailMobile({
         ) : tx.status === "shipped" ? (
           <div className="flex gap-2">
             {shipping?.awb && (
-              <a
-                href={`https://biteship.com/id/tracking?w=${shipping.awb}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={fetchTracking}
                 className="flex-1 h-11 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-sm font-semibold hover:bg-blue-100 flex items-center justify-center"
               >
                 Lacak Paket
-              </a>
+              </button>
             )}
             <button
               onClick={handleComplete}
@@ -404,6 +458,34 @@ export default function TransactionDetailMobile({
           </Link>
         )}
       </div>
+
+      {/* TRACKING MODAL (Mobile) */}
+      {showTrackingModal && (
+        <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center">
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-xl"
+          >
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="font-semibold text-gray-800">Status Pengiriman</h3>
+              <button onClick={() => setShowTrackingModal(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-0 overflow-y-auto flex-1 pb-safe">
+              <TrackingTimeline
+                history={trackingHistory}
+                loading={loadingTracking}
+                trackingNumber={tx.trackingNumber}
+                courier={tx.courier}
+              />
+            </div>
+          </motion.div>
+        </div>
+      )}
+
     </div>
   );
 }

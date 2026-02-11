@@ -1,82 +1,113 @@
 "use client";
 
 import React from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import type { UserTransaction } from "@shared/types/types";
 import TransactionDetailMobile from "./mobile/TransactionDetailMobile";
 import TransactionDetailDesktop from "./desktop/TransactionDetailDesktop";
 import TransactionDetailSkeleton from "./skeleton/TransactionDetailSkeleton";
+import ReviewForm from "../review/components/ReviewForm";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function TransactionDetailClient({
   id,
 }: {
   id: string;
 }) {
-
-
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tab = searchParams.get("tab");
 
   const [hydrated, setHydrated] = React.useState(false);
   React.useEffect(() => setHydrated(true), []);
 
   const [tx, setTx] = React.useState<UserTransaction | undefined>(undefined);
   const [loading, setLoading] = React.useState(true);
+  const [reviewingItemIndex, setReviewingItemIndex] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     if (!id) return;
     setLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/detail/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/detail/${id}`, {
+      cache: 'no-store', // Prevent caching to get fresh review data
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+      }
+    })
       .then(res => {
         if (!res.ok) throw new Error("Order not found");
         return res.json();
       })
       .then(data => {
+        console.log("📝 [Frontend Debug] Raw data received:", data);
+        console.log("📝 [Frontend Debug] Items:", data.items);
+
         // Map data to UserTransaction
         const mapped: UserTransaction = {
           id: data.id,
-          invoiceNumber: `INV/${new Date(data.created_at).toISOString().slice(0, 10).replace(/-/g, "")}/${data.id.split("-")[0].toUpperCase()}`,
+          invoiceNumber: data.invoice_number,
           dateISO: data.created_at,
           status: data.status,
-          total: parseFloat(data.total_amount),
-          addressId: data.address_id,
-          courier: data.courier,
-          trackingNumber: data.tracking_number,
-          shippingAddress: data.address ? {
-            recipient: data.address.recipient || data.user?.name || "Penerima",
-            phone: data.address.phone || data.user?.email || "",
-            addressLine: data.address.address || "",
-            city: data.address.regencies || data.address.city || "",
-            province: data.address.province || "",
-            postalCode: data.address.postal_code || ""
-          } : undefined,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          items: (data.items || []).map((item: any) => {
-            // Check for nested Product (from include) or direct item properties if flattened
-            const product = item.product || item.Product || {};
+          items: data.items?.map((item: any) => {
+            console.log("📝 [Frontend Debug] Mapping item:", {
+              product_id: item.product_id,
+              variant_id: item.variant_id,
+              has_review: !!item.review,
+              review_data: item.review
+            });
+
             return {
               product: {
-                id: product.id || "unknown",
-                name: product.name || "Unknown Product",
-                slug: product.slug || "",
-                img: product.front_image || product.img || "/placeholder.jpg",
-                type: product.type || "single",
-                weightGr: product.weight_gr || product.weightGr || 0
+                id: item.product?.id,
+                name: item.product?.name || "Unknown Product",
+                slug: item.product?.slug,
+                img: item.product?.front_image,
+                type: item.product?.type,
+                weightGr: item.product?.weight_gr,
               },
+              variantId: item.variant_id,
               quantity: item.quantity,
               unitPrice: parseFloat(item.price),
-              subtotal: item.quantity * parseFloat(item.price),
-              variantId: item.variant_id
+              subtotal: parseFloat(item.price) * item.quantity,
+              variant: item.variant,
+              review: item.review, // Include review data
             };
-          }),
-          shippingCost: data.shipping_cost,
-          originalShippingCost: data.original_shipping_cost,
-          discount: data.discount
+          }) || [],
+          total: parseFloat(data.total_amount || 0),
+          addressId: data.address_id,
+          courier: data.courier,
+          shippingCost: parseFloat(data.shipping_cost || 0),
+          originalShippingCost: parseFloat(data.original_shipping_cost || data.shipping_cost || 0),
+          discount: parseFloat(data.discount || 0),
+          trackingNumber: data.tracking_number,
+          shippingAddress: data.address ? {
+            recipient: data.address.recipient_name || '',
+            phone: data.address.phone || '',
+            addressLine: [data.address.address_line, data.address.district].filter(Boolean).join(", "),
+            city: data.address.city || '',
+            province: data.address.province || '',
+            postalCode: data.address.postal_code || ''
+          } : undefined,
+          expiresAt: data.expires_at,
         };
+
+        console.log("📝 [Frontend Debug] Mapped transaction:", mapped);
+        console.log("📝 [Frontend Debug] Expires At:", mapped.expiresAt); // Added debug
+        console.log("📝 [Frontend Debug] Mapped items with review:", mapped.items.map(i => ({
+          name: i.product.name,
+          has_review: !!i.review,
+          review: i.review
+        })));
+
         setTx(mapped);
+        setLoading(false);
       })
       .catch(err => {
-        console.error("Error fetching detail:", err);
-        setTx(undefined);
-      })
-      .finally(() => setLoading(false));
+        console.error(err);
+        setLoading(false);
+      });
   }, [id]);
 
   if (loading) {
@@ -106,6 +137,88 @@ export default function TransactionDetailClient({
             Pastikan tautan/nomor invoice benar.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // Review Tab
+  if (tab === "review" && tx.status === "delivered") {
+    return (
+      <div className="container mx-auto px-3 md:px-6 py-4">
+        <div className="mb-4">
+          <Link
+            href={`/account/transaction/${id}`}
+            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft size={16} />
+            Kembali ke Detail Transaksi
+          </Link>
+        </div>
+
+        <div className="bg-white rounded-lg border p-4 md:p-6 mb-4">
+          <h2 className="text-lg font-semibold mb-2">Beri Nilai Produk</h2>
+          <p className="text-sm text-gray-600">
+            Berikan ulasan untuk produk yang sudah kamu terima
+          </p>
+        </div>
+
+        {reviewingItemIndex !== null ? (
+          <ReviewForm
+            orderId={tx.id}
+            productName={tx.items[reviewingItemIndex].product.name}
+            productSlug={tx.items[reviewingItemIndex].product.slug}
+            productImage={tx.items[reviewingItemIndex].product.img}
+            variantName={tx.items[reviewingItemIndex].variant?.variant_name}
+            variantId={tx.items[reviewingItemIndex].variantId}
+            existingReview={tx.items[reviewingItemIndex].review}
+            onSuccess={() => {
+              setReviewingItemIndex(null);
+              router.refresh(); // Refresh to get updated review data
+              router.push(`/account/transaction/${id}`);
+            }}
+            onCancel={() => setReviewingItemIndex(null)}
+          />
+        ) : (
+          <div className="space-y-3">
+            {tx.items.map((item, idx) => (
+              <div key={idx} className="bg-white rounded-xl p-4 md:p-5 flex items-center justify-between gap-4 hover:shadow-md transition-shadow">
+                <div className="flex gap-3 md:gap-4 flex-1 min-w-0">
+                  <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    <img
+                      src={item.product.img}
+                      alt={item.product.name}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm md:text-base line-clamp-2 text-gray-900">{item.product.name}</h4>
+                    {item.variant?.variant_name && item.variant.variant_name !== "Default" && (
+                      <p className="text-xs md:text-sm text-gray-600 mt-1">{item.variant.variant_name}</p>
+                    )}
+                  </div>
+                </div>
+                {(() => {
+                  console.log(`📝 [Button Render] Item: ${item.product.name}, has review:`, !!item.review, item.review);
+                  return item.review ? (
+                    <button
+                      onClick={() => setReviewingItemIndex(idx)}
+                      className="px-4 md:px-5 py-2.5 md:py-3 bg-blue-50 text-blue-600 border border-blue-200 text-sm font-semibold rounded-lg hover:bg-blue-100 active:scale-[0.98] transition-all shadow-sm whitespace-nowrap"
+                    >
+                      Lihat Review Saya
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setReviewingItemIndex(idx)}
+                      className="px-4 md:px-5 py-2.5 md:py-3 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 active:scale-[0.98] transition-all shadow-sm whitespace-nowrap"
+                    >
+                      Beri Nilai
+                    </button>
+                  );
+                })()}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

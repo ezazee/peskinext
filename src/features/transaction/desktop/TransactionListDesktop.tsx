@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PaymentTimer } from "../components/PaymentTimer";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ShoppingBag, Calendar, ArrowRight } from "lucide-react";
@@ -117,7 +118,7 @@ export default function TransactionListDesktop({
               </Link>
 
               <div className="flex items-center gap-3">
-                {renderActions(t.status, t.id, slug)}
+                {renderActions(t.status, t.id, slug, t.items, t.expiresAt)}
               </div>
             </div>
           </motion.article>
@@ -127,18 +128,21 @@ export default function TransactionListDesktop({
   );
 }
 
-function renderActions(status: TxStatus, id: string, slug: string) {
+function renderActions(status: TxStatus, id: string, slug: string, items: any[], expiresAt?: string) {
   const base = "inline-flex items-center justify-center h-10 px-5 rounded-xl text-sm font-bold transition-all active:scale-95";
 
   // Pending → Bayar Sekarang
   if (status === "pending") {
     return (
-      <Link
-        href={`/checkout?tx=${encodeURIComponent(id)}`}
-        className={`${base} bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40`}
-      >
-        Bayar Sekarang
-      </Link>
+      <div className="flex flex-col items-center gap-2">
+        <Link
+          href={`/checkout?tx=${encodeURIComponent(id)}`}
+          className={`${base} bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40`}
+        >
+          Bayar Sekarang
+        </Link>
+        {expiresAt && <PaymentTimer expiresAt={expiresAt} compact />}
+      </div>
     );
   }
 
@@ -156,6 +160,10 @@ function renderActions(status: TxStatus, id: string, slug: string) {
 
   // Berhasil
   if (status === "delivered") {
+    // Check if all items have been reviewed
+    const allItemsReviewed = items.every(item => item.review);
+    const hasAnyReview = items.some(item => item.review);
+
     return (
       <>
         <Link
@@ -166,9 +174,12 @@ function renderActions(status: TxStatus, id: string, slug: string) {
         </Link>
         <Link
           href={`/account/transaction/${id}?tab=review`}
-          className={`${base} shadow-sm text-green-700 bg-green-50 hover:bg-green-100 hover:shadow-md`}
+          className={`${base} shadow-sm ${hasAnyReview
+            ? 'text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100'
+            : 'text-green-700 bg-green-50 hover:bg-green-100'
+            } hover:shadow-md`}
         >
-          Beri Nilai
+          {allItemsReviewed ? 'Lihat Review' : hasAnyReview ? 'Lihat/Beri Nilai' : 'Beri Nilai'}
         </Link>
       </>
     );
@@ -189,6 +200,7 @@ function badge(s: TxStatus) {
   const styles: Record<TxStatus, string> = {
     pending: "bg-amber-100/50 text-amber-700 border-amber-200",
     paid: "bg-blue-100/50 text-blue-700 border-blue-200",
+    processing: "bg-orange-100/50 text-orange-700 border-orange-200",
     shipped: "bg-sky-100/50 text-sky-700 border-sky-200",
     delivered: "bg-green-100/50 text-green-700 border-green-200",
     cancelled: "bg-gray-100 text-gray-600 border-gray-200",
@@ -196,7 +208,8 @@ function badge(s: TxStatus) {
 
   const labelMap: Record<TxStatus, string> = {
     pending: "Menunggu Pembayaran",
-    paid: "Sedang Diproses",
+    paid: "Menunggu Konfirmasi",
+    processing: "Sedang Dikemas",
     shipped: "Sedang Dikirim",
     delivered: "Selesai",
     cancelled: "Dibatalkan"

@@ -10,6 +10,8 @@ import type {
   VoucherConditions,
   CheckoutSession,
 } from "@shared/types/types";
+import { PaymentTimer } from "@features/transaction/components/PaymentTimer";
+
 
 import AddressCard from "./AddressCard";
 import SellerCartCard from "../components/SellerCartCard";
@@ -409,6 +411,13 @@ export default function DesktopCheckout({
         {/* RIGHT */}
         <aside className="col-span-12 lg:col-span-4">
           <div className="space-y-6 lg:sticky lg:top-20">
+            {checkoutSession?.orderExpiresAt && (
+              <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-center justify-between">
+                <span className="text-sm text-orange-800 font-medium">Batas Waktu Pembayaran:</span>
+                <PaymentTimer expiresAt={checkoutSession.orderExpiresAt} />
+              </div>
+            )}
+
             <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
               <VoucherCard
                 selectable={itemsCount > 0}

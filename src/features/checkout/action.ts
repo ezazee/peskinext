@@ -105,9 +105,13 @@ export async function createCheckoutFromCart(formData: FormData) {
 }
 
 export async function createCheckoutFromBuyNow(formData: FormData) {
+  console.log("🔵 createCheckoutFromBuyNow called at:", new Date().toISOString());
+
   try {
     const user = await getCurrentUser();
-    const userId = user?.id || null;
+    if (!user) {
+      redirect("/login?callbackUrl=/");
+    }
 
     const productId = String(formData.get("productId"));
     const variantId = String(formData.get("variantId"));
@@ -118,8 +122,67 @@ export async function createCheckoutFromBuyNow(formData: FormData) {
       throw new Error("Invalid product data");
     }
 
+    console.log("👤 User ID:", user.id);
+    console.log("📦 Product:", productId, "Variant:", variantId, "Qty:", qty);
+
+    // 1. Fetch product details to get price
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
+
+    const productRes = await fetch(`${API_URL}/products/${productId}`);
+    if (!productRes.ok) {
+      throw new Error("Failed to fetch product details");
+    }
+
+    const productData = await productRes.json();
+    const variant = productData.variants?.find((v: any) => String(v.id) === String(variantId));
+
+    if (!variant) {
+      throw new Error("Variant not found");
+    }
+
+    const price = Number(variant.price);
+    const total = price * qty;
+
+    console.log("💰 Price:", price, "Total:", total);
+
+    // 2. Create order in backend FIRST (same as cart flow)
+    const idempotencyKey = `order_${user.id}_${Date.now()}`;
+    console.log("Creating order with idempotency key:", idempotencyKey);
+
+    const orderResponse = await fetch(`${API_URL}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Idempotency-Key": idempotencyKey
+      },
+      body: JSON.stringify({
+        user_id: user.id,
+        address_id: "temp", // Will be updated in checkout
+        items: [{
+          product_id: productId,
+          variant_id: variantId,
+          quantity: qty,
+          price: price
+        }],
+        total_amount: total,
+        shipping_cost: 0,
+        discount: 0,
+        courier: "temp" // Will be updated in checkout
+      })
+    });
+
+    if (!orderResponse.ok) {
+      const error = await orderResponse.text();
+      console.error("Failed to create order:", error);
+      throw new Error("Failed to create order");
+    }
+
+    const orderData = await orderResponse.json();
+    console.log("✅ Order created server-side:", orderData.order_id);
+
+    // 3. Create checkout session
     const sessionId = await createSessionFromBuyNow({
-      userId,
+      userId: user.id,
       productId,
       variantId,
       qty,
@@ -129,13 +192,15 @@ export async function createCheckoutFromBuyNow(formData: FormData) {
       throw new Error("Failed to create checkout session");
     }
 
-    redirect(`/checkout?cs=${sessionId}`);
+    // 4. Redirect to checkout with both session ID and order ID
+    redirect(`/checkout?cs=${sessionId}&oid=${orderData.order_id}`);
   } catch (error) {
     // Check if this is a redirect error (which is expected)
     if (error && typeof error === 'object' && 'digest' in error && String(error.digest).startsWith('NEXT_REDIRECT')) {
       throw error; // Re-throw redirect errors
     }
 
+    console.error("Error in createCheckoutFromBuyNow:", error);
     // Redirect back to product with error message
     redirect("/?error=checkout_failed");
   }
