@@ -56,26 +56,26 @@ export default function SellerCartCard({
 
   return (
     <div className={cn(
-      "bg-white",
-      isMobile ? "rounded-xl border border-gray-200" : "rounded-2xl border border-gray-200/70"
+      "bg-transparent",
+      isMobile ? "rounded-[2.5rem] bg-white shadow-sm" : ""
     )}>
       {/* Header */}
       <div className={cn(
-        "flex items-center justify-between border-b",
-        isMobile ? "px-4 py-3 border-gray-200" : "px-6 py-4 border-gray-200/70"
+        "flex items-center justify-between",
+        isMobile ? "px-5 py-4 border-b border-gray-50" : "px-6 py-5 border-b border-gray-100/50"
       )}>
         <div className={cn(
-          "font-medium",
-          isMobile ? "text-sm font-semibold" : "text-sm"
+          "font-bold tracking-tight text-gray-900",
+          isMobile ? "text-sm" : "text-xl border-l-4 border-primary pl-4"
         )}>
-          {isMobile ? `Keranjang (${items.length})` : `Belanja (${items.length} produk)`}
+          {isMobile ? `Daftar Produk (${items.length})` : `Daftar Produk (${items.length})`}
         </div>
       </div>
 
       {/* Items List */}
       <div className={cn(
         "space-y-6",
-        isMobile ? "p-4 space-y-4" : "px-6 py-5"
+        isMobile ? "p-5" : "px-6 py-5"
       )}>
         {items.map((line) => {
           const v = line.product.variants.find((x) => x.id === line.variantId);
@@ -88,19 +88,19 @@ export default function SellerCartCard({
           return (
             <div
               key={line.id}
-              className={cn("flex", isMobile ? "gap-3" : "gap-4")}
+              className={cn("flex", isMobile ? "gap-4" : "gap-4")}
             >
               {/* Image */}
               <div className={cn(
                 "flex-shrink-0 overflow-hidden bg-gray-100",
                 isMobile
-                  ? "h-16 w-16 rounded-lg"
+                  ? "h-20 w-20 rounded-2xl"
                   : "h-20 w-20 rounded-xl"
               )}>
                 {img ? (
                   <Image
-                    width={isMobile ? 64 : 80}
-                    height={isMobile ? 64 : 80}
+                    width={isMobile ? 80 : 80}
+                    height={isMobile ? 80 : 80}
                     src={img}
                     alt={line.product.name}
                     className="h-full w-full object-cover"
@@ -110,19 +110,19 @@ export default function SellerCartCard({
 
               {/* Product Info */}
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium line-clamp-2">
+                <div className="text-sm font-bold line-clamp-2">
                   {line.product.name}
                 </div>
                 <div className={cn(
-                  "text-gray-500",
-                  isMobile ? "mt-0.5 text-[12px]" : "mt-1 text-xs"
+                  "text-gray-400 font-medium",
+                  isMobile ? "mt-1 text-[11px]" : "mt-1 text-xs"
                 )}>
                   Varian: {v?.name ?? line.variantId} • Qty: {line.qty}
                 </div>
 
                 {/* Price */}
                 {isMobile ? (
-                  <div className="mt-1 text-sm font-semibold">
+                  <div className="mt-2 text-sm font-black text-primary">
                     {formatRupiah(unit)}
                   </div>
                 ) : (
@@ -142,15 +142,18 @@ export default function SellerCartCard({
 
         {/* Shipping Section */}
         <div className={cn(
-          "rounded-xl",
-          isMobile ? "border-t pt-3" : "ring-1 ring-gray-100"
+          "rounded-[1.5rem] mt-6 transition-all duration-300",
+          isMobile ? "bg-gray-50/50 p-4" : "bg-gray-50/50 border border-gray-100/50 p-6"
         )}>
-          <div className={cn(isMobile ? "" : "p-4")}>
+          <div className={cn(isMobile ? "" : "")}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded">Opsi Pengiriman</span>
+                </div>
                 <div className={cn(
                   "text-sm",
-                  isMobile ? "font-medium" : ""
+                  isMobile ? "font-medium" : "font-bold text-gray-800"
                 )}>
                   {loading ? (
                     isMobile ? (
@@ -175,25 +178,25 @@ export default function SellerCartCard({
                         </>
                       ) : (
                         <>
-                          <span className="font-medium">
-                            {current.courier} • {current.service}
+                          <span className="">
+                            {current.courier} — {current.service}
                           </span>
-                          {" — "}
-                          <span className="text-gray-600">
+                          {" • "}
+                          <span className="text-primary font-black">
                             {formatRupiah(current.price)}
                           </span>
                         </>
                       )}
                     </>
                   ) : (
-                    isMobile ? "Tidak ada layanan" : "Memuat layanan…"
+                    isMobile ? "Tidak ada layanan" : "Pilih layanan pengiriman…"
                   )}
                 </div>
 
                 {/* ETA */}
                 <div className={cn(
-                  "text-gray-600",
-                  isMobile ? "mt-1 text-xs" : "text-xs mt-1"
+                  "text-gray-500",
+                  isMobile ? "mt-1 text-xs" : "text-xs mt-1 font-medium"
                 )}>
                   {loading ? (
                     isMobile ? (
@@ -202,9 +205,9 @@ export default function SellerCartCard({
                       <Skeleton.Block width="40%" height={16} radius={4} />
                     )
                   ) : current ? (
-                    current.eta
+                    `Estimasi tiba: ${current.eta}`
                   ) : (
-                    isMobile ? "—" : "Mengambil estimasi…"
+                    isMobile ? "—" : "Hitung estimasi pengiriman"
                   )}
                 </div>
               </div>
@@ -213,11 +216,11 @@ export default function SellerCartCard({
               <button
                 onClick={openShipping}
                 className={cn(
-                  "font-semibold cursor-pointer text-primary",
-                  isMobile ? "text-sm" : "text-sm font-medium hover:underline"
+                  "font-bold cursor-pointer text-primary transition-all active:scale-95",
+                  isMobile ? "text-sm" : "text-sm bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm hover:shadow-md hover:border-primary"
                 )}
               >
-                Ubah
+                Ubah Kurir
               </button>
             </div>
           </div>

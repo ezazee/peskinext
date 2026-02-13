@@ -7,23 +7,34 @@ type Props = {
   limit?: number;
 };
 
-export const ProductGrid = ({ products, limit = 8 }: Props) => {
-  const safeLimit = Math.max(0, Math.floor(limit));
-  const list = products.slice(0, safeLimit);
+export const ProductGrid = ({ products }: Props) => {
+  // Logic: 7 Single Products + the rest are Bundles to fill the grid (total 10 for 2 rows of 5)
+  const singleProducts = products.filter(p => p.type === "single").slice(0, 7);
+  const bundleProducts = products.filter(p => p.type === "bundle");
+
+  // Combine: 7 singles + enough bundles to reach 10 items
+  const combined = [...singleProducts];
+  const neededBundles = 10 - combined.length;
+
+  if (neededBundles > 0) {
+    combined.push(...bundleProducts.slice(0, neededBundles));
+  }
+
+  const list = combined;
 
   return (
-    <section className="mt-0 bg-white p-4 md:mt-8 md:p-0">
+    <section className="container mx-auto my-8 px-4 md:px-0">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-bold">Rekomendasi untuk Anda</h2>
+        <h2 className="text-xl font-bold text-base-text">Rekomendasi untuk Anda</h2>
         <Link
           href="/all-product"
-          className="text-sm font-medium text-sky-700 hover:underline"
+          className="text-sm font-semibold text-primary hover:underline"
         >
           Lihat semua
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 md:grid-cols-4 md:gap-4">
         {list.map((prod) => (
           <ProductCard key={prod.slug} product={prod} />
         ))}

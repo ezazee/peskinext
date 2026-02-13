@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-interface TrackingHistory {
+export interface TrackingHistory {
     note: string;
     updated_at: string;
     status: string;

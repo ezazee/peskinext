@@ -27,6 +27,7 @@ export default function TransactionToolbar({
       all: data.length,
       pending: data.filter((d) => d.status === "pending").length,
       paid: data.filter((d) => d.status === "paid").length,
+      processing: data.filter((d) => d.status === "processing").length,
       shipped: data.filter((d) => d.status === "shipped").length,
       delivered: data.filter((d) => d.status === "delivered").length,
       cancelled: data.filter((d) => d.status === "cancelled").length,
@@ -98,6 +99,7 @@ export default function TransactionToolbar({
           <Chip k="all" label="Semua" />
           <Chip k="pending" label="Pending" />
           <Chip k="paid" label="Paid" />
+          <Chip k="processing" label="Processing" />
           <Chip k="shipped" label="Shipped" />
           <Chip k="delivered" label="Delivered" />
           <Chip k="cancelled" label="Cancelled" />

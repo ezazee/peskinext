@@ -47,17 +47,11 @@ export default function TransactionDetailClient({
         // Map data to UserTransaction
         const mapped: UserTransaction = {
           id: data.id,
-          invoiceNumber: data.invoice_number,
+          invoiceNumber: data.invoiceNumber || data.invoice_number,
           dateISO: data.created_at,
           status: data.status,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           items: data.items?.map((item: any) => {
-            console.log("📝 [Frontend Debug] Mapping item:", {
-              product_id: item.product_id,
-              variant_id: item.variant_id,
-              has_review: !!item.review,
-              review_data: item.review
-            });
-
             return {
               product: {
                 id: item.product?.id,
@@ -72,7 +66,7 @@ export default function TransactionDetailClient({
               unitPrice: parseFloat(item.price),
               subtotal: parseFloat(item.price) * item.quantity,
               variant: item.variant,
-              review: item.review, // Include review data
+              review: item.review,
             };
           }) || [],
           total: parseFloat(data.total_amount || 0),
@@ -82,14 +76,14 @@ export default function TransactionDetailClient({
           originalShippingCost: parseFloat(data.original_shipping_cost || data.shipping_cost || 0),
           discount: parseFloat(data.discount || 0),
           trackingNumber: data.tracking_number,
-          shippingAddress: data.address ? {
-            recipient: data.address.recipient_name || '',
+          shippingAddress: data.shippingAddress || (data.address ? {
+            recipient: data.address.recipient || data.address.recipient_name || '',
             phone: data.address.phone || '',
-            addressLine: [data.address.address_line, data.address.district].filter(Boolean).join(", "),
-            city: data.address.city || '',
+            addressLine: data.address.address || data.address.address_line || '',
+            city: data.address.regencies || data.address.city || '',
             province: data.address.province || '',
             postalCode: data.address.postal_code || ''
-          } : undefined,
+          } : undefined),
           expiresAt: data.expires_at,
         };
 

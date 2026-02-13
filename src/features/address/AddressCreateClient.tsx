@@ -54,7 +54,14 @@ export default function AddressCreateClient(): JSX.Element {
       toast.success("Alamat berhasil ditambahkan");
       // Notify other components
       window.dispatchEvent(new Event('addressUpdated'));
-      router.push("/account/address");
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        router.push(redirect);
+      } else {
+        router.push("/account/address");
+      }
       router.refresh();
     } else {
       toast.error(result.error || "Gagal menambahkan alamat");

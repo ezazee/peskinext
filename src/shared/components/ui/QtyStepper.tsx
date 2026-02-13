@@ -14,6 +14,7 @@ type QtyStepperProps = {
    */
   size?: "sm" | "md";
   className?: string;
+  disabled?: boolean;
 };
 
 export default function QtyStepper({
@@ -21,7 +22,8 @@ export default function QtyStepper({
   max,
   onChange,
   size = "md",
-  className
+  className,
+  disabled = false,
 }: QtyStepperProps) {
   const buttonSize = size === "sm" ? "h-8 w-8" : "h-9 w-9";
   const inputSize = size === "sm" ? "h-8" : "h-9";
@@ -30,6 +32,7 @@ export default function QtyStepper({
   return (
     <div className={cn(
       "inline-flex items-center rounded border border-gray-300 overflow-hidden",
+      disabled && "opacity-60 cursor-not-allowed",
       className
     )}>
       <button
@@ -38,8 +41,8 @@ export default function QtyStepper({
           buttonSize,
           "grid place-items-center text-gray-600 hover:bg-gray-100 disabled:opacity-40"
         )}
-        onClick={() => onChange(value - 1)}
-        disabled={value <= 1}
+        onClick={() => !disabled && onChange(value - 1)}
+        disabled={disabled || value <= 1}
         aria-label="Kurangi"
       >
         <IconMinus />
@@ -49,12 +52,13 @@ export default function QtyStepper({
         className={cn(
           inputSize,
           inputTextSize,
-          "w-12 text-center outline-none"
+          "w-12 text-center outline-none bg-transparent"
         )}
         value={value}
         min={1}
         max={max}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => !disabled && onChange(Number(e.target.value))}
+        disabled={disabled}
       />
       <button
         type="button"
@@ -62,8 +66,8 @@ export default function QtyStepper({
           buttonSize,
           "grid place-items-center text-gray-600 hover:bg-gray-100 disabled:opacity-40"
         )}
-        onClick={() => onChange(value + 1)}
-        disabled={value >= max}
+        onClick={() => !disabled && onChange(value + 1)}
+        disabled={disabled || value >= max}
         aria-label="Tambah"
       >
         <IconPlus />

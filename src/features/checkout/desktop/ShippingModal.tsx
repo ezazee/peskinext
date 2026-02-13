@@ -46,18 +46,21 @@ export default function ShippingModal({
   }, [open, onClose]);
 
   const groupsWithCount = useMemo(
-    () =>
-      [
+    () => {
+      if (!data?.groups) return [];
+      return [
         {
           label: "Semua",
           count: data.groups.reduce((n, g) => n + g.items.length, 0),
         },
         ...data.groups.map((g) => ({ label: g.label, count: g.items.length })),
-      ].filter((g) => g.count > 0),
+      ].filter((g) => g.count > 0);
+    },
     [data]
   );
 
   const visibleGroups = useMemo(() => {
+    if (!data?.groups) return [];
     if (activeGroup === "Semua") {
       return data.groups.filter((g) => g.items.length > 0);
     }

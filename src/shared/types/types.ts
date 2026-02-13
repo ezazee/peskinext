@@ -24,10 +24,25 @@ export interface NavItem {
 }
 
 export interface Banner {
+  id?: number;
   src: string;
   mobileSrc?: string;
   alt: string;
   href?: string;
+  section?: string;
+}
+
+export interface BannersResponse {
+  main: Banner[];
+  carousel: Banner[];
+  tiles: Banner[];
+  popup?: Banner[];
+  welcome?: Banner[];
+  promo_mobile?: Banner[];
+  promo_desktop?: Banner[];
+  bundle?: Banner[];
+  gallery_carousel?: Banner[];
+  gallery_single?: Banner[];
 }
 
 export interface PromoShowcaseProps {
@@ -41,6 +56,8 @@ export type EventPromoProps = {
   voucherCode?: string;
   headline?: string;
   subhead?: string;
+  desktopBanner?: Banner;
+  mobileBanner?: Banner;
 };
 
 export type Review = {

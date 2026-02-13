@@ -244,10 +244,13 @@ export async function getSessionFromTransaction(txId: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const lines: CheckoutLine[] = (data.items || []).map((item: any) => {
       const product = item.product || item.Product || {};
+      const variantName = item.variant_name || item.variant?.variant_name || item.variant?.name || "";
+      const displayedName = variantName ? `${product.name || "Product"} - ${variantName}` : (product.name || "Product");
+
       return {
         productId: String(product.id || "unknown"),
         variantId: String(item.variant_id || "0"),
-        name: product.name || "Product",
+        name: displayedName,
         image: product.front_image || product.img || "/placeholder.jpg",
         qty: Number(item.quantity),
         price: Number(item.price), // Unit price

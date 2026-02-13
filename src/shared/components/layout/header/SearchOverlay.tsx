@@ -17,6 +17,15 @@ type Props = {
   onSearch?: (query: string) => void;
 };
 
+/** format tampilan harga: jika range, ambil min */
+function formatPriceDisplay(str?: string): string {
+  if (!str) return "";
+  if (str.includes("-")) {
+    return str.split("-")[0].trim();
+  }
+  return str;
+}
+
 export default function SearchOverlay({ open, onClose, onSearch }: Props) {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -38,7 +47,13 @@ export default function SearchOverlay({ open, onClose, onSearch }: Props) {
         searchProducts(q)
           .then((result) => {
             if (result && Array.isArray(result.products)) {
-              setSearchSuggestions(result.products.slice(0, 5));
+              // Sort: singles first, then slice
+              const sorted = [...result.products].sort((a, b) => {
+                if (a.type === "single" && b.type !== "single") return -1;
+                if (a.type !== "single" && b.type === "single") return 1;
+                return 0;
+              });
+              setSearchSuggestions(sorted.slice(0, 8));
             } else {
               setSearchSuggestions([]);
             }
@@ -136,39 +151,93 @@ export default function SearchOverlay({ open, onClose, onSearch }: Props) {
               </div>
             ) : searchSuggestions.length > 0 ? (
               <div className="py-2">
-                <div className="px-4 py-2 text-xs text-secondary font-semibold">
-                  Produk yang cocok
-                </div>
-                {searchSuggestions.map((product) => (
-                  <Link
-                    key={product.id}
-                    href={`/product/${product.slug}`}
-                    onClick={() => {
-                      onClose();
-                      setQ("");
-                    }}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                  >
-                    <Image
-                      src={product.img}
-                      alt={product.name}
-                      width={50}
-                      height={50}
-                      className="rounded object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-base-text">
-                        {product.name}
-                      </div>
-                      <div className="text-xs text-secondary truncate">
-                        {product.category}
-                      </div>
-                    </div>
-                    <div className="text-sm font-bold text-primary">
-                      {product.price}
-                    </div>
-                  </Link>
-                ))}
+                {/* Grouping Logic */}
+                {(() => {
+                  const singles = searchSuggestions.filter(p => p.type === "single");
+                  const bundles = searchSuggestions.filter(p => p.type === "bundle" || !p.type);
+
+                  return (
+                    <>
+                      {/* Single Products */}
+                      {singles.length > 0 && (
+                        <>
+                          <div className="px-4 py-2 text-[10px] uppercase tracking-wider text-secondary font-bold border-b border-gray-50 mb-1">
+                            Produk Satuan
+                          </div>
+                          {singles.map((product) => (
+                            <Link
+                              key={product.id}
+                              href={`/product/${product.slug}`}
+                              onClick={() => {
+                                onClose();
+                                setQ("");
+                              }}
+                              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                            >
+                              <Image
+                                src={product.img}
+                                alt={product.name}
+                                width={50}
+                                height={50}
+                                className="rounded object-cover"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-base-text">
+                                  {product.name}
+                                </div>
+                                <div className="text-xs text-secondary truncate">
+                                  {product.category}
+                                </div>
+                              </div>
+                              <div className="text-sm font-bold text-primary">
+                                {formatPriceDisplay(product.price)}
+                              </div>
+                            </Link>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Bundles */}
+                      {bundles.length > 0 && (
+                        <>
+                          <div className={`px-4 py-2 text-[10px] uppercase tracking-wider text-secondary font-bold border-b border-gray-50 mb-1 ${singles.length > 0 ? 'mt-2' : ''}`}>
+                            Paket Bundling
+                          </div>
+                          {bundles.map((product) => (
+                            <Link
+                              key={product.id}
+                              href={`/product/${product.slug}`}
+                              onClick={() => {
+                                onClose();
+                                setQ("");
+                              }}
+                              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                            >
+                              <Image
+                                src={product.img}
+                                alt={product.name}
+                                width={50}
+                                height={50}
+                                className="rounded object-cover"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-base-text">
+                                  {product.name}
+                                </div>
+                                <div className="text-xs text-secondary truncate">
+                                  {product.category}
+                                </div>
+                              </div>
+                              <div className="text-sm font-bold text-primary">
+                                {formatPriceDisplay(product.price)}
+                              </div>
+                            </Link>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             ) : q.trim().length >= 2 ? (
               <div className="p-4 text-center text-sm text-secondary">

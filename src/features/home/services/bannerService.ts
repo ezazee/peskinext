@@ -1,13 +1,6 @@
-import type { Banner } from "@shared/types/types";
+import type { BannersResponse } from "@shared/types/types";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
-
-export interface BannersResponse {
-    main: Banner[];
-    carousel: Banner[];
-    tiles: Banner[];
-    popup?: Banner[];
-}
 
 export async function getBanners(): Promise<BannersResponse> {
 

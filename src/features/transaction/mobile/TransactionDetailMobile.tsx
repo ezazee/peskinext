@@ -5,10 +5,12 @@ import Link from "next/link";
 import { ArrowLeft, FileText } from "lucide-react";
 import * as React from "react";
 import Image from "next/image";
+import ConfirmationModal from "@shared/components/ui/ConfirmationModal";
 
 import type { OrderItem, UserTransaction } from "@shared/types/types";
 import { resolveUnitPrice, resolveVariantName } from "../utils/utils";
 import { PaymentTimer } from "../components/PaymentTimer";
+import type { TrackingHistory } from "../components/TrackingTimeline";
 
 
 /** Untuk render Info Pengiriman */
@@ -101,6 +103,10 @@ import { X } from "lucide-react";
 
 // ... (existing code)
 
+import { useRouter } from "next/navigation";
+
+// ...
+
 export default function TransactionDetailMobile({
   tx,
   onBack,
@@ -108,10 +114,32 @@ export default function TransactionDetailMobile({
   onBuyAgain,
   onReview,
 }: Props) {
+  const router = useRouter(); // Initialize router
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.back();
+    }
+  };
+
   // State for Tracking Modal
   const [showTrackingModal, setShowTrackingModal] = React.useState(false);
-  const [trackingHistory, setTrackingHistory] = React.useState<any[]>([]);
+  const [trackingHistory, setTrackingHistory] = React.useState<TrackingHistory[]>([]);
   const [loadingTracking, setLoadingTracking] = React.useState(false);
+
+  // ...
+
+  // in return
+  <button
+    type="button"
+    onClick={handleBack}
+    aria-label="Kembali"
+    className="p-1 -ml-1 rounded-md hover:bg-gray-100 active:bg-gray-100"
+  >
+    <ArrowLeft size={20} />
+  </button>
 
   // ... (existing helper vars)
 
@@ -144,7 +172,7 @@ export default function TransactionDetailMobile({
     tx.status === "delivered" ||
     tx.status === "processing" ||
     (tx.status === "paid" && Boolean(shipping?.courier));
-  const showAwb = (tx.status === "shipped" || tx.status === "delivered") && Boolean(shipping?.awb);
+
 
   const infoNote: string | undefined =
     tx.status === "pending"
@@ -158,6 +186,9 @@ export default function TransactionDetailMobile({
             : tx.status === "delivered"
               ? "Pesanan telah diterima"
               : "Pesanan dibatalkan";
+
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+  const [isCompleting, setIsCompleting] = React.useState(false);
 
   const fetchTracking = async () => {
     if (trackingHistory.length > 0) {
@@ -183,8 +214,7 @@ export default function TransactionDetailMobile({
   };
 
   const handleComplete = async () => {
-    // ... (existing code)
-    if (!confirm("Apakah Anda yakin sudah menerima pesanan dengan baik?")) return;
+    setIsCompleting(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${tx.id}/complete`, {
         method: "PUT",
@@ -194,19 +224,20 @@ export default function TransactionDetailMobile({
     } catch (err) {
       console.error(err);
       alert("Gagal memproses permintaan");
+      setIsCompleting(false);
+      setShowConfirmModal(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto pb-24">
-      {/* ... (existing header & sections) */}
 
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white border-b">
         <div className="flex items-center gap-3 px-4 h-12">
           <button
             type="button"
-            onClick={onBack}
+            onClick={handleBack}
             aria-label="Kembali"
             className="p-1 -ml-1 rounded-md hover:bg-gray-100 active:bg-gray-100"
           >
@@ -221,21 +252,31 @@ export default function TransactionDetailMobile({
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <div className="text-sm font-medium">Pesanan</div>
             <div className="flex flex-col items-end gap-1">
-              <span
-                className={`text-xs px-2 py-1 rounded ${STATUS_BADGE[tx.status]}`}
-              >
-                {STATUS_LABEL[tx.status]}
-              </span>
-              {tx.status === "pending" && tx.expiresAt && (
-                <PaymentTimer expiresAt={tx.expiresAt} compact />
-              )}
+              {(() => {
+                const isExpired =
+                  tx.status === "pending" &&
+                  tx.expiresAt &&
+                  new Date(tx.expiresAt).getTime() < Date.now();
+                const displayStatus = isExpired ? "cancelled" : tx.status;
+                return (
+                  <span
+                    className={`text-xs px-2 py-1 rounded ${STATUS_BADGE[displayStatus]}`}
+                  >
+                    {STATUS_LABEL[displayStatus]}
+                  </span>
+                );
+              })()}
+              {tx.status === "pending" &&
+                tx.expiresAt &&
+                new Date(tx.expiresAt).getTime() > Date.now() && (
+                  <PaymentTimer expiresAt={tx.expiresAt} compact />
+                )}
             </div>
           </div>
           <div className="px-4 py-3 space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500">No. Invoice</span>
-              <span className="font-medium">{tx.id}</span>
-            </div>
+            <span className="font-medium">
+              {tx.invoiceNumber || `INV/${tx.dateISO.slice(0, 10).replace(/-/g, "")}/${tx.id.split("-")[0].toUpperCase()}`}
+            </span>
             <div className="flex items-center justify-between">
               <span className="text-gray-500">Tanggal Pembelian</span>
               <span className="font-medium">{fmtDate(tx.dateISO) ?? "-"}</span>
@@ -317,12 +358,8 @@ export default function TransactionDetailMobile({
               <Row label="Kurir" value="—" />
             )}
 
-            {/* Resi hanya pada shipped/delivered */}
-            {showAwb ? (
-              <Row label="No Resi" value={shipping?.awb || "—"} />
-            ) : (
-              <Row label="No. Invoice" value={tx.invoiceNumber || tx.id} />
-            )}
+            {/* Resi selalu muncul, strip jika kosong */}
+            <Row label="No Resi" value={shipping?.awb || "—"} />
 
             <div>
               <div className="text-gray-500">Alamat</div>
@@ -350,17 +387,18 @@ export default function TransactionDetailMobile({
                 <div className="mt-2 text-xs text-gray-500">{infoNote}</div>
               )}
 
-              {/* (Opsional) Ubah alamat saat pending */}
-              {tx.status === "pending" && (
-                <div className="mt-3">
-                  <Link
-                    href={`/checkout?oid=${tx.id}`}
-                    className="inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-gray-50 text-primary border-primary/20 bg-primary/5"
-                  >
-                    Ubah Alamat & Bayar
-                  </Link>
-                </div>
-              )}
+              {/* (Opsional) Ubah alamat saat pending & not expired */}
+              {tx.status === "pending" &&
+                (!tx.expiresAt || new Date(tx.expiresAt).getTime() > Date.now()) && (
+                  <div className="mt-3">
+                    <Link
+                      href={`/checkout?tx=${tx.id}`}
+                      className="inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-gray-50 text-primary border-primary/20 bg-primary/5"
+                    >
+                      Ubah Alamat & Bayar
+                    </Link>
+                  </div>
+                )}
             </div>
           </div>
         </div>
@@ -404,59 +442,126 @@ export default function TransactionDetailMobile({
       </motion.section>
 
       {/* Sticky footer sesuai status */}
+      {/* Sticky footer sesuai status */}
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t px-3 py-3">
-        {tx.status === "delivered" ? (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onReview?.(tx.id)}
-              className="flex-1 h-11 rounded-lg border text-sm font-semibold hover:bg-gray-50 active:bg-gray-50 flex items-center justify-center"
-            >
-              Beri Ulasan
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const first = tx.items[0];
-                if (first) onBuyAgain?.(first.product.slug);
-              }}
-              className="flex-1 h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
-            >
-              Beli Lagi
-            </button>
-          </div>
-        ) : tx.status === "pending" ? (
-          <Link
-            href={`/payment/${tx.id}`}
-            className="block w-full h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
-          >
-            Bayar Sekarang
-          </Link>
-        ) : tx.status === "shipped" ? (
-          <div className="flex gap-2">
-            {shipping?.awb && (
-              <button
-                onClick={fetchTracking}
-                className="flex-1 h-11 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-sm font-semibold hover:bg-blue-100 flex items-center justify-center"
+        {(() => {
+          const isExpired =
+            tx.status === "pending" &&
+            tx.expiresAt &&
+            new Date(tx.expiresAt).getTime() < Date.now();
+
+          // 1. DELIVERED
+          if (tx.status === "delivered") {
+            const allItemsReviewed = tx.items.every((item) => item.review);
+            const hasAnyReview = tx.items.some((item) => item.review);
+            const reviewLabel = allItemsReviewed
+              ? "Lihat Review"
+              : hasAnyReview
+                ? "Lihat/Beri Nilai"
+                : "Beri Nilai";
+
+            return (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => onReview?.(tx.id)}
+                  className={`flex-1 h-11 rounded-lg border text-sm font-semibold flex items-center justify-center transition-all ${hasAnyReview
+                    ? "bg-blue-50 text-blue-600 border-blue-200"
+                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    }`}
+                >
+                  {reviewLabel}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const first = tx.items[0];
+                    if (first) onBuyAgain?.(first.product.slug);
+                  }}
+                  className="flex-1 h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+                >
+                  Beli Lagi
+                </button>
+              </div>
+            );
+          }
+
+          // 2. PENDING
+          if (tx.status === "pending") {
+            if (isExpired) {
+              // Expired -> Beli Lagi
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const first = tx.items[0];
+                    if (first) onBuyAgain?.(first.product.slug);
+                  }}
+                  className="block w-full h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+                >
+                  Beli Lagi
+                </button>
+              );
+            }
+            // Not expired -> Bayar
+            return (
+              <Link
+                href={`/checkout?tx=${tx.id}`}
+                className="block w-full h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
               >
-                Lacak Paket
+                Bayar Sekarang
+              </Link>
+            );
+          }
+
+          // 3. SHIPPED
+          if (tx.status === "shipped") {
+            return (
+              <div className="flex gap-2">
+                {shipping?.awb && (
+                  <button
+                    onClick={fetchTracking}
+                    className="flex-1 h-11 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-sm font-semibold hover:bg-blue-100 flex items-center justify-center"
+                  >
+                    Lacak Paket
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowConfirmModal(true)}
+                  className="flex-1 h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+                >
+                  Pesanan Diterima
+                </button>
+              </div>
+            );
+          }
+
+          // 4. CANCELLED -> Beli Lagi
+          if (tx.status === "cancelled") {
+            return (
+              <button
+                type="button"
+                onClick={() => {
+                  const first = tx.items[0];
+                  if (first) onBuyAgain?.(first.product.slug);
+                }}
+                className="block w-full h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+              >
+                Beli Lagi
               </button>
-            )}
-            <button
-              onClick={handleComplete}
-              className="flex-1 h-11 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+            );
+          }
+
+          // DEFAULT -> Kembali
+          return (
+            <Link
+              href="/account/transaction"
+              className="block w-full h-11 rounded-lg border text-sm font-semibold hover:bg-gray-50 active:bg-gray-50 flex items-center justify-center"
             >
-              Pesanan Diterima
-            </button>
-          </div>
-        ) : (
-          <Link
-            href="/account/transaction"
-            className="block w-full h-11 rounded-lg border text-sm font-semibold hover:bg-gray-50 active:bg-gray-50 flex items-center justify-center"
-          >
-            Kembali ke Riwayat
-          </Link>
-        )}
+              Kembali ke Riwayat
+            </Link>
+          );
+        })()}
       </div>
 
       {/* TRACKING MODAL (Mobile) */}
@@ -486,6 +591,17 @@ export default function TransactionDetailMobile({
         </div>
       )}
 
+      {/* Confirmation Modal for Complete Order */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleComplete}
+        title="Konfirmasi Selesai"
+        description="Apakah Anda yakin sudah menerima pesanan dengan baik? Status pesanan akan diubah menjadi Selesai."
+        confirmLabel="Ya, Selesai"
+        variant="success"
+        isLoading={isCompleting}
+      />
     </div>
   );
 }

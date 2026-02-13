@@ -5,7 +5,7 @@ import { PaymentTimer } from "../components/PaymentTimer";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ShoppingBag, Calendar, ArrowRight } from "lucide-react";
-import type { UserTransaction } from "@shared/types/types";
+import type { UserTransaction, OrderItem } from "@shared/types/types";
 
 type TxStatus = UserTransaction["status"];
 
@@ -71,7 +71,7 @@ export default function TransactionListDesktop({
                 <span className="text-sm text-gray-400 font-mono tracking-wide">{t.invoiceNumber || t.id}</span>
               </div>
               <div>
-                {badge(t.status)}
+                {badge(t.status, t.expiresAt)}
               </div>
             </div>
 
@@ -128,11 +128,28 @@ export default function TransactionListDesktop({
   );
 }
 
-function renderActions(status: TxStatus, id: string, slug: string, items: any[], expiresAt?: string) {
+function renderActions(status: TxStatus, id: string, slug: string, items: OrderItem[], expiresAt?: string) {
   const base = "inline-flex items-center justify-center h-10 px-5 rounded-xl text-sm font-bold transition-all active:scale-95";
 
-  // Pending → Bayar Sekarang
+  const isExpired =
+    status === "pending" &&
+    expiresAt &&
+    new Date(expiresAt).getTime() < Date.now();
+
+  // Pending
   if (status === "pending") {
+    if (isExpired) {
+      // Expired -> anggap seperti Cancelled -> Beli Lagi
+      return (
+        <Link
+          href={`/product/${slug}`}
+          className={`${base} bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90`}
+        >
+          Beli Lagi
+        </Link>
+      );
+    }
+    // Not expired
     return (
       <div className="flex flex-col items-center gap-2">
         <Link
@@ -151,7 +168,7 @@ function renderActions(status: TxStatus, id: string, slug: string, items: any[],
     return (
       <Link
         href={`/account/transaction/${id}`}
-        className={`${base} bg-white shadow-sm text-gray-700 hover:bg-gray-50 hover:shadow-md`}
+        className={`${base} bg-white shadow-sm text-gray-700 hover:bg-gray-50 hover:shadow-md border border-gray-200`}
       >
         Lacak Pesanan
       </Link>
@@ -185,25 +202,35 @@ function renderActions(status: TxStatus, id: string, slug: string, items: any[],
     );
   }
 
-  // Lainnya (status === 'paid' goes here -> Detail)
-  return (
-    <Link
-      href={`/account/transaction/${id}`}
-      className={`${base} bg-white shadow-sm text-gray-700 hover:bg-gray-50 hover:shadow-md`}
-    >
-      Detail
-    </Link>
-  );
+  // Cancelled -> Beli Lagi
+  if (status === "cancelled") {
+    return (
+      <Link
+        href={`/product/${slug}`}
+        className={`${base} bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90`}
+      >
+        Beli Lagi
+      </Link>
+    );
+  }
+
+  // Lainnya (paid, processing) -> tombol Detail sudah ada di kiri, jadi null
+  return null;
 }
 
-function badge(s: TxStatus) {
+function badge(s: TxStatus, expiresAt?: string) {
+  const isExpired =
+    s === "pending" && expiresAt && new Date(expiresAt).getTime() < Date.now();
+
+  const displayStatus = isExpired ? "cancelled" : s;
+
   const styles: Record<TxStatus, string> = {
     pending: "bg-amber-100/50 text-amber-700 border-amber-200",
     paid: "bg-blue-100/50 text-blue-700 border-blue-200",
     processing: "bg-orange-100/50 text-orange-700 border-orange-200",
     shipped: "bg-sky-100/50 text-sky-700 border-sky-200",
     delivered: "bg-green-100/50 text-green-700 border-green-200",
-    cancelled: "bg-gray-100 text-gray-600 border-gray-200",
+    cancelled: "bg-rose-100/50 text-rose-700 border-rose-200",
   };
 
   const labelMap: Record<TxStatus, string> = {
@@ -217,9 +244,9 @@ function badge(s: TxStatus) {
 
   return (
     <span
-      className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${styles[s]}`}
+      className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${styles[displayStatus]}`}
     >
-      {labelMap[s]}
+      {labelMap[displayStatus]}
     </span>
   );
 }

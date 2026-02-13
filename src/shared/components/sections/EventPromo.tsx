@@ -12,15 +12,20 @@ import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import { copyText } from "@shared/libs/clipboard";
 import { useToast } from "@shared/components/ui/Toaster"; // ⬅️ pakai toaster global
 
+import { useMediaQuery } from "@shared/hooks/useMediaQuery";
+
 const promoProducts = productsData.filter((product) => product.isEvent);
 
 export const EventPromo: React.FC<EventPromoProps> = ({
   voucherCode = "PEMERDEKA17",
   headline = "DISCOUNT 17%",
   subhead = "Rayakan Kemerdekaan dengan PE Skinpro!",
+  desktopBanner,
+  mobileBanner,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const scroll = (direction: "left" | "right") => {
     const el = scrollContainerRef.current;
@@ -42,11 +47,16 @@ export const EventPromo: React.FC<EventPromoProps> = ({
 
   if (promoProducts.length === 0) return null;
 
+  // Determine background source
+  const bgSrc = isDesktop
+    ? (desktopBanner?.src || "/images/landing/eventPromo.png")
+    : (mobileBanner?.src || "/images/landing/eventPromo.png");
+
   return (
     <section className="container mx-auto my-8 px-4 md:px-0">
       <div className="relative rounded-lg p-4 md:p-6 flex flex-col md:flex-row items-center overflow-hidden">
         <Image
-          src="/images/landing/eventPromo.png"
+          src={bgSrc}
           alt="Promo background"
           fill
           className="absolute inset-0 z-0 object-cover"

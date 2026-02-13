@@ -1,7 +1,6 @@
 // src/features/checkout/desktop/OrderSummaryDesktop.tsx
 "use client";
 
-import Image from "next/image";
 import * as React from "react";
 
 const fmt = (n: number) => `Rp ${new Intl.NumberFormat("id-ID").format(n)}`;
@@ -31,128 +30,63 @@ export default function OrderSummaryDesktop({
   promoDiscountList = 0,
   promoDiscountCode = 0,
   grandTotal,
-  hasShippingSelected = true,
   onCheckout,
 }: Props) {
   // --- Cap diskon ongkir agar tidak melebihi ongkir ---
-  const shippingDiscountCapped = Math.min(
-    Math.max(0, shippingDiscount),
-    shippingFee
-  );
-  const shippingAfter = Math.max(0, shippingFee - shippingDiscountCapped);
+  const shippingDiscountCapped = Math.min(Math.max(0, shippingDiscount), shippingFee);
 
-
-  const logos: ReadonlyArray<{
-    src: string;
-    alt: string;
-    w: number;
-    h: number;
-  }> = [
-      { src: "/images/paymentlogo/bca.svg", alt: "BCA", w: 62, h: 22 },
-      { src: "/images/paymentlogo/mandiri.png", alt: "Mandiri", w: 70, h: 20 },
-      { src: "/images/paymentlogo/kredivo.png", alt: "Kredivo", w: 72, h: 22 },
-      { src: "/images/paymentlogo/ovo.png", alt: "OVO", w: 44, h: 22 },
-      { src: "/images/paymentlogo/qris.png", alt: "QRIS", w: 56, h: 22 },
-    ];
 
   return (
-    <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
-      <h3 className="font-semibold mb-3">Detail pesanan</h3>
+    <div className="bg-transparent px-2 py-4">
+      <div className="flex items-center gap-2 mb-6 border-l-4 border-primary pl-4">
+        <h3 className="text-xl font-bold tracking-tight text-gray-900">Ringkasan Pesanan</h3>
+      </div>
 
-      <div className="space-y-2 text-sm">
-        <Row label={`Subtotal (${itemsCount} produk)`} value={fmt(subtotal)} />
+      <div className="space-y-4 text-sm font-medium">
+        <Row label={`Subtotal (${itemsCount} produk)`} value={<span className="text-gray-900 font-bold">{fmt(subtotal)}</span>} />
 
-        {/* Ongkir: Logic baru (Free = Coret + Gratis, Partial = Harga Asli + Line Diskon) */}
         <Row
-          label="Ongkir"
-          value={
-            !hasShippingSelected ? (
-              <span className="text-gray-400 italic">Pilih pengiriman</span>
-            ) : shippingFee > 0 && shippingAfter === 0 ? (
-              <span className="font-medium text-emerald-600">
-                <span className="line-through text-gray-400 mr-1 font-normal text-xs">
-                  {fmt(shippingFee)}
-                </span>
-                Gratis
-              </span>
-            ) : (
-              fmt(shippingFee)
-            )
-          }
+          label="Biaya Pengiriman"
+          value={<span className="text-gray-900 font-bold">{fmt(shippingFee)}</span>}
         />
 
-        {/* Diskon ongkir: Hanya tampil jika partial discount (kalau free, sudah dihandle di atas) */}
-        {shippingDiscountCapped > 0 && shippingAfter > 0 && (
+        {/* --- Potongan Ongkir (Always show if > 0) --- */}
+        {shippingDiscountCapped > 0 && (
           <Row
-            label="Diskon ongkir"
-            value={
-              <span className="text-primary">
-                - {fmt(shippingDiscountCapped)}
-              </span>
-            }
+            label="Potongan Ongkir"
+            value={<span className="text-emerald-600 font-bold">-{fmt(shippingDiscountCapped)}</span>}
           />
         )}
-
-        {/* Diskon-diskon */}
 
 
         {promoDiscountList > 0 && (
           <Row
-            label="Diskon promo"
-            value={
-              <span className="text-primary">- {fmt(promoDiscountList)}</span>
-            }
+            label="Diskon Promo"
+            value={<span className="text-primary font-bold">-{fmt(promoDiscountList)}</span>}
           />
         )}
 
         {promoDiscountCode > 0 && (
           <Row
-            label="Diskon kode"
-            value={
-              <span className="text-primary">- {fmt(promoDiscountCode)}</span>
-            }
+            label="Diskon Kode"
+            value={<span className="text-primary font-bold">-{fmt(promoDiscountCode)}</span>}
           />
         )}
 
-        <div className="my-2 h-px bg-gray-200/70" />
-
-        <Row
-          label="Total"
-          value={<span className="font-semibold">{fmt(grandTotal)}</span>}
-        />
-
-
+        <div className="flex items-end justify-between pt-2">
+          <span className="text-base font-bold text-gray-900">Total Pembayaran</span>
+          <span className="text-2xl font-black text-primary tracking-tight">{fmt(grandTotal)}</span>
+        </div>
       </div>
 
       <button
         type="button"
         onClick={onCheckout}
-        className="mt-4 w-full rounded-xl px-5 py-3 font-medium bg-primary text-white hover:bg-secondary transition-colors cursor-pointer active:scale-[.99]"
+        className="mt-8 w-full rounded-2xl px-6 py-4 font-black uppercase tracking-widest text-sm bg-primary text-white hover:bg-secondary shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all cursor-pointer active:scale-[0.98]"
       >
-        Checkout
+        Bayar Sekarang
       </button>
 
-      <div className="mt-4 pt-3">
-        <p className="text-center text-xs text-gray-500">
-          Pembayaranmu aman di website kami.
-        </p>
-        <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-          {logos.map((l) => (
-            <li key={l.src} className="shrink-0">
-              <div className="relative" style={{ width: l.w, height: l.h }}>
-                <Image
-                  src={l.src}
-                  alt={l.alt}
-                  fill
-                  sizes={`${l.w}px`}
-                  className="object-contain"
-                  unoptimized // opsional (bagus untuk SVG)
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
 }
@@ -160,8 +94,8 @@ export default function OrderSummaryDesktop({
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-gray-600">{label}</span>
-      <span>{value}</span>
+      <span className="text-gray-500 font-medium">{label}</span>
+      <div className="text-right">{value}</div>
     </div>
   );
 }

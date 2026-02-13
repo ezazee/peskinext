@@ -6,8 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   XMarkIcon,
   CheckIcon,
-  MapPinIcon,
   TrashIcon,
+  MagnifyingGlassIcon,
+  PencilIcon,
 } from "@heroicons/react/24/outline";
 import type { AddressListEntry } from "@shared/types/types";
 
@@ -98,24 +99,42 @@ export const AddressModal = ({
               </button>
             </div>
 
+            {/* Search */}
+            <div className="px-5 pt-3 pb-1">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none transition-colors group-focus-within:text-primary">
+                  <MagnifyingGlassIcon className="h-4.5 w-4.5 text-gray-400 group-focus-within:text-primary transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Cari alamat, nama penerima, atau nomor HP..."
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className="w-full bg-gray-50 border border-transparent rounded-xl py-2.5 pl-10.5 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/30 focus:bg-white transition-all placeholder:text-gray-400"
+                />
+              </div>
+            </div>
+
             {/* List alamat */}
-            <div className="p-5 overflow-y-auto">
+            <div className="px-5 py-3 overflow-y-auto flex-1">
               <div className="space-y-4">
                 {filtered.map((addr) => {
                   const active = selected === addr.id; // ❗ hanya aktif jika dipilih via tombol
                   return (
                     <div
                       key={addr.id}
-                      className={`rounded-xl border p-4 transition ${active ? "bg-sky-50 border-sky-500" : "bg-white"
+                      className={`relative rounded-xl border-2 transition-all duration-300 p-4 ${active
+                        ? "bg-primary/[0.02] border-primary shadow-sm shadow-primary/5"
+                        : "bg-white border-gray-50 hover:border-gray-200 hover:shadow-sm"
                         }`}
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex-1">
                           {/* Label + badge Utama */}
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold">{addr.label}</span>
+                            <span className="font-bold text-gray-900 leading-none">{addr.label}</span>
                             {addr.isPrimary && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-200 text-gray-600">
+                              <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-widest ring-1 ring-primary/5">
                                 Utama
                               </span>
                             )}
@@ -137,54 +156,41 @@ export const AddressModal = ({
                           )}
 
                           {/* Detail alamat */}
-                          <div className="mt-1 text-sm text-gray-600">
+                          <div className="mt-2 text-sm text-gray-500 leading-relaxed font-medium">
                             {addr.address}
                           </div>
 
-                          {/* Pinpoint */}
-                          <div className="mt-2 flex items-center gap-2 text-sm">
-                            <MapPinIcon className="h-4 w-4 text-primary" />
-                            <span className="text-primary">
-                              {addr.pinpointed === false
-                                ? "Belum Pinpoint"
-                                : "Sudah Pinpoint"}
-                            </span>
-                          </div>
-
-                          {/* Actions kiri */}
-                          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                          {/* Actions kiri style baru */}
+                          <div className="mt-3 flex flex-wrap items-center gap-4 text-[12px]">
                             <button
                               type="button"
                               onClick={() => onEdit?.(addr.id)}
-                              className="text-primary cursor-pointer hover:underline"
+                              className="inline-flex items-center gap-1.5 text-gray-400 font-bold hover:text-primary transition-colors cursor-pointer"
                             >
-                              {" "}
-                              Ubah Alamat
+                              <PencilIcon className="h-3 w-3" />
+                              Ubah
                             </button>
 
                             {!addr.isPrimary && (
                               <>
-                                <span className="text-gray-300">|</span>
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setSelected(addr.id); // aktifkan via aksi tombol
-                                    onMakePrimary?.(addr.id); // jadikan utama (opsional)
-                                    onConfirm(addr.id); // konfirmasi pemakaian
+                                    setSelected(addr.id);
+                                    onMakePrimary?.(addr.id);
+                                    onConfirm(addr.id);
                                   }}
-                                  className="text-primary cursor-primary font-semibold hover:underline"
+                                  className="text-primary font-bold hover:text-secondary transition-colors cursor-pointer"
                                 >
-                                  Jadikan Alamat Utama & Pilih
+                                  Pilih Alamat Ini
                                 </button>
-                                <span className="text-gray-300">|</span>
                                 <button
                                   type="button"
                                   onClick={() => onDelete?.(addr.id)}
-                                  className="text-red-600 hover:underline"
+                                  className="inline-flex items-center gap-1.5 text-red-300 font-bold hover:text-red-500 transition-colors cursor-pointer"
                                 >
-                                  <span className="inline-flex items-center gap-1">
-                                    <TrashIcon className="h-4 w-4" /> Hapus
-                                  </span>
+                                  <TrashIcon className="h-3 w-3" />
+                                  Hapus
                                 </button>
                               </>
                             )}
@@ -223,11 +229,12 @@ export const AddressModal = ({
               </div>
             </div>
 
-            <div className="mb-3 px-5 py-3">
+            <div className="px-5 py-4 border-t bg-white mt-auto">
               <button
                 onClick={onAddNew}
-                className="w-full rounded-lg border border-primary text-primary font-semibold py-2 hover:bg-primary/5 cursor-pointer"
+                className="w-full h-11 flex items-center justify-center gap-2 rounded-xl bg-white border-2 border-primary text-primary font-bold hover:bg-primary/5 active:scale-[0.98] transition-all cursor-pointer shadow-sm shadow-primary/5 text-sm"
               >
+                <span className="text-lg">+</span>
                 Tambah Alamat Baru
               </button>
             </div>

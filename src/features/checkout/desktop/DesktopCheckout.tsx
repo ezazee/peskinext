@@ -15,12 +15,11 @@ import { PaymentTimer } from "@features/transaction/components/PaymentTimer";
 
 import AddressCard from "./AddressCard";
 import SellerCartCard from "../components/SellerCartCard";
-import PaymentMethodsDesktop from "./PaymentMethodsDesktop";
 import OrderSummaryDesktop from "./OrderSummaryDesktop";
 
 import VoucherCard from "@features/checkout/desktop/VoucherCard";
 import VoucherModal from "@features/checkout/desktop/VoucherModal";
-import { evaluateVoucher } from "@features/cart/lib/voucher";
+import { evaluateVoucher, getRegionTag } from "@features/cart/lib/voucher";
 import { getVouchers, checkVoucherCode } from "@features/voucher/action";
 import {
   type CartCtx,
@@ -104,10 +103,20 @@ function computePromoDiscountFrom(
     parseRupiahFlexible(v.subtitle) ||
     parseRupiahFlexible(v.savingLabel) ||
     Number.POSITIVE_INFINITY;
-  if (pct <= 0) return 0;
-  const raw = Math.floor((subtotal * pct) / 100);
-  return Math.max(0, Math.min(raw, cap, subtotal));
+  if (pct > 0) {
+    const raw = Math.floor((subtotal * pct) / 100);
+    return Math.max(0, Math.min(raw, cap, subtotal));
+  }
+  // If no percentage, try parsing as a fixed amount
+  const fixed =
+    parseRupiahFlexible(v.subtitle) ||
+    parseRupiahFlexible(v.savingLabel) ||
+    parseRupiahFlexible(v.title);
+
+  return Math.max(0, Math.min(fixed, subtotal));
 }
+
+import { useToast } from "@shared/components/ui/Toaster";
 
 /* ---------------- component ---------------- */
 export default function DesktopCheckout({
@@ -118,6 +127,7 @@ export default function DesktopCheckout({
   checkoutSession?: CheckoutSession | null;
 }) {
   const searchParams = useSearchParams();
+  const toast = useToast();
   const [userId, setUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -134,27 +144,29 @@ export default function DesktopCheckout({
         id: `checkout-${line.productId}-${line.variantId}`,
         product: {
           id: line.productId,
-          name: line.name.split(' - ')[0] || line.name,
+          name: line.name.split(" - ")[0] || line.name,
           slug: line.productId,
           img: line.image,
-          price: `Rp${line.price.toLocaleString('id-ID')}`,
-          variants: [{
-            id: Number(line.variantId),
-            name: line.name.split(' - ')[1] || 'Default',
-            price: line.price,
-            stock: 999
-          }],
+          price: `Rp${line.price.toLocaleString("id-ID")}`,
+          variants: [
+            {
+              id: Number(line.variantId),
+              name: line.name.split(" - ")[1] || "Default",
+              price: line.price,
+              stock: 999,
+            },
+          ],
           // Dummy fields required by Product type
-          description: '',
+          description: "",
           ingredients: [],
           howToUse: [],
-          category: '',
-          sku: '',
+          category: "",
+          sku: "",
           imgHover: line.image,
           galleryImages: [line.image],
           isFlashSale: false,
           isEvent: false,
-          type: 'single' as const,
+          type: "single" as const,
           weightGr: line.weight || 100,
         },
         variantId: Number(line.variantId),
@@ -186,13 +198,12 @@ export default function DesktopCheckout({
   }, [selectedItems]);
 
   // alamat untuk tujuan shipping
-  // alamat untuk tujuan shipping
   const { primary } = useAddressBook();
 
   const totalWeightGr = useMemo(() => {
     return selectedItems.reduce((acc, item) => {
       const w = item.product.weightGr || 1000;
-      return acc + (w * item.qty);
+      return acc + w * item.qty;
     }, 0);
   }, [selectedItems]);
 
@@ -202,31 +213,38 @@ export default function DesktopCheckout({
 
   // Prepare shipping params
   const shippingParams: ShippingQueryParams | null = useMemo(() => {
-    if (!primary || !userId || selectedItems.length === 0) return null;
+    const addr = primary;
+    if (!addr || !userId || selectedItems.length === 0) return null;
     return {
       origin: "Jakarta", // This should ideally be dynamic or from store config
-      destination: primary.city, // Simplification, hook handles resolving
+      destination: addr.city, // Simplification, hook handles resolving
       destinationType: "city",
       weightGr: totalWeightGr,
-      items: selectedItems.map(i => ({
-        name: i.product.name,
-        variant_name: i.product.variants[0]?.name,
-        price: parseInt(i.product.price.replace(/[^\d]/g, "") || "0"),
-        weight: i.product.weightGr || 1000,
-        quantity: i.qty
-      }))
+      items: selectedItems.map((i) => {
+        const selectedVariant = i.product.variants.find((v) => v.id === i.variantId);
+        return {
+          name: i.product.name,
+          variant_name: selectedVariant?.name || "Default",
+          price: parseInt(i.product.price.replace(/[^\d]/g, "") || "0"),
+          weight: i.product.weightGr || 1000,
+          quantity: i.qty,
+        };
+      }),
     };
   }, [primary, userId, selectedItems, totalWeightGr]);
 
   // Items for API matching request body structure in useShippingQuotes
   const shippingItems = useMemo(() => {
-    return selectedItems.map(i => ({
-      name: i.product.name,
-      variant: { name: i.product.variants[0]?.name },
-      price: parseInt(i.product.price.replace(/[^\d]/g, "") || "0"),
-      weight: i.product.weightGr || 1000,
-      quantity: i.qty
-    }));
+    return selectedItems.map((i) => {
+      const selectedVariant = i.product.variants.find((v) => v.id === i.variantId);
+      return {
+        name: i.product.name,
+        variant: { name: selectedVariant?.name || "Default" },
+        price: parseInt(i.product.price.replace(/[^\d]/g, "") || "0"),
+        weight: i.product.weightGr || 1000,
+        quantity: i.qty,
+      };
+    });
   }, [selectedItems]);
 
   const { data: shipData, loading: shipLoading } = useShippingQuotes(
@@ -251,7 +269,6 @@ export default function DesktopCheckout({
   const openShipping = () => setOpenShip(true);
 
   // voucher
-  const regionTag = "Jabodetabek";
   const hasPackage = false;
 
   const [promoVouchers, setPromoVouchers] = useState<Voucher[]>([]);
@@ -270,45 +287,39 @@ export default function DesktopCheckout({
   useEffect(() => {
     getVouchers().then((res) => {
       if (res.success && res.data) {
-        setPromoVouchers(res.data.filter(v => v.type === 'promo'));
-        setShippingVouchers(res.data.filter(v => v.type === 'shipping'));
+        setPromoVouchers(res.data.filter((v) => v.type === "promo"));
+        setShippingVouchers(res.data.filter((v) => v.type === "shipping"));
       }
     });
   }, []);
 
   const ctx = useMemo<CartCtx>(
-    () => ({ subtotal, selectedCount: itemsCount, regionTag, hasPackage }),
-    [subtotal, itemsCount, regionTag, hasPackage]
+    () => ({
+      subtotal,
+      selectedCount: itemsCount,
+      regionTag: getRegionTag(primary),
+      hasPackage,
+    }),
+    [subtotal, itemsCount, primary, hasPackage]
   );
 
-  const availableShipping = useMemo(
-    () => decorateVouchers(shippingVouchers, ctx),
-    [shippingVouchers, ctx]
-  );
-  const availablePromos = useMemo(
-    () => decorateVouchers(promoVouchers, ctx),
-    [promoVouchers, ctx]
-  );
+  const availableShipping = useMemo(() => decorateVouchers(shippingVouchers, ctx), [shippingVouchers, ctx]);
+  const availablePromos = useMemo(() => decorateVouchers(promoVouchers, ctx), [promoVouchers, ctx]);
 
   const appliedCount =
-    (selectedVoucher.shippingId ? 1 : 0) +
-    (selectedVoucher.promoId ? 1 : 0) +
-    (selectedVoucher.code?.trim() ? 1 : 0);
+    (selectedVoucher.shippingId ? 1 : 0) + (selectedVoucher.promoId ? 1 : 0) + (selectedVoucher.code?.trim() ? 1 : 0);
 
   const savingText = useMemo(() => {
     const labels: string[] = [];
     if (selectedVoucher.shippingId) {
-      const s = availableShipping.find(
-        (v) => v.id === selectedVoucher.shippingId
-      );
+      const s = availableShipping.find((v) => v.id === selectedVoucher.shippingId);
       if (s?.savingLabel) labels.push(s.savingLabel);
     }
     if (selectedVoucher.promoId) {
       const p = availablePromos.find((v) => v.id === selectedVoucher.promoId);
       if (p?.savingLabel) labels.push(p.savingLabel);
     }
-    if (selectedVoucher.code && codeVoucher?.savingLabel)
-      labels.push(codeVoucher.savingLabel);
+    if (selectedVoucher.code && codeVoucher?.savingLabel) labels.push(codeVoucher.savingLabel);
     return labels.length ? labels.join(" + ") : undefined;
   }, [selectedVoucher, availableShipping, availablePromos, codeVoucher]);
 
@@ -324,21 +335,13 @@ export default function DesktopCheckout({
   // ---- summary (fee + discounts + total) ----
   const shippingFee = shipSelected?.price ?? 0;
 
-  const {
-    shippingDiscount,
-    promoDiscountList,
-    promoDiscountCode,
-    grandTotal,
-  } = useMemo(() => {
+  const { shippingDiscount, promoDiscountList, promoDiscountCode, grandTotal } = useMemo(() => {
     // SHIPPING DISCOUNT
     let shipVoucher: Voucher | null = null;
     if (selectedVoucher.shippingId) {
       shipVoucher =
         availableShipping.find((x) => x.id === selectedVoucher.shippingId) ??
-        (codeVoucher?.type === "shipping" &&
-          codeVoucher.id === selectedVoucher.shippingId
-          ? codeVoucher
-          : null);
+        (codeVoucher?.type === "shipping" && codeVoucher.id === selectedVoucher.shippingId ? codeVoucher : null);
     }
     if (!shipVoucher && selectedVoucher.code && codeVoucher?.type === "shipping") {
       shipVoucher = codeVoucher;
@@ -346,10 +349,7 @@ export default function DesktopCheckout({
     const shippingDiscountRaw = computeShippingDiscountFrom(shipVoucher);
 
     // cap diskon ongkir agar tidak melebihi harga ongkir
-    const shippingDiscCapped = Math.min(
-      shipSelected?.price ?? 0,
-      Math.max(0, shippingDiscountRaw)
-    );
+    const shippingDiscCapped = Math.min(shipSelected?.price ?? 0, Math.max(0, shippingDiscountRaw));
 
     // PROMO DISCOUNTS
     const promoFromList = selectedVoucher.promoId
@@ -361,20 +361,12 @@ export default function DesktopCheckout({
       !!selectedVoucher.code &&
       codeVoucher?.type === "promo" &&
       (!selectedVoucher.promoId || selectedVoucher.promoId !== codeVoucher.id);
-    const promoDiscountCode = codeIsPromoNotInList
-      ? computePromoDiscountFrom(codeVoucher, subtotal)
-      : 0;
+    const promoDiscountCode = codeIsPromoNotInList ? computePromoDiscountFrom(codeVoucher, subtotal) : 0;
 
     // GRAND TOTAL: subtotal + ongkir - (semua diskon)
-    const totalDisc =
-      shippingDiscCapped +
-      Math.max(0, promoDiscountList) +
-      Math.max(0, promoDiscountCode);
+    const totalDisc = shippingDiscCapped + Math.max(0, promoDiscountList) + Math.max(0, promoDiscountCode);
 
-    const grandTotal = Math.max(
-      0,
-      subtotal + (shipSelected?.price ?? 0) - totalDisc
-    );
+    const grandTotal = Math.max(0, subtotal + (shipSelected?.price ?? 0) - totalDisc);
 
     return {
       shippingDiscount: shippingDiscCapped,
@@ -382,43 +374,65 @@ export default function DesktopCheckout({
       promoDiscountCode,
       grandTotal,
     };
-  }, [
-    subtotal,
-    selectedVoucher,
-    availableShipping,
-    availablePromos,
-    codeVoucher,
-    shipSelected?.price,
-  ]);
+  }, [subtotal, selectedVoucher, availableShipping, availablePromos, codeVoucher, shipSelected?.price]);
+
+
 
   return (
     <>
-      <div className="max-w-screen-xl mx-auto px-4 md:px-0 my-6 grid grid-cols-12 gap-6">
-        {/* LEFT */}
-        <section className="col-span-12 lg:col-span-8 space-y-6">
-          <div className="rounded-2xl border border-gray-200/70 bg-white"><AddressCard /></div>
-          <div className="rounded-2xl border border-gray-200/70 bg-white">
-            <SellerCartCard
-              items={selectedItems}
-              current={shipSelected}
-              loading={shipLoading}
-              openShipping={openShipping}
-              variant="desktop"
-            />
-          </div>
-        </section>
+      <div className="max-w-screen-xl mx-auto px-4 md:px-0 my-10 min-h-[70vh]">
+        <div className="grid grid-cols-12 gap-8 items-start">
+          {/* LEFT: Checkout Details */}
+          <section className="col-span-12 lg:col-span-8 space-y-8">
+            {/* Address Section */}
+            <div className="group transition-all duration-300">
+              <div className="rounded-[2.5rem] bg-white shadow-sm border border-gray-50">
+                <AddressCard />
+              </div>
+            </div>
 
-        {/* RIGHT */}
-        <aside className="col-span-12 lg:col-span-4">
-          <div className="space-y-6 lg:sticky lg:top-20">
+            {/* Shipping Section */}
+            <div className="group transition-all duration-300">
+              <div className="rounded-[2.5rem] bg-white shadow-sm border border-gray-100">
+                <SellerCartCard
+                  items={selectedItems}
+                  current={shipSelected}
+                  loading={shipLoading}
+                  openShipping={openShipping}
+                  variant="desktop"
+                />
+              </div>
+            </div>
+
+            {/* Payment Info / Badges Section */}
+            <div className="grid grid-cols-3 gap-4 pt-4">
+              {[
+                { label: "Pembayaran Aman", icon: "🔒" },
+                { label: "Garansi Produk", icon: "💎" },
+                { label: "Bantuan 24/7", icon: "💬" },
+              ].map((item) => (
+                <div key={item.label} className="bg-tertiary rounded-3xl p-4 flex flex-col items-center justify-center border border-gray-100 text-center">
+                  <span className="text-2xl mb-2">{item.icon}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-secondary">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* RIGHT: Summary & Sidebar */}
+          <aside className="col-span-12 lg:col-span-4 space-y-8 lg:sticky lg:top-24">
             {checkoutSession?.orderExpiresAt && (
-              <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-center justify-between">
-                <span className="text-sm text-orange-800 font-medium">Batas Waktu Pembayaran:</span>
+              <div className="bg-amber-50 border border-amber-200 rounded-[2rem] p-5 flex items-center justify-between shadow-sm">
+                <div>
+                  <span className="block text-[10px] uppercase font-bold tracking-wider text-amber-800 mb-1 opacity-70">Waktu Terbatas</span>
+                  <span className="text-sm text-amber-900 font-bold">Lanjutkan Pembayaran Sebelum:</span>
+                </div>
                 <PaymentTimer expiresAt={checkoutSession.orderExpiresAt} />
               </div>
             )}
 
-            <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
+            {/* Voucher Section */}
+            <div className="rounded-[2.5rem] bg-white shadow-sm p-2 border border-gray-50">
               <VoucherCard
                 selectable={itemsCount > 0}
                 onOpen={() => setOpenVoucher(true)}
@@ -428,11 +442,9 @@ export default function DesktopCheckout({
               />
             </div>
 
-            <div className="rounded-2xl border border-gray-200/70 bg-white">
-              <PaymentMethodsDesktop />
-            </div>
 
-            <div className="rounded-2xl border border-gray-200/70 bg-white p-4">
+            {/* Final Summary Card */}
+            <div className="rounded-[2.5rem] bg-white shadow-xl shadow-primary/5 p-2 ring-1 ring-primary/5">
               <OrderSummaryDesktop
                 itemsCount={itemsCount}
                 subtotal={subtotal}
@@ -445,18 +457,16 @@ export default function DesktopCheckout({
                 onCheckout={async () => {
                   try {
                     if (!userId || !shipSelected || !primary) {
-                      alert("Mohon lengkapi alamat dan pengiriman");
+                      toast.error("Mohon lengkapi alamat dan pengiriman");
                       return;
                     }
 
                     // 1. Get existing order ID from URL params (support both oid and tx)
-                    const orderId = searchParams.get('oid') || searchParams.get('tx');
+                    const orderId = searchParams.get("oid") || searchParams.get("tx");
                     if (!orderId) {
-                      alert("Order tidak ditemukan. Silakan checkout ulang dari cart.");
+                      toast.error("Order tidak ditemukan. Silakan checkout ulang dari cart.");
                       return;
                     }
-
-                    console.log("✅ Using existing order:", orderId);
 
                     // 2. Update order with complete address and shipping info
                     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
@@ -465,24 +475,26 @@ export default function DesktopCheckout({
                     const shippingDiscountCapped = Math.min(Math.max(0, shippingDiscount), shippingFee);
                     const netShippingCost = Math.max(0, shippingFee - shippingDiscountCapped);
 
+                    const addr = primary;
+                    if (!addr) throw new Error("Alamat belum dipilih");
+
                     const updatePayload = {
-                      address_id: primary.id,
+                      address_id: addr.id,
                       courier: shipSelected.courier,
                       shipping_service: shipSelected.service,
                       shipping_cost: netShippingCost, // Net cost after discount
                       original_shipping_cost: shipSelected.price, // Base price before discount
                       discount: promoDiscountList + promoDiscountCode, // Total promo discount
-                      total_amount: grandTotal
+                      total_amount: grandTotal,
                     };
 
                     const updateRes = await fetch(`${API_URL}/orders/${orderId}`, {
                       method: "PUT",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(updatePayload)
+                      body: JSON.stringify(updatePayload),
                     });
 
-                    if (!updateRes.ok) throw new Error("Gagal update order");
-                    console.log("✅ Order updated with shipping info");
+                    if (!updateRes.ok) throw new Error("Gagal mengupdate pesanan");
 
                     // 3. Create Payment
                     const { createPayment } = await import("@features/payment/services/paymentService");
@@ -490,25 +502,19 @@ export default function DesktopCheckout({
 
                     // 4. Redirect to DOKU
                     if (paymentRes.payment_url) {
-                      // Clear order ID from sessionStorage after successful payment creation
-                      sessionStorage.removeItem('pending_order_id');
+                      sessionStorage.removeItem("pending_order_id");
                       window.location.href = paymentRes.payment_url;
                     } else {
-                      alert("Gagal mendapatkan link pembayaran");
+                      toast.error("Gagal mendapatkan link pembayaran");
                     }
-
                   } catch (e: unknown) {
-                    if (e instanceof Error) {
-                      alert(e.message);
-                    } else {
-                      alert("Terjadi kesalahan tidak diketahui");
-                    }
+                    toast.error(e instanceof Error ? e.message : "Terjadi kesalahan tidak diketahui");
                   }
                 }}
               />
             </div>
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
 
       {/* MODALS */}
@@ -521,14 +527,8 @@ export default function DesktopCheckout({
         initialSelected={selectedVoucher}
         onRedeemCode={onRedeemCode}
         onApply={(payload) => {
-          const shipOk =
-            !payload.shippingId ||
-            availableShipping.some(
-              (v) => v.id === payload.shippingId && v.enabled
-            );
-          const promoOk =
-            !payload.promoId ||
-            availablePromos.some((v) => v.id === payload.promoId && v.enabled);
+          const shipOk = !payload.shippingId || availableShipping.some((v) => v.id === payload.shippingId && v.enabled);
+          const promoOk = !payload.promoId || availablePromos.some((v) => v.id === payload.promoId && v.enabled);
           if (!shipOk || !promoOk) return;
 
           setVoucherLoading(true);
@@ -536,6 +536,7 @@ export default function DesktopCheckout({
             setSelectedVoucher(payload);
             setVoucherLoading(false);
             setOpenVoucher(false);
+            toast.success("Voucher berhasil diterapkan");
           }, 220);
         }}
       />
@@ -549,6 +550,7 @@ export default function DesktopCheckout({
           onConfirm={(opt) => {
             setShipSelected(opt);
             setOpenShip(false);
+            toast.success("Layanan pengiriman diubah");
           }}
         />
       )}

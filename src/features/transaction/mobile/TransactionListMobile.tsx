@@ -4,7 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import type { UserTransaction } from "@shared/types/types";
+import { X } from "lucide-react";
+import TrackingTimeline from "../components/TrackingTimeline";
+import type { TrackingHistory } from "../components/TrackingTimeline";
 import { PaymentTimer } from "../components/PaymentTimer";
+import React from "react";
 
 const currency = (n: number) =>
   `Rp ${n.toLocaleString("id-ID", { maximumFractionDigits: 0 })}`;
@@ -12,8 +16,8 @@ const currency = (n: number) =>
 const STATUS_LABEL: Record<UserTransaction["status"], string> = {
   pending: "Menunggu Pembayaran",
   paid: "Menunggu Konfirmasi",
-  processing: "Sedang Dikemas",
-  shipped: "Sedang Dikirim",
+  processing: "Diproses",
+  shipped: "Dikirim",
   delivered: "Selesai",
   cancelled: "Dibatalkan",
 };
@@ -27,11 +31,37 @@ const STATUS_BADGE: Record<UserTransaction["status"], string> = {
   cancelled: "bg-rose-100 text-rose-700",
 };
 
+// ... existing imports
+
 export default function TransactionListMobile({
   data,
 }: {
   data: ReadonlyArray<UserTransaction>;
 }) {
+  const [trackingModalOpen, setTrackingModalOpen] = React.useState(false);
+  const [activeTracking, setActiveTracking] = React.useState<{ id: string; number: string; courier: string } | null>(null);
+  const [trackingHistory, setTrackingHistory] = React.useState<TrackingHistory[]>([]);
+  const [loadingTracking, setLoadingTracking] = React.useState(false);
+
+  const handleTrack = async (id: string, number: string, courier: string) => {
+    setActiveTracking({ id, number, courier });
+    setTrackingModalOpen(true);
+    setLoadingTracking(true);
+    setTrackingHistory([]);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shipping/tracking/${id}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.history)) {
+        setTrackingHistory(data.history);
+      }
+    } catch (err) {
+      console.error("Failed to fetch tracking", err);
+    } finally {
+      setLoadingTracking(false);
+    }
+  };
+
   return (
     <div className="grid gap-3">
       {data.map((t) => (
@@ -59,12 +89,23 @@ export default function TransactionListMobile({
             </div>
 
             {/* Status badge kanan atas */}
-            <span
-              className={`ml-auto text-[11px] font-medium px-2 py-0.5 rounded ${STATUS_BADGE[t.status]
-                }`}
-            >
-              {STATUS_LABEL[t.status]}
-            </span>
+            {(() => {
+              const isExpired =
+                t.status === "pending" &&
+                t.expiresAt &&
+                new Date(t.expiresAt).getTime() < Date.now();
+
+              const displayStatus = isExpired ? "cancelled" : t.status;
+
+              return (
+                <span
+                  className={`ml-auto text-[11px] font-medium px-2 py-0.5 rounded ${STATUS_BADGE[displayStatus]
+                    }`}
+                >
+                  {STATUS_LABEL[displayStatus]}
+                </span>
+              );
+            })()}
           </div>
 
           {/* Isi ringkasan produk */}
@@ -94,68 +135,144 @@ export default function TransactionListMobile({
 
             {/* Tombol aksi */}
             <div className="mt-3 flex items-center justify-end gap-2">
-              {t.status === "pending" ? (
-                <>
-                  <Link
-                    href={`/payment/${t.id}`}
-                    className="h-9 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
-                  >
-                    Bayar Sekarang
-                  </Link>
-                  {t.expiresAt && (
-                    <div className="flex justify-center ml-3">
-                      <PaymentTimer expiresAt={t.expiresAt} compact />
-                    </div>
-                  )}
-                </>
-              ) : t.status === "shipped" && t.trackingNumber ? (
-                <a
-                  href={`https://biteship.com/id/tracking?w=${t.trackingNumber}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="h-9 px-4 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-sm font-semibold hover:bg-blue-100 flex items-center justify-center"
-                >
-                  Lacak Paket
-                </a>
-              ) : t.status === "delivered" ? (
-                <>
-                  {(() => {
-                    const allItemsReviewed = t.items.every(item => item.review);
-                    const hasAnyReview = t.items.some(item => item.review);
+              <Link
+                href={`/account/transaction/${t.id}`}
+                className="h-9 px-4 rounded-lg border text-sm font-semibold hover:bg-gray-50 active:bg-gray-50 flex items-center justify-center"
+              >
+                Detail
+              </Link>
 
+              {(() => {
+                const isExpired =
+                  t.status === "pending" &&
+                  t.expiresAt &&
+                  new Date(t.expiresAt).getTime() < Date.now();
+
+                // 1. PENDING
+                if (t.status === "pending") {
+                  if (isExpired) {
+                    // Expired -> anggap seperti Cancelled -> Beli Lagi
                     return (
-                      <>
-                        <Link
-                          href={`/product/${t.items[0]?.product.slug}`}
-                          className="h-9 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
-                        >
-                          Beli Lagi
-                        </Link>
-                        <Link
-                          href={`/account/transaction/${t.id}?tab=review`}
-                          className={`h-9 px-4 rounded-lg text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center ${hasAnyReview
-                            ? 'bg-blue-50 text-blue-600 border border-blue-200'
-                            : 'border hover:bg-gray-50'
-                            }`}
-                        >
-                          {allItemsReviewed ? 'Lihat Review' : hasAnyReview ? 'Lihat/Beri Nilai' : 'Beri Nilai'}
-                        </Link>
-                      </>
+                      <Link
+                        href={`/product/${t.items[0]?.product.slug}`}
+                        className="h-9 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+                      >
+                        Beli Lagi
+                      </Link>
                     );
-                  })()}
-                </>
-              ) : (
-                <Link
-                  href={`/account/transaction/${t.id}`}
-                  className="h-9 px-4 rounded-lg border text-sm font-semibold hover:bg-gray-50 active:bg-gray-50 flex items-center justify-center"
-                >
-                  Detail
-                </Link>
-              )}
+                  }
+                  // Not Expired -> Bayar
+                  return (
+                    <>
+                      <Link
+                        href={`/checkout?tx=${t.id}`}
+                        className="h-9 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+                      >
+                        Bayar Sekarang
+                      </Link>
+                      {t.expiresAt && (
+                        <div className="flex justify-center ml-3">
+                          <PaymentTimer expiresAt={t.expiresAt} compact />
+                        </div>
+                      )}
+                    </>
+                  );
+                }
+
+                // 2. DIKIRIM
+                if (t.status === "shipped" && t.trackingNumber) {
+                  return (
+                    <button
+                      onClick={() => handleTrack(t.id, t.trackingNumber!, t.courier || "")}
+                      className="h-9 px-4 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 text-sm font-semibold hover:bg-blue-100 flex items-center justify-center"
+                    >
+                      Lacak Paket
+                    </button>
+                  );
+                }
+
+                // 3. SELESAI
+                if (t.status === "delivered") {
+                  const allItemsReviewed = t.items.every((item) => item.review);
+                  const hasAnyReview = t.items.some((item) => item.review);
+
+                  return (
+                    <>
+                      <Link
+                        href={`/product/${t.items[0]?.product.slug}`}
+                        className="h-9 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+                      >
+                        Beli Lagi
+                      </Link>
+                      <Link
+                        href={`/account/transaction/${t.id}?tab=review`}
+                        className={`h-9 px-4 rounded-lg text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center ${hasAnyReview
+                          ? "bg-blue-50 text-blue-600 border border-blue-200"
+                          : "border hover:bg-gray-50"
+                          }`}
+                      >
+                        {allItemsReviewed
+                          ? "Lihat Review"
+                          : hasAnyReview
+                            ? "Lihat/Beri Nilai"
+                            : "Beri Nilai"}
+                      </Link>
+                    </>
+                  );
+                }
+
+                // 4. CANCELLED -> Beli Lagi
+                if (t.status === "cancelled") {
+                  return (
+                    <Link
+                      href={`/product/${t.items[0]?.product.slug}`}
+                      className="h-9 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 active:opacity-90 flex items-center justify-center"
+                    >
+                      Beli Lagi
+                    </Link>
+                  );
+                }
+
+                return null;
+              })()}
             </div>
           </div>
         </motion.article>
       ))}
+
+      {/* TRACKING MODAL */}
+      {trackingModalOpen && activeTracking && (
+        <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-xl"
+          >
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h3 className="font-semibold text-gray-800">Status Pengiriman</h3>
+                <div className="text-xs text-gray-500 mt-1">
+                  {activeTracking.courier && <span className="uppercase font-bold">{activeTracking.courier}</span>}
+                  {activeTracking.courier && " - "}
+                  {activeTracking.number}
+                </div>
+              </div>
+              <button onClick={() => setTrackingModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-0 overflow-y-auto flex-1 pb-safe">
+              <TrackingTimeline
+                history={trackingHistory}
+                loading={loadingTracking}
+                trackingNumber={activeTracking.number}
+                courier={activeTracking.courier}
+              />
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

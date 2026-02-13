@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CartData, Voucher, VoucherSelection } from "@shared/types/types";
 import { useCartState } from "@features/cart/hooks/useCartState";
-import CartItemCard from "./CartItemCard";
+import { useToast } from "@shared/components/ui/Toaster";
+import { resolveProductPricing } from "@shared/helpers/product";
+import CartItemRow from "./CartItemRow";
+import SummaryCard from "./SummaryCard";
+
 // import { promoVouchers, shippingVouchers } from "@data/voucher";
 const promoVouchers: Voucher[] = [];
 const shippingVouchers: Voucher[] = [];
-import { useToast } from "@shared/components/ui/Toaster";
-import SummaryCard from "./SummaryCard";
 
 /* =====================================================================================
  *  Type guards & helpers (NO any)
@@ -128,7 +130,7 @@ function decorateVouchers(src: Voucher[], ctx: CartCtx): DecoratedVoucher[] {
 
 export function CartDesktop({ initial, isLoggedIn = false }: { initial: CartData; isLoggedIn?: boolean }) {
   const toast = useToast();
-  const { items, counts, totals, actions } = useCartState(initial);
+  const { items, counts, totals, actions, updatingItems } = useCartState(initial);
   const hasSelection = counts.selectedCount > 0;
   const canCheckout = totals.subtotal > 0 && hasSelection;
   const regionTag = "Jabodetabek";
@@ -237,16 +239,37 @@ export function CartDesktop({ initial, isLoggedIn = false }: { initial: CartData
           </div>
 
           <div className="space-y-4">
-            {items.map((line) => (
-              <CartItemCard
-                key={line.id}
-                line={line}
-                onToggle={(checked) => actions.toggleItem(line.id, checked)}
-                onQty={(q) => actions.setQty(line.id, q)}
-                onRemove={() => actions.removeItem(line.id)}
-                onChangeVariant={(vid) => actions.changeVariant?.(line.id, vid)}
-              />
-            ))}
+            {items.map((line) => {
+              // Resolve variant details to pass correct flat props
+              const variant = line.product.variants.find(v => v.id === line.variantId);
+              const { unit, old, stock } = resolveProductPricing(line.product, variant);
+
+              return (
+                <CartItemRow
+                  key={line.id}
+                  id={line.id}
+                  name={line.product.name}
+                  image={line.product.img}
+                  price={unit}
+                  oldPrice={old}
+                  stock={stock}
+                  qty={line.qty}
+                  selected={line.selected}
+                  variants={line.product.variants}
+                  variantId={line.variantId}
+                  variantName={variant?.name}
+                  onToggle={(checked) => actions.toggleItem(line.id, checked)}
+                  onQty={(q) => actions.setQty(line.id, q)}
+                  onRemove={() => actions.removeItem(line.id)}
+                  onChangeVariant={
+                    actions.changeVariant
+                      ? (vid) => actions.changeVariant?.(line.id, vid)
+                      : undefined
+                  }
+                  loading={!!updatingItems?.[line.id]}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -263,6 +286,7 @@ export function CartDesktop({ initial, isLoggedIn = false }: { initial: CartData
               redeemedVoucher={codeVoucher}
               isLoggedIn={isLoggedIn}
               cartItems={items}
+              loading={Object.keys(updatingItems ?? {}).length > 0}
             />
           </div>
         </aside>

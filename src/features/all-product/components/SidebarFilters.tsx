@@ -24,8 +24,6 @@ type Props = {
   // flags
   flashSaleOnly: boolean;
   onToggleFlashSale: () => void;
-  eventOnly: boolean;
-  onToggleEvent: () => void;
 
   // sticky offset in px (default ~ top-24)
   stickyTopPx?: number;
@@ -66,8 +64,6 @@ export default function SidebarFilters({
   onChangeSort,
   flashSaleOnly,
   onToggleFlashSale,
-  eventOnly,
-  onToggleEvent,
   stickyTopPx = 96,
 }: Props) {
   const categories = React.useMemo<ReadonlyArray<string>>(() => {
@@ -165,8 +161,8 @@ export default function SidebarFilters({
           </label>
         </Section>
 
-        <Section title="Promo & Event" defaultOpen={false}>
-          <label className="flex items-center gap-2 text-sm text-slate-800">
+        <Section title="Promo" defaultOpen={true}>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-800">
             <input
               type="checkbox"
               className="accent-sky-600"
@@ -174,15 +170,6 @@ export default function SidebarFilters({
               onChange={onToggleFlashSale}
             />
             <span>Flash Sale only</span>
-          </label>
-          <label className="flex items-center gap-2 text-sm text-slate-800">
-            <input
-              type="checkbox"
-              className="accent-sky-600"
-              checked={eventOnly}
-              onChange={onToggleEvent}
-            />
-            <span>Event only</span>
           </label>
         </Section>
       </div>

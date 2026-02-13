@@ -71,11 +71,13 @@ export default function HomePage() {
       <div className="max-w-screen-xl mx-auto bg-white md:bg-white">
         <main className="p-0 md:px-8 md:py-6 bg-white md:bg-white">
           <PromoBanner banners={data.main} />
-          <EventPromo />
+          <EventPromo
+            mobileBanner={data.promo_mobile?.[0]}
+            desktopBanner={data.promo_desktop?.[0]}
+          />
           <FlashSaleDiscount products={data.products} />
           <PromoShowcase carousel={data.carousel} tiles={data.tiles} />
           <BundleSection products={data.products} />
-          <div className="h-2 bg-white md:hidden my-2" />
           <ProductGrid products={data.products} />
         </main>
       </div>

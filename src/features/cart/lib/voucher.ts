@@ -47,10 +47,14 @@ export function evaluateVoucher(v: Voucher, ctx: CartContext): EvalResult {
   }
 
   // region
-  if (c.regions && c.regions.length > 0 && ctx.regionTag) {
-    const ok = c.regions.includes(ctx.regionTag);
-    if (!ok)
+  if (c.regions && c.regions.length > 0) {
+    if (!ctx.regionTag) {
       return { enabled: false, reason: `Hanya untuk ${c.regions.join(", ")}` };
+    }
+    const ok = c.regions.includes(ctx.regionTag);
+    if (!ok) {
+      return { enabled: false, reason: `Hanya untuk ${c.regions.join(", ")}` };
+    }
   }
 
   // wajib paket
@@ -59,6 +63,26 @@ export function evaluateVoucher(v: Voucher, ctx: CartContext): EvalResult {
   }
 
   return { enabled: true };
+}
+
+export function getRegionTag(address?: { city: string; province: string } | null): string | undefined {
+  if (!address) return undefined;
+
+  const city = address.city.toLowerCase();
+  const province = address.province.toLowerCase();
+
+  // Jabodetabek logic
+  const isJakarta = province.includes("jakarta");
+  const isBogor = city.includes("bogor");
+  const isDepok = city.includes("depok");
+  const isTangerang = city.includes("tangerang");
+  const isBekasi = city.includes("bekasi");
+
+  if (isJakarta || isBogor || isDepok || isTangerang || isBekasi) {
+    return "Jabodetabek";
+  }
+
+  return undefined;
 }
 
 function formatIDR(n: number) {

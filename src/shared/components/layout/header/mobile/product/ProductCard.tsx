@@ -10,7 +10,9 @@ import { IoStar } from "react-icons/io5";
 /** parse "Rp144.000" -> 144000 */
 function parseIDR(str?: string): number | null {
   if (!str) return null;
-  const digits = str.replace(/[^\d]/g, "");
+  // Jika range seperti "Rp288.000 - Rp980.000", ambil angka pertama (min)
+  const firstPart = str.split("-")[0];
+  const digits = firstPart.replace(/[^\d]/g, "");
   return digits ? Number(digits) : null;
 }
 
@@ -20,6 +22,21 @@ function discountPercent(priceStr?: string, oldPriceStr?: string): number {
   const oldPrice = parseIDR(oldPriceStr);
   if (!price || !oldPrice || oldPrice <= price) return 0;
   return Math.round(((oldPrice - price) / oldPrice) * 100);
+}
+
+/** format tampilan harga: jika range, ambil min */
+function formatPriceDisplay(str?: string): string {
+  if (!str) return "";
+  if (str.includes("-")) {
+    return str.split("-")[0].trim();
+  }
+  return str;
+}
+
+/** ambil hanya harga pertama dari range untuk harga coret */
+function getMinPriceStr(str?: string): string {
+  if (!str) return "";
+  return str.split("-")[0].trim();
 }
 
 export const ProductCard = ({ product }: { product: Product }) => {
@@ -33,7 +50,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
   return (
     <Link href={`/product/${product.slug}`} className="no-underline h-full">
-      <div className="bg-white rounded-lg md:shadow-lg shadow-md overflow-hidden h-full flex flex-col group">
+      <div className="bg-white rounded-lg md:shadow-lg shadow-sm overflow-hidden h-full flex flex-col group">
         <div className="relative w-full h-32 md:h-40 overflow-hidden">
           <Image
             src={product.img}
@@ -53,41 +70,57 @@ export const ProductCard = ({ product }: { product: Product }) => {
           )}
 
           {pct > 0 && (
-            <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow">
-              {pct}%
+            <span className="absolute top-2 left-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm z-10">
+              {pct}% OFF
+            </span>
+          )}
+
+          {product.isFlashSale && (
+            <span className="absolute top-2 right-2 bg-amber-400 text-gray-900 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10 flex items-center gap-0.5 uppercase tracking-tighter">
+              ⚡ Flash Sale
             </span>
           )}
         </div>
 
         <div className="p-2 md:p-3 flex flex-col flex-grow">
-          <h3 className="text-sm font-normal text-gray-800 line-clamp-2">
+          {/* Title - fixed height for 2 lines */}
+          <h3 className="text-sm font-normal text-gray-800 line-clamp-2 min-h-[2.5rem] leading-tight mb-1">
             {product.name}
           </h3>
 
-          {/* ⭐ tampilan ringkas: satu bintang + angka + terjual (statis) */}
+          {/* Rating - standardized offset */}
           <div
-            className="mt-1 flex items-center gap-1.5 text-xs text-gray-600"
+            className="flex items-center gap-1 text-[11px] text-gray-500 h-4 mb-2"
             aria-label={`Rating ${average.toFixed(1)} dari 5, 500+ terjual`}
           >
-            <IoStar className="text-yellow-400 text-[14px]" />
-            <span className="font-medium">{average.toFixed(1)}</span>
-            <span className="text-gray-400">• 500+ terjual</span>
+            <IoStar className="text-yellow-400 text-[13px]" />
+            <span className="font-semibold text-gray-700">{average.toFixed(1)}</span>
+            <span>• 500+ terjual</span>
           </div>
 
-          <p className="text-base font-bold mt-2">{product.price}</p>
+          {/* Pricing area - pushed to bottom */}
+          <div className="mt-auto">
+            {/* Price Line */}
+            <p className="text-[13px] md:text-[15px] font-bold text-gray-900 leading-tight">
+              {formatPriceDisplay(product.price)}
+            </p>
 
-          {product.oldPrice && (
-            <div className="flex items-center gap-2 mt-1">
-              {pct > 0 && (
-                <span className="text-xs font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded-md">
-                  {pct}%
-                </span>
+            {/* Discount Line */}
+            <div className="h-5 mt-1 flex items-center gap-1.5 overflow-hidden">
+              {product.oldPrice && (
+                <>
+                  {pct > 0 && (
+                    <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-1 py-0.5 rounded leading-none shrink-0 border border-rose-100">
+                      {pct}%
+                    </span>
+                  )}
+                  <p className="text-[11px] text-gray-400 line-through truncate">
+                    {getMinPriceStr(product.oldPrice)}
+                  </p>
+                </>
               )}
-              <p className="text-xs text-subtle-text line-through">
-                {product.oldPrice}
-              </p>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </Link>

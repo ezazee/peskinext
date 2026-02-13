@@ -29,21 +29,10 @@ const itemVariants = {
 export default function BundleDesktop({
   products,
   loading = false,
-  title = "Manjakan Kulitmu dengan PE Skinpro",
-  subtitle = "Nikmati promo spesial untuk semua produk favoritmu. Saatnya merawat diri dengan harga terbaik!",
   animKey,
 }: Props) {
   return (
     <div className="hidden w-full md:block">
-      <section className="relative mb-6 overflow-hidden rounded-3xl border border-slate-200 bg-white p-8">
-        <div className="max-w-4xl">
-          <h1 className="text-2xl font-extrabold tracking-tight text-primary">
-            {title}
-          </h1>
-          <p className="mt-2 text-slate-600">{subtitle}</p>
-        </div>
-        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-sky-200/40 blur-3xl" />
-      </section>
 
       {loading ? (
         <ProductGridSkeleton columns={4} />
@@ -61,7 +50,7 @@ export default function BundleDesktop({
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+            className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
           >
             {products.map((p) => (
               <motion.div key={p.id} variants={itemVariants} className="h-full">

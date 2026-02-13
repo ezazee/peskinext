@@ -18,8 +18,9 @@ import SearchOverlay from "../SearchOverlay";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { AddressModal } from "@shared/components/ui/AddressModal";
 import type { AddressListEntry } from "@shared/types/types";
-import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
-import { startAddressSwitch } from "@features/address/addressSwitchBus";
+import { useAddressBook } from "@features/address/useAddressBook";
+import { useAddressSwitching, startAddressSwitch } from "@features/address/addressSwitchBus";
+import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 
 type OptionForModal = AddressListEntry & {
   recipient?: string;
@@ -114,22 +115,12 @@ export const MobileHeader = () => {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  // sumber data alamat
-  const { primary, addresses, selectPrimary } = useAddressBookLocal();
+  // sumber data alamat (API)
+  const { primary, selectPrimary, listEntries, loading: addressLoading } = useAddressBook();
+  const switching = useAddressSwitching();
 
   // opsi untuk AddressModal
-  const options = useMemo<ReadonlyArray<OptionForModal>>(() => {
-    const list = addresses.map<OptionForModal>((a) => ({
-      id: a.id,
-      label: a.label,
-      address: `${a.line1}, ${a.city}, ${a.province} ${a.postalCode}`,
-      isPrimary: primary ? a.id === primary.id : a.isPrimary,
-      recipient: a.recipient,
-      phone: a.phone,
-      pinpointed: true,
-    }));
-    return [...list].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
-  }, [addresses, primary]);
+  const options = listEntries as ReadonlyArray<OptionForModal>;
 
   // === LABEL DINAMIS DI PILL ===
   // contoh: "Rumah Garut Reza" (label + recipient). Kalau mau label + kota: ganti recipient -> city.
@@ -212,7 +203,11 @@ export const MobileHeader = () => {
               >
                 <LocationIcon className="h-4 w-4 text-green-500" />
                 {/* penting: suppressHydrationWarning supaya tidak muncul warning saat label berubah setelah mount */}
-                <span suppressHydrationWarning>{pillLabel}</span>
+                {switching || addressLoading ? (
+                  <Skeleton width={80} height={14} className="rounded-md" />
+                ) : (
+                  <span suppressHydrationWarning>{pillLabel}</span>
+                )}
               </button>
             </div>
           ) : (

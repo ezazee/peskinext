@@ -9,6 +9,7 @@ export function BrandCheckbox({
   size = 16,
   color = "#38BDF8",
   fillChecked = "#E6F7FE",
+  disabled = false,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -17,6 +18,7 @@ export function BrandCheckbox({
   size?: number;
   color?: string;
   fillChecked?: string;
+  disabled?: boolean;
 }) {
   const boxStyle: React.CSSProperties = {
     width: size,
@@ -25,21 +27,24 @@ export function BrandCheckbox({
     borderWidth: 1,
     borderStyle: "solid",
     borderColor: checked ? color : "#D1D5DB" /* gray-300 */,
-    backgroundColor: checked ? fillChecked : "#FFFFFF",
+    backgroundColor: disabled ? "#F3F4F6" : checked ? fillChecked : "#FFFFFF",
     display: "grid",
     placeItems: "center",
     position: "relative",
     transition: "background-color 150ms, border-color 150ms",
+    opacity: disabled ? 0.6 : 1,
+    cursor: disabled ? "not-allowed" : "pointer",
   };
 
   return (
-    <label className={`inline-flex items-center cursor-pointer ${className}`}>
+    <label className={`inline-flex items-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"} ${className}`}>
       {/* input asli untuk a11y */}
       <input
         type="checkbox"
         className="sr-only"
         checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
+        onChange={(e) => !disabled && onChange(e.target.checked)}
+        disabled={disabled}
         aria-label={ariaLabel}
       />
 
@@ -54,7 +59,7 @@ export function BrandCheckbox({
               display: "block",
             }}
             fill="none"
-            stroke={color}
+            stroke={disabled ? "#9CA3AF" : color}
             strokeWidth={3}
             strokeLinecap="round"
             strokeLinejoin="round"

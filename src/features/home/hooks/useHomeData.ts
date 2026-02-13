@@ -1,7 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-// import { getProducts } from "@features/product/services/productService";
-import { getBanners } from "@features/home/services/bannerService";
+import { useProducts } from "@features/product/hooks/useProducts";
+import { useBanners } from "@features/home/hooks/useBanners";
 import type { Product, Banner } from "@shared/types/types";
 
 type HomeData = {
@@ -9,49 +8,35 @@ type HomeData = {
   main: Banner[];
   carousel: Banner[];
   tiles: Banner[];
-  popup?: Banner[];
+  popup: Banner[];
+  welcome: Banner[];
+  promo_mobile: Banner[];
+  promo_desktop: Banner[];
+  bundle: Banner[];
+  gallery_carousel: Banner[];
+  gallery_single: Banner[];
 };
 
 export function useHomeData() {
-  const [data, setData] = useState<HomeData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const { data: products = [], isLoading: productsLoading, error: productsError } = useProducts();
+  const { data: bannerData, isLoading: bannersLoading, error: bannersError } = useBanners();
 
-  useEffect(() => {
-    let alive = true;
-    async function run() {
-      try {
-        const [productRes, bannerData] = await Promise.all([
-          fetch("/api/products").then(r => {
-            if (!r.ok) throw new Error("Failed to fetch products");
-            return r.json();
-          }),
-          getBanners().catch(err => {
-            console.error("Banner fetch failed, using fallback", err);
-            return { main: [], carousel: [], tiles: [], popup: [] };
-          })
-        ]);
+  const loading = productsLoading || bannersLoading;
+  const error = productsError || bannersError;
 
-        if (!alive) return;
-        setData({
-          products: productRes,
-          main: bannerData.main || [],
-          carousel: bannerData.carousel,
-          tiles: bannerData.tiles,
-          popup: bannerData.popup || [],
-        });
-      } catch (e) {
-        if (!alive) return;
-        setError(e as Error);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    }
-    run();
-    return () => {
-      alive = false;
-    };
-  }, []);
+  const data: HomeData | null = products && bannerData ? {
+    products,
+    main: bannerData.main || [],
+    carousel: bannerData.carousel || [],
+    tiles: bannerData.tiles || [],
+    popup: bannerData.popup || [],
+    welcome: bannerData.welcome || [],
+    promo_mobile: bannerData.promo_mobile || [],
+    promo_desktop: bannerData.promo_desktop || [],
+    bundle: bannerData.bundle || [],
+    gallery_carousel: bannerData.gallery_carousel || [],
+    gallery_single: bannerData.gallery_single || [],
+  } : null;
 
-  return { data, loading, error };
+  return { data, loading, error: error as Error };
 }

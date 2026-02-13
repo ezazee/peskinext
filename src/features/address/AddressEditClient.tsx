@@ -59,7 +59,14 @@ export default function AddressEditClient({ id }: Props): JSX.Element {
       toast.success("Alamat berhasil diperbarui");
       // Notify other components
       window.dispatchEvent(new Event('addressUpdated'));
-      router.push("/account/address");
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get('redirect');
+      if (redirect) {
+        router.push(redirect);
+      } else {
+        router.push("/account/address");
+      }
       router.refresh();
     } else {
       toast.error(result.error || "Gagal memperbarui alamat");

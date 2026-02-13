@@ -4,59 +4,45 @@ import { Skeleton } from "@shared/components/ui/SkeletonLoading";
 
 export default function AccountMobileSkeleton() {
   return (
-    <div className="pb-20">
-      {/* Card header akun */}
-      <div className="mx-4 mt-4 bg-white rounded-lg shadow-sm p-4">
-        <div className="flex items-center gap-3">
-          <Skeleton.Circle size={48} />
-          <div className="flex-1 min-w-0">
-            <Skeleton.Text lines={1} widths={["60%"]} lineHeight={16} />
-            <Skeleton.Text
-              className="mt-2"
-              lines={1}
-              widths={["40%"]}
-              lineHeight={12}
-            />
-          </div>
+    <div className="min-h-screen bg-gray-50 pb-24">
+      {/* Header Skeleton */}
+      <div className="bg-white px-6 pt-12 pb-8 rounded-b-[2.5rem] shadow-sm flex flex-col items-center">
+        <Skeleton.Circle size={100} className="mb-4" />
+        <Skeleton width="120px" height={24} radius={8} />
+        <Skeleton width="180px" height={16} radius={6} className="mt-2" />
+      </div>
+
+      {/* Quick Stats Skeleton */}
+      <div className="px-6 -mt-6">
+        <div className="bg-white rounded-3xl shadow-md p-5 flex justify-between items-center">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-1.5 flex-1">
+              <Skeleton.Circle size={24} />
+              <Skeleton width="30px" height={10} radius={4} />
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Section: Kotak Masuk */}
-      <SectionSkeleton titleWidth="32%" rows={3} className="mt-4 mx-4" />
-      {/* Section: Pembelian */}
-      <SectionSkeleton titleWidth="28%" rows={2} className="mt-4 mx-4" />
-      {/* Section: Profil Saya */}
-      <SectionSkeleton titleWidth="30%" rows={3} className="mt-4 mx-4" />
-    </div>
-  );
-}
-
-function SectionSkeleton({
-  titleWidth,
-  rows,
-  className,
-}: {
-  titleWidth: string;
-  rows: number;
-  className?: string;
-}) {
-  return (
-    <section className={className}>
-      <Skeleton width={titleWidth} height={16} radius={6} />
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden mt-2">
-        <Skeleton.List
-          count={rows}
-          renderItem={() => (
-            <div className="flex items-center gap-3 px-4 py-3">
-              <Skeleton width="40%" height={14} radius={6} />
-              <div className="ml-auto flex items-center gap-2">
-                <Skeleton width={24} height={16} radius={6} />
-                <Skeleton width={10} height={14} radius={4} />
-              </div>
+      {/* Menu Section Skeletons */}
+      <div className="px-6 mt-8 space-y-6">
+        {[1, 2].map((section) => (
+          <div key={section}>
+            <Skeleton width="100px" height={12} radius={4} className="ml-4 mb-3" />
+            <div className="bg-white rounded-[2rem] shadow-sm overflow-hidden border border-gray-100/50">
+              {[1, 2, 3].map((row) => (
+                <div key={row} className="flex items-center gap-4 px-4 py-4 border-b border-gray-50 last:border-0">
+                  <Skeleton width={40} height={40} radius={12} />
+                  <Skeleton width="60%" height={16} radius={6} />
+                  <div className="ml-auto">
+                    <Skeleton width={18} height={18} radius={4} />
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
-        />
+          </div>
+        ))}
       </div>
-    </section>
+    </div>
   );
 }

@@ -29,7 +29,7 @@ interface FormattedBackendProduct {
     category: string;
     sku: string;
     price: string; // "Rp100.000"
-    oldPrice?: number;
+    oldPrice?: string;
     img: string;
     imgHover: string;
     galleryImages: string[];
@@ -83,7 +83,7 @@ export async function getProducts(): Promise<Product[]> {
             category: bp.category,
             sku: bp.sku,
             price: priceStr,
-            oldPrice: bp.oldPrice ? `Rp${bp.oldPrice.toLocaleString("id-ID")}` : "",
+            oldPrice: bp.oldPrice || "",
             img: bp.img || "https://placehold.co/300x300", // Fallback if empty
             imgHover: bp.imgHover,
             galleryImages: bp.galleryImages,

@@ -244,7 +244,8 @@ function StatusPills({
   const tabs: { val: TxFilter; label: string }[] = [
     { val: "all", label: "Semua" },
     { val: "pending", label: "Menunggu Pembayaran" },
-    { val: "paid", label: "Diproses" },
+    { val: "paid", label: "Menunggu Konfirmasi" },
+    { val: "processing", label: "Diproses" },
     { val: "shipped", label: "Dikirim" },
     { val: "delivered", label: "Selesai" },
     { val: "cancelled", label: "Dibatalkan" },

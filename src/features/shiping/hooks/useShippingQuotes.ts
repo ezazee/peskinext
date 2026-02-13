@@ -31,7 +31,11 @@ export function useShippingQuotes(
         }))
       };
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/shipping/check-ongkir`, {
+      const rawUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const API_URL = rawUrl.endsWith("/api/v1") ? rawUrl.slice(0, -"/api/v1".length) : rawUrl;
+
+      console.log("Fetching shipping quotes from:", `${API_URL}/api/v1/shipping/check-ongkir`);
+      const res = await fetch(`${API_URL}/api/v1/shipping/check-ongkir`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

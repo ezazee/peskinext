@@ -75,6 +75,8 @@ function computePromoDiscountFrom(
 
 /* ================= UI ================= */
 
+import { Skeleton } from "@shared/components/ui/Skeleton";
+
 type Props = {
   subtotal: number;
   canCheckout: boolean;
@@ -85,6 +87,7 @@ type Props = {
   redeemedVoucher: Voucher | null;
   isLoggedIn?: boolean;
   cartItems?: unknown[]; // For checkout
+  loading?: boolean;
 };
 
 export default function SummaryCard({
@@ -97,10 +100,12 @@ export default function SummaryCard({
   redeemedVoucher,
   isLoggedIn = false,
   cartItems = [],
+  loading = false,
 }: Props) {
   const disabled = !canCheckout;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ... (useMemo logic unchanged) ...
   const { shippingDiscount, promoDiscountList, promoDiscountCode, grandTotal } =
     useMemo(() => {
       /* --- SHIPPING --- (list atau kode) */
@@ -178,21 +183,21 @@ export default function SummaryCard({
     <div className="rounded-xl border border-gray-200 bg-white p-4">
       <h3 className="font-semibold mb-2">Detail pesanan</h3>
 
-      <div className="flex justify-between text-sm text-gray-600">
+      <div className="flex justify-between text-sm text-gray-600 h-6 items-center">
         <span>Subtotal</span>
         <span className="font-semibold text-gray-900">
-          {formatRupiah(subtotal)}
+          {loading ? <Skeleton className="h-4 w-24" /> : formatRupiah(subtotal)}
         </span>
       </div>
 
-      {shippingDiscount > 0 && (
+      {shippingDiscount > 0 && !loading && (
         <div className="mt-1 flex justify-between text-sm text-primary">
           <span>Diskon ongkir</span>
           <span>- {formatRupiah(shippingDiscount)}</span>
         </div>
       )}
 
-      {promoDiscountList > 0 && (
+      {promoDiscountList > 0 && !loading && (
         <div className="mt-1 flex justify-between text-sm text-primary">
           <span>Diskon promo</span>
           <span>- {formatRupiah(promoDiscountList)}</span>
@@ -200,7 +205,7 @@ export default function SummaryCard({
       )}
 
       {/* >>> Tambahan: Diskon KODE (hanya bila kodenya tidak ada di list) */}
-      {promoDiscountCode > 0 && (
+      {promoDiscountCode > 0 && !loading && (
         <div className="mt-1 flex justify-between text-sm text-primary">
           <span>Diskon kode</span>
           <span>- {formatRupiah(promoDiscountCode)}</span>
@@ -209,9 +214,11 @@ export default function SummaryCard({
 
       <div className="mt-2 h-px bg-gray-200" />
 
-      <div className="mt-2 flex justify-between text-sm text-gray-900">
+      <div className="mt-2 flex justify-between text-sm text-gray-900 h-6 items-center">
         <span>Total</span>
-        <span className="font-bold">{formatRupiah(grandTotal)}</span>
+        <span className="font-bold">
+          {loading ? <Skeleton className="h-5 w-32" /> : formatRupiah(grandTotal)}
+        </span>
       </div>
 
       {totalSaving > 0 && (
@@ -247,8 +254,8 @@ export default function SummaryCard({
             type="submit"
             disabled={disabled || isSubmitting}
             className={`w-full h-11 rounded-lg transition text-white ${disabled || isSubmitting
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none"
-                : "bg-primary hover:bg-secondary cursor-pointer"
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed pointer-events-none"
+              : "bg-primary hover:bg-secondary cursor-pointer"
               }`}
           >
             {isSubmitting ? "Memproses..." : "Checkout"}

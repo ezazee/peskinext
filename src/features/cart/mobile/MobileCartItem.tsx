@@ -1,4 +1,5 @@
 "use client";
+// Force TS re-check
 
 import Image from "next/image";
 import { BrandCheckbox } from "@shared/components/ui/BrandCheckbox";
@@ -8,6 +9,8 @@ import QtyStepper from "@shared/components/ui/QtyStepper";
 import type { CartData } from "@shared/types/types";
 import { getVariantPricing } from "../utils/getVariantPricing";
 
+import { Skeleton } from "@shared/components/ui/Skeleton";
+
 type Line = CartData["items"][number];
 
 export default function MobileCartItem({
@@ -16,12 +19,14 @@ export default function MobileCartItem({
   onQty,
   onRemove,
   onChangeVariant,
+  loading = false,
 }: {
   line: Line;
   onToggle: (checked: boolean) => void;
   onQty: (qty: number) => void;
   onRemove: () => void;
   onChangeVariant?: (id: number) => void;
+  loading?: boolean;
 }) {
   const { price, oldPrice, stock, variantName } = getVariantPricing(
     line.product.variants,
@@ -34,7 +39,17 @@ export default function MobileCartItem({
     : 0;
 
   return (
-    <div className="rounded-xl bg-white border border-gray-200 p-3">
+    <div className="rounded-xl bg-white border border-gray-200 p-3 relative overflow-hidden">
+      {/* Loading Overlay or Specific Skeletons */}
+      {loading && (
+        <div className="absolute inset-0 z-10 bg-white/60 flex items-center justify-center backdrop-blur-[1px]">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            {/* Optional text <span className="text-[10px] font-medium text-primary">Updating...</span> */}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-start gap-3">
         <BrandCheckbox
           checked={line.selected}
@@ -42,6 +57,7 @@ export default function MobileCartItem({
           ariaLabel="Pilih item"
           size={16}
           className="mt-2"
+          disabled={loading}
         />
 
         <div className="relative h-16 w-16 shrink-0 rounded overflow-hidden">
@@ -66,6 +82,7 @@ export default function MobileCartItem({
                 className="text-xs border border-gray-300 rounded px-1.5 py-1 bg-white hover:border-gray-400 cursor-pointer focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary h-8"
                 value={line.variantId}
                 onChange={(e) => onChangeVariant(Number(e.target.value))}
+                disabled={loading}
               >
                 {line.product.variants.map((v) => (
                   <option key={v.id} value={v.id}>
@@ -80,34 +97,46 @@ export default function MobileCartItem({
             )
           )}
 
+
           {/* Harga */}
-          <div className="mt-1 flex items-center gap-1.5">
-            {hasDiscount && (
+          <div className="mt-1 flex items-center gap-1.5 min-h-[20px]">
+            {loading ? (
+              <Skeleton className="h-4 w-24" />
+            ) : (
               <>
-                <span className="text-gray-400 line-through text-[12px]">
-                  {formatRupiah(oldPrice!)}
-                </span>
-                <span className="text-[10px] font-semibold text-red-400">
-                  {discountPct}%
-                </span>
+                {hasDiscount && (
+                  <>
+                    <span className="text-gray-400 line-through text-[12px]">
+                      {formatRupiah(oldPrice!)}
+                    </span>
+                    <span className="text-[10px] font-semibold text-red-400">
+                      {discountPct}%
+                    </span>
+                  </>
+                )}
+                {!hasDiscount && <div className="h-4" />} {/* Spacer to keep height consistent if needed */}
               </>
             )}
           </div>
-          <div className="text-[15px] font-bold text-gray-900">
-            {formatRupiah(price)}
+          <div className="text-[15px] font-bold text-gray-900 min-h-[24px] flex items-center">
+            {loading ? <Skeleton className="h-5 w-32" /> : formatRupiah(price)}
           </div>
 
           {/* Actions */}
           <div className="mt-2 flex items-center justify-between">
             <button
               type="button"
-              className="p-2 rounded hover:bg-gray-100 text-red-100"
+              className="p-2 rounded hover:bg-gray-100 text-red-100 disabled:opacity-50"
               aria-label="Hapus"
               onClick={onRemove}
+              disabled={loading}
             >
               <IconTrash />
             </button>
-            <QtyStepper value={line.qty} max={stock} onChange={onQty} size="sm" />
+            <div className="relative">
+              {loading && <Skeleton className="absolute inset-0 z-10 rounded-md" />}
+              <QtyStepper value={line.qty} max={stock} onChange={onQty} size="sm" disabled={loading} />
+            </div>
           </div>
         </div>
       </div>

@@ -42,6 +42,8 @@ export function useAddressBook() {
     const listEntries = addresses.map(a => ({
         id: a.id,
         label: a.label,
+        recipient: a.recipient,
+        phone: a.phone,
         address: `${a.line1}, Kec. ${a.district}, ${a.city}, ${a.province} ${a.postalCode}`,
         isPrimary: a.isPrimary,
     }));
@@ -53,6 +55,10 @@ export function useAddressBook() {
         // Call API
         const { setDefaultAddress } = await import("./action");
         await setDefaultAddress(id);
+
+        // Notify other components (Header, Checkout, etc.) to refresh
+        window.dispatchEvent(new Event("addressUpdated"));
+
         fetchAddresses();
     };
 

@@ -9,7 +9,7 @@ import {
 } from "../icons";
 import { AddressModal } from "@shared/components/ui/AddressModal";
 import { AuthModal } from "@features/auth/components/AuthModal";
-import { useAddressBookLocal } from "@features/address/useAddressBookLocal";
+import { useAddressBook } from "@features/address/useAddressBook";
 
 interface LocationWidgetProps {
   variant: "mobile" | "desktop";
@@ -22,8 +22,8 @@ export const LocationWidget = ({ variant }: LocationWidgetProps) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  // Alamat lokal (localStorage)
-  const { primary, listEntries, selectPrimary } = useAddressBookLocal();
+  // Alamat real (API)
+  const { primary, listEntries, selectPrimary } = useAddressBook();
 
   const label = primary ? `${primary.label} ${primary.city}` : "Pilih Alamat";
 
@@ -33,10 +33,8 @@ export const LocationWidget = ({ variant }: LocationWidgetProps) => {
   // Satu pintu handler klik widget
   const handleWidgetClick = () => {
     if (variant === "desktop") {
-      // Di desktop: buka modal alamat (walau belum login, karena datamu lokal)
       openAddress();
     } else {
-      // Di mobile: kalau login → modal alamat, kalau tidak → modal login
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       isLoggedIn ? openAddress() : openAuth();
     }
@@ -51,7 +49,7 @@ export const LocationWidget = ({ variant }: LocationWidgetProps) => {
         initialView="login"
       />
 
-      {/* Address Modal (pakai props baru) */}
+      {/* Address Modal */}
       <AddressModal
         isOpen={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}
@@ -61,7 +59,7 @@ export const LocationWidget = ({ variant }: LocationWidgetProps) => {
           selectPrimary(id);
           setIsAddressModalOpen(false);
         }}
-        onAddNew={() => {}}
+        onAddNew={() => { }}
       />
 
       {variant === "desktop" ? (

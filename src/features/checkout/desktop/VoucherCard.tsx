@@ -37,8 +37,8 @@ export default function VoucherCard({
   const pillText = hasApplied
     ? appliedLabel
     : disabled
-    ? "Pilih produk sebelum pakai promo"
-    : "Pilih voucher / masukkan kode";
+      ? "Pilih produk sebelum pakai promo"
+      : "Pilih voucher / masukkan kode";
 
   return (
     <motion.div
@@ -48,7 +48,7 @@ export default function VoucherCard({
         y: 0,
         transition: { duration: 0.2, ease: easeInOut },
       }}
-      className="rounded-2xl bg-white ring-1 ring-gray-200 overflow-hidden"
+      className="overflow-hidden"
     >
       {/* INFO / BANNER */}
       <div className="p-4">
@@ -90,7 +90,6 @@ export default function VoucherCard({
         ) : null}
       </div>
 
-      <div className="border-t border-gray-200" />
 
       {/* TITLE */}
       <div className="px-4 pt-3 pb-2">
@@ -105,17 +104,16 @@ export default function VoucherCard({
           disabled={disabled}
           onClick={!disabled ? onOpen : undefined}
           className={`h-11 w-full rounded-xl px-3 text-sm flex items-center cursor-pointer justify-between transition
-            ${
-              disabled
-                ? "bg-gray-100 text-gray-600 cursor-not-allowed"
-                : "bg-white ring-1 ring-gray-200 hover:bg-gray-50"
+            ${disabled
+              ? "bg-gray-100 text-gray-600 cursor-not-allowed"
+              : "bg-white border border-gray-100 hover:bg-gray-50"
             }`}
           data-state={
             disabled
               ? "disabled"
               : hasApplied
-              ? "enabled-applied"
-              : "enabled-empty"
+                ? "enabled-applied"
+                : "enabled-empty"
           }
         >
           <div className="flex items-center gap-2 min-w-0">

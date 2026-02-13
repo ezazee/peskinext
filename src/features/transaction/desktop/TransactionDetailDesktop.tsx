@@ -8,7 +8,9 @@ import { X } from "lucide-react";
 import type { OrderItem, UserTransaction } from "@shared/types/types";
 import { resolveUnitPrice, resolveVariantName } from "../utils/utils";
 import TrackingTimeline from "../components/TrackingTimeline";
+import type { TrackingHistory } from "../components/TrackingTimeline";
 import { PaymentTimer } from "../components/PaymentTimer";
+import ConfirmationModal from "@shared/components/ui/ConfirmationModal";
 
 // sumber data untuk Info Pengiriman
 // import { addressBook } from "@data/address";
@@ -97,8 +99,11 @@ export default function TransactionDetailDesktop({
 }) {
   // State for Tracking Modal
   const [showTrackingModal, setShowTrackingModal] = React.useState(false);
-  const [trackingHistory, setTrackingHistory] = React.useState<any[]>([]);
+  const [trackingHistory, setTrackingHistory] = React.useState<TrackingHistory[]>([]);
   const [loadingTracking, setLoadingTracking] = React.useState(false);
+
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+  const [isCompleting, setIsCompleting] = React.useState(false);
 
   // Calculate breakdown
   const itemsSubtotal = tx.items.reduce((s, it) => s + it.subtotal, 0);
@@ -122,7 +127,7 @@ export default function TransactionDetailDesktop({
     tx.status === "delivered" ||
     tx.status === "processing" ||
     (tx.status === "paid" && Boolean(shipping?.courier));
-  const showAwb = (tx.status === "shipped" || tx.status === "delivered") && Boolean(shipping?.awb);
+
 
   const infoNote: string | undefined =
     tx.status === "pending"
@@ -162,7 +167,7 @@ export default function TransactionDetailDesktop({
   };
 
   const handleComplete = async () => {
-    if (!confirm("Apakah Anda yakin sudah menerima pesanan dengan baik?")) return;
+    setIsCompleting(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${tx.id}/complete`, {
         method: "PUT",
@@ -172,11 +177,30 @@ export default function TransactionDetailDesktop({
     } catch (err) {
       console.error(err);
       alert("Gagal memproses permintaan");
+      setIsCompleting(false);
+      setShowConfirmModal(false);
     }
   };
 
   const renderActions = () => {
+    const isExpired =
+      tx.status === "pending" &&
+      tx.expiresAt &&
+      new Date(tx.expiresAt).getTime() < Date.now();
+
     if (tx.status === "pending") {
+      if (isExpired) {
+        // Expired -> Beli Lagi
+        return (
+          <Link
+            href={`/product/${firstSlug}`}
+            className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
+          >
+            Beli Lagi
+          </Link>
+        );
+      }
+      // Not Expired
       return (
         <div className="flex flex-col items-center gap-2">
           <Link
@@ -185,7 +209,9 @@ export default function TransactionDetailDesktop({
           >
             Bayar Sekarang
           </Link>
-          {tx.expiresAt && <PaymentTimer expiresAt={tx.expiresAt} />}
+          {tx.expiresAt && new Date(tx.expiresAt).getTime() > Date.now() && (
+            <PaymentTimer expiresAt={tx.expiresAt} />
+          )}
         </div>
       );
     }
@@ -211,7 +237,7 @@ export default function TransactionDetailDesktop({
             </button>
           )}
           <button
-            onClick={handleComplete}
+            onClick={() => setShowConfirmModal(true)}
             className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
           >
             Pesanan Diterima
@@ -244,6 +270,18 @@ export default function TransactionDetailDesktop({
         </>
       );
     }
+    // Cancelled -> Beli Lagi
+    if (tx.status === "cancelled") {
+      return (
+        <Link
+          href={`/product/${firstSlug}`}
+          className="h-10 px-4 rounded-lg bg-primary text-white text-sm font-semibold hover:opacity-90 inline-flex items-center justify-center"
+        >
+          Beli Lagi
+        </Link>
+      );
+    }
+
     return (
       <Link
         href={`/account/transaction`}
@@ -265,13 +303,15 @@ export default function TransactionDetailDesktop({
       >
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">Pesanan</h2>
-          <StatusBadge status={tx.status} />
+          <StatusBadge status={tx.status} expiresAt={tx.expiresAt} />
         </div>
 
         <div className="mt-3 space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-gray-500">No. Invoice</span>
-            <span className="font-medium">{tx.invoiceNumber || tx.id}</span>
+            <span className="font-medium">
+              {tx.invoiceNumber || `INV/${tx.dateISO.slice(0, 10).replace(/-/g, "")}/${tx.id.split("-")[0].toUpperCase()}`}
+            </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-500">Tanggal Pembelian</span>
@@ -346,7 +386,8 @@ export default function TransactionDetailDesktop({
               label="Kurir"
               value={showCourier ? shipping?.courier ?? "—" : "—"}
             />
-            <Row label="No Resi" value={showAwb ? shipping?.awb ?? "—" : "—"} />
+            {/* Resi selalu muncul, strip jika kosong */}
+            <Row label="No Resi" value={shipping?.awb || "—"} />
             {shipping?.shippedAt &&
               (tx.status === "shipped" || tx.status === "delivered") && (
                 <Row
@@ -379,16 +420,17 @@ export default function TransactionDetailDesktop({
             {infoNote && (
               <div className="mt-2 text-xs text-gray-500">{infoNote}</div>
             )}
-            {tx.status === "pending" && (
-              <div className="mt-3">
-                <Link
-                  href={`/checkout?oid=${tx.id}`}
-                  className="inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-gray-50 text-primary border-primary/20 bg-primary/5"
-                >
-                  Ubah Alamat & Bayar
-                </Link>
-              </div>
-            )}
+            {tx.status === "pending" &&
+              (!tx.expiresAt || new Date(tx.expiresAt).getTime() > Date.now()) && (
+                <div className="mt-3">
+                  <Link
+                    href={`/checkout?oid=${tx.id}`}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border px-3 text-xs font-medium hover:bg-gray-50 text-primary border-primary/20 bg-primary/5"
+                  >
+                    Ubah Alamat & Bayar
+                  </Link>
+                </div>
+              )}
           </div>
         </div>
       </motion.section>
@@ -456,6 +498,18 @@ export default function TransactionDetailDesktop({
         </div>
       )}
 
+      {/* Confirmation Modal for Complete Order */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleComplete}
+        title="Konfirmasi Selesai"
+        description="Apakah Anda yakin sudah menerima pesanan dengan baik? Status pesanan akan diubah menjadi Selesai."
+        confirmLabel="Ya, Selesai"
+        variant="success"
+        isLoading={isCompleting}
+      />
+
     </div>
   );
 }
@@ -471,7 +525,18 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StatusBadge({ status }: { status: UserTransaction["status"] }) {
+function StatusBadge({
+  status,
+  expiresAt,
+}: {
+  status: UserTransaction["status"];
+  expiresAt?: string;
+}) {
+  const isExpired =
+    status === "pending" && expiresAt && new Date(expiresAt).getTime() < Date.now();
+
+  const displayStatus = isExpired ? "cancelled" : status;
+
   const map: Record<
     UserTransaction["status"],
     { bg: string; fg: string; text: string }
@@ -507,7 +572,7 @@ function StatusBadge({ status }: { status: UserTransaction["status"] }) {
       text: "Dibatalkan",
     },
   };
-  const s = map[status];
+  const s = map[displayStatus];
   return (
     <span
       className={`px-3 py-1 rounded-full text-xs font-medium border ${s.bg} ${s.fg}`}

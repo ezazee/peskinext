@@ -4,13 +4,8 @@
 import { useState, useEffect } from 'react';
 
 export const useMediaQuery = (query: string): boolean => {
-  // Initialize with a function to avoid SSR mismatch
-  const [matches, setMatches] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia(query).matches;
-    }
-    return false;
-  });
+  // Initialize with false to match server render and avoid hydration mismatch
+  const [matches, setMatches] = useState<boolean>(false);
 
   useEffect(() => {
     // SSR guard

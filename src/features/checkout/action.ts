@@ -134,6 +134,7 @@ export async function createCheckoutFromBuyNow(formData: FormData) {
     }
 
     const productData = await productRes.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const variant = productData.variants?.find((v: any) => String(v.id) === String(variantId));
 
     if (!variant) {

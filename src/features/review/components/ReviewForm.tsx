@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Star, Upload, X, Loader2, Camera } from "lucide-react";
+import React, { useState } from "react";
+import { Star, X, Loader2, Camera } from "lucide-react";
 import { useToast } from "@shared/components/ui/Toaster";
 import { uploadReviewImages, submitReview } from "../action";
 
@@ -112,9 +112,9 @@ export default function ReviewForm({
 
             toast.success("Ulasan berhasil dikirim!");
             onSuccess();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            toast.error(err.message || "Terjadi kesalahan");
+            toast.error((err as Error).message || "Terjadi kesalahan");
         } finally {
             setIsSubmitting(false);
         }
