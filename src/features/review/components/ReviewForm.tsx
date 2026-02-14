@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { Star, X, Loader2, Camera } from "lucide-react";
 import { useToast } from "@shared/components/ui/Toaster";
 import { uploadReviewImages, submitReview } from "../action";
@@ -129,10 +130,12 @@ export default function ReviewForm({
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex gap-3 flex-1 min-w-0">
                         <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden bg-white flex-shrink-0">
-                            <img
+                            <Image
                                 src={productImage}
                                 alt={productName}
-                                className="w-full h-full object-cover"
+                                fill
+                                sizes="(max-width: 768px) 56px, 64px"
+                                className="object-cover"
                             />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -216,10 +219,12 @@ export default function ReviewForm({
                         <div className="grid grid-cols-3 gap-3 mb-3">
                             {previews.map((preview, idx) => (
                                 <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100">
-                                    <img
+                                    <Image
                                         src={preview}
                                         alt={`Preview ${idx + 1}`}
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        sizes="(max-width: 768px) 33vw, 200px"
+                                        className="object-cover"
                                     />
                                     {!isViewMode && (
                                         <button

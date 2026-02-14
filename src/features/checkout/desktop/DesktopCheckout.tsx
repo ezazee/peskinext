@@ -30,9 +30,9 @@ import type {
   ShippingOption,
 } from "@shared/types/types";
 import { useAddressBook } from "@features/address/useAddressBook";
-import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
+import { useShippingQuotes } from "@features/shipping/hooks/useShippingQuotes";
 import { getCurrentUser } from "@features/auth/action";
-import type { ShippingQueryParams } from "@features/shiping/hooks/useShippingParamsForProduct";
+import type { ShippingQueryParams } from "@features/shipping/hooks/useShippingParamsForProduct";
 
 /* ---------------- helpers voucher ---------------- */
 type VoucherWithConditions = Voucher & { conditions?: VoucherConditions };
@@ -71,7 +71,8 @@ function parseRupiahFlexible(text?: string): number {
 function parsePercent(text?: string): number | null {
   if (!text) return null;
   const m = text.match(/(\d{1,3})\s*%/);
-  return m && m[1] ? Math.min(100, Math.max(0, parseInt(m[1], 10))) : null;
+  if (!m || !m[1]) return null;
+  return Math.min(100, Math.max(0, parseInt(m[1], 10)));
 }
 const looksLikeDisc = (t?: string) =>
   !!t && /(hemat|potong|s\/d|sd|gratis|ongkir|diskon)/i.test(t);

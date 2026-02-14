@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoStar } from "react-icons/io5";
+import { Star } from "lucide-react";
 import type { Review } from "@shared/types/types";
 import ReviewsModalMobile from "./ReviewsModalMobile";
 import ReviewsModalMobileSkeleton from "./ReviewsModalMobileSkeleton";
@@ -226,7 +226,7 @@ function Stars({ value, size = "md" }: { value: number; size?: "sm" | "md" }) {
   return (
     <span className="flex items-center">
       {Array.from({ length: 5 }).map((_, i) => (
-        <IoStar key={i} className={i < count ? cls : clsEmpty} />
+        <Star key={i} className={i < count ? cls : clsEmpty} />
       ))}
     </span>
   );

@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, easeInOut, motion } from "framer-motion";
-import { IoChevronBack, IoChevronForward, IoClose } from "react-icons/io5";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 type Props = {
   images: string[];
@@ -80,7 +80,7 @@ export default function Lightbox({ images, startIndex = 0, onClose }: Props) {
             className="absolute cursor-pointer -top-12 right-0 rounded-full p-2 bg-black/70 text-white"
             onClick={onClose}
           >
-            <IoClose size={22} />
+            <X size={22} />
           </motion.button>
 
           {/* Controls */}
@@ -92,7 +92,7 @@ export default function Lightbox({ images, startIndex = 0, onClose }: Props) {
                 className="absolute cursor-pointer left-2 top-1/2 -translate-y-1/2 rounded-full p-3 bg-white shadow-md hover:bg-gray-100"
                 onClick={() => setIdx((p) => (p > 0 ? p - 1 : total - 1))}
               >
-                <IoChevronBack size={22} />
+                <ChevronLeft size={22} />
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.9 }}
@@ -100,7 +100,7 @@ export default function Lightbox({ images, startIndex = 0, onClose }: Props) {
                 className="absolute right-2 cursor-pointer top-1/2 -translate-y-1/2 rounded-full p-3 bg-white shadow-md hover:bg-gray-100"
                 onClick={() => setIdx((p) => (p < total - 1 ? p + 1 : 0))}
               >
-                <IoChevronForward size={22} />
+                <ChevronRight size={22} />
               </motion.button>
             </>
           )}
@@ -112,9 +112,8 @@ export default function Lightbox({ images, startIndex = 0, onClose }: Props) {
                 <button
                   key={i}
                   onClick={() => setIdx(i)}
-                  className={`h-2 rounded-full transition-all ${
-                    i === idx ? "w-6 bg-white/80" : "w-3 bg-white/30"
-                  }`}
+                  className={`h-2 rounded-full transition-all ${i === idx ? "w-6 bg-white/80" : "w-3 bg-white/30"
+                    }`}
                 />
               ))}
             </div>

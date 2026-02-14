@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { UserTransaction } from "@shared/types/types";
 import TransactionDetailMobile from "./mobile/TransactionDetailMobile";
@@ -178,10 +179,12 @@ export default function TransactionDetailClient({
               <div key={idx} className="bg-white rounded-xl p-4 md:p-5 flex items-center justify-between gap-4 hover:shadow-md transition-shadow">
                 <div className="flex gap-3 md:gap-4 flex-1 min-w-0">
                   <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                    <img
+                    <Image
                       src={item.product.img}
                       alt={item.product.name}
-                      className="object-cover w-full h-full"
+                      fill
+                      sizes="(max-width: 768px) 64px, 80px"
+                      className="object-cover"
                     />
                   </div>
                   <div className="flex-1 min-w-0">

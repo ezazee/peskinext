@@ -23,8 +23,8 @@ import { discountPercent } from "@shared/helpers/pricing";
 import { motion } from "framer-motion";
 import { MobileDetailSkeleton } from "../skeleton/MobileDetailSkeleton";
 
-import { useShippingParamsForProduct } from "@features/shiping/hooks/useShippingParamsForProduct";
-import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
+import { useShippingParamsForProduct } from "@features/shipping/hooks/useShippingParamsForProduct";
+import { useShippingQuotes } from "@features/shipping/hooks/useShippingQuotes";
 import type { ShippingDetailData } from "@shared/types/types";
 
 // util copy link

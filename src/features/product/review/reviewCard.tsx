@@ -2,7 +2,7 @@
 import { useState } from "react";
 import type { Review } from "@shared/types/types";
 import Image from "next/image";
-import { IoStar } from "react-icons/io5";
+import { Star } from "lucide-react";
 import Lightbox from "@shared/components/ui/Lightbox";
 
 function timeAgo(dateStr: string): string {
@@ -30,7 +30,7 @@ export const ReviewCard = ({ review }: { review: Review }) => {
         <div className="flex items-center gap-2">
           <div className="flex">
             {[...Array(5)].map((_, i) => (
-              <IoStar
+              <Star
                 key={i}
                 className={
                   i < review.rating ? "text-yellow-400" : "text-gray-300"

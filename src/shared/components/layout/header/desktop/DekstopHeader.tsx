@@ -394,24 +394,21 @@ export const DesktopHeader = () => {
               <TagIcon />
               <span className="text-secondary">
                 Raih Pemasukan Tambahan dengan{" "}
-                <a href="#" className="font-bold text-primary hover:underline">
+                <a href="https://affiliate.peskinpro.id/" target="_blank" rel="noopener noreferrer" className="font-bold text-primary hover:underline">
                   Bergabung Affiliate ›
                 </a>
               </span>
             </div>
             <div className="text-secondary flex justify-end gap-6">
-              <a href="#" className="hover:text-primary">
+              <Link href="/about" className="hover:text-primary">
                 Tentang PE Skinpro
-              </a>
-              <a href="#" className="hover:text-primary">
-                Pusat Edukasi Seller
-              </a>
-              <a href="#" className="hover:text-primary">
-                Promo
-              </a>
-              <a href="#" className="hover:text-primary">
-                PE Skinpro Care
-              </a>
+              </Link>
+              <Link href="/blog" className="hover:text-primary">
+                Blog
+              </Link>
+              <Link href="/help" className="hover:text-primary">
+                Pusat Bantuan
+              </Link>
             </div>
           </div>
         </div>
@@ -428,8 +425,6 @@ export const DesktopHeader = () => {
                 priority
               />
             </Link>
-
-
 
             {/* Search */}
             <div className="flex-grow relative mx-4" ref={searchContainerRef}>

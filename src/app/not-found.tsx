@@ -18,8 +18,9 @@ export default function NotFound() {
           <Image
             src="/images/error/404.png"
             alt="Halaman tidak ditemukan"
-            layout="fill"
-            objectFit="contain"
+            fill
+            sizes="(max-width: 768px) 256px, 320px"
+            className="object-contain"
           />
         </div>
 

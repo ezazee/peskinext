@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { IoStar } from "react-icons/io5";
+import { Star } from "lucide-react";
 import type { Review } from "@shared/types/types";
 // import { reviewsData } from "@data/review";
 const reviewsData: Review[] = [];
@@ -162,7 +162,7 @@ const ProductReview: React.FC<ProductReviewProps> = ({
     return (
       <div key={stars} className="flex items-center gap-2 text-sm py-1">
         <span className="flex items-center w-8 shrink-0">
-          <IoStar className="text-yellow-400 mr-1" /> {stars}
+          <Star className="text-yellow-400 mr-1" /> {stars}
         </span>
         <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
           <div
@@ -198,8 +198,8 @@ const ProductReview: React.FC<ProductReviewProps> = ({
               key={`p-${n}-${idx}`}
               onClick={() => setPage(n)}
               className={`px-3 py-1.5 rounded border cursor-pointer ${n === page
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-base-text hover:bg-gray-50"
+                ? "bg-primary text-white border-primary"
+                : "bg-white text-base-text hover:bg-gray-50"
                 }`}
               aria-current={n === page ? "page" : undefined}
             >
@@ -271,8 +271,8 @@ const ProductReview: React.FC<ProductReviewProps> = ({
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={loadingList || page === 1}
               className={`px-3 py-1.5 rounded cursor-pointer ${loadingList || page === 1
-                  ? "text-subtle-text bg-gray-100 cursor-not-allowed"
-                  : "bg-white hover:bg-gray-50"
+                ? "text-subtle-text bg-gray-100 cursor-not-allowed"
+                : "bg-white hover:bg-gray-50"
                 }`}
               aria-label="Halaman sebelumnya"
             >
@@ -285,8 +285,8 @@ const ProductReview: React.FC<ProductReviewProps> = ({
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={loadingList || page === totalPages}
               className={`px-3 py-1.5 rounded cursor-pointer ${loadingList || page === totalPages
-                  ? "text-subtle-text bg-gray-100 cursor-not-allowed"
-                  : "bg-white hover:bg-gray-50"
+                ? "text-subtle-text bg-gray-100 cursor-not-allowed"
+                : "bg-white hover:bg-gray-50"
                 }`}
               aria-label="Halaman berikutnya"
             >

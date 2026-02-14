@@ -11,8 +11,8 @@ import { VariantSelector } from "@features/product/components/desktop/VariantSel
 import { ShippingInfo } from "@features/product/components/desktop/ShippingInfo";
 import { BuyBox } from "@features/product/components/desktop/BuyBox";
 import { discountPercent } from "@shared/helpers/pricing";
-import { useShippingParamsForProduct } from "@features/shiping/hooks/useShippingParamsForProduct";
-import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
+import { useShippingParamsForProduct } from "@features/shipping/hooks/useShippingParamsForProduct";
+import { useShippingQuotes } from "@features/shipping/hooks/useShippingQuotes";
 import { DesktopDetailSkeleton } from "../skeleton/DesktopDetailSkeleton";
 import ShippingModal from "@shared/components/ui/ShipingModal/ShippingModal";
 import ProductReview from "../../review/productReview";

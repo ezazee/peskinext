@@ -5,7 +5,7 @@ import { useProductRating } from "@features/product/hooks/useProductRating";
 import type { Product } from "@shared/types/types";
 import Image from "next/image";
 import Link from "next/link";
-import { IoStar } from "react-icons/io5";
+import { Star } from "lucide-react";
 
 /** parse "Rp144.000" -> 144000 */
 function parseIDR(str?: string): number | null {
@@ -93,7 +93,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
             className="flex items-center gap-1 text-[11px] text-gray-500 h-4 mb-2"
             aria-label={`Rating ${average.toFixed(1)} dari 5, 500+ terjual`}
           >
-            <IoStar className="text-yellow-400 text-[13px]" />
+            <Star className="text-yellow-400 fill-yellow-400" size={13} />
             <span className="font-semibold text-gray-700">{average.toFixed(1)}</span>
             <span>• 500+ terjual</span>
           </div>

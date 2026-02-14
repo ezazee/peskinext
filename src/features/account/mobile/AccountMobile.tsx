@@ -11,11 +11,9 @@ import {
   Settings,
   ShoppingBag,
   CreditCard,
-  Heart,
   MapPin,
   LogOut,
   User,
-  Gift,
   Clock,
   HelpCircle,
   FileText,
@@ -115,17 +113,6 @@ export default function AccountMobile({ data }: { data: AccountData }) {
             href="/account/transaction"
             icon={<ShoppingBag size={20} className="text-blue-500" />}
             label="Riwayat Pesanan"
-          />
-          <MenuItem
-            href="/account/wishlist"
-            icon={<Heart size={20} className="text-rose-500" />}
-            label="Produk Favorit"
-            badge="New"
-          />
-          <MenuItem
-            href="/vouchers"
-            icon={<Gift size={20} className="text-amber-500" />}
-            label="Voucher Saya"
           />
         </MenuSection>
 

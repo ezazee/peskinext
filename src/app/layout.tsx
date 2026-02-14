@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@app/providers/QueryProvider";
 import { ToastProvider } from "@shared/components/ui/Toaster";
+import { ErrorBoundary } from "@shared/components/ErrorBoundary";
 
 const poppins = Poppins({
   weight: ["400", "700"],
@@ -91,12 +92,61 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Organization Schema for SEO (Google Knowledge Graph)
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "PE Skin Pro",
+    "url": "https://peskinpro.id",
+    "logo": "https://peskinpro.id/logo.png",
+    "description": "Platform e-commerce skincare alami berkualitas tinggi untuk semua jenis kulit",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "ID",
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Customer Service",
+      "areaServed": "ID",
+      "availableLanguage": ["Indonesian"],
+    },
+    "sameAs": [
+      "https://www.facebook.com/peskinpro",
+      "https://www.instagram.com/peskinpro",
+    ],
+  };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "PE Skin Pro",
+    "url": "https://peskinpro.id",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://peskinpro.id/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
     <html lang="id">
       <body className={`${poppins.variable} font-sans bg-white`}>
-        <QueryProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </QueryProvider>
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        {/* WebSite Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+
+        <ErrorBoundary>
+          <QueryProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </QueryProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

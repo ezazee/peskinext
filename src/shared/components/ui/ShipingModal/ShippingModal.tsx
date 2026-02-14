@@ -2,8 +2,8 @@
 "use client";
 
 import type { ShippingDetailData, ShippingOption } from "@shared/types/types";
-import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
-import type { ShippingQueryParams } from "@features/shiping/hooks/useShippingParamsForProduct";
+import { useShippingQuotes } from "@features/shipping/hooks/useShippingQuotes";
+import type { ShippingQueryParams } from "@features/shipping/hooks/useShippingParamsForProduct";
 
 import ShippingModalDesktop from "./desktop/ShippingModalDesktop";
 import ShippingModalMobile from "./mobile/ShippingModalMobile";

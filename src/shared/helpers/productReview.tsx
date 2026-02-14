@@ -1,7 +1,7 @@
 "use client";
 import type { Review } from "@shared/types/types";
 import { useMemo } from "react";
-import { IoStar } from "react-icons/io5";
+import { Star } from "lucide-react";
 
 export function useRatingSummary(reviews: Review[]) {
   return useMemo(() => {
@@ -56,11 +56,11 @@ export function StarsClean({
   return (
     <span className={`inline-flex items-center ${className}`}>
       {Array.from({ length: fullCount }).map((_, i) => (
-        <IoStar key={`f-${i}`} style={iconStyle} className="text-yellow-400" />
+        <Star key={`f-${i}`} style={iconStyle} className="text-yellow-400" />
       ))}
       {hasHalf && <HalfStar size={size} gap={gap} />}
       {Array.from({ length: emptyCount }).map((_, i) => (
-        <IoStar key={`e-${i}`} style={iconStyle} className="text-gray-300" />
+        <Star key={`e-${i}`} style={iconStyle} className="text-gray-300" />
       ))}
     </span>
   );
@@ -73,7 +73,7 @@ export function HalfStar({ size, gap = 2 }: { size: number; gap?: number }) {
       style={{ width: size, height: size, marginRight: gap }}
       aria-hidden
     >
-      <IoStar
+      <Star
         style={{ width: size, height: size }}
         className="text-gray-300 absolute inset-0"
       />
@@ -81,7 +81,7 @@ export function HalfStar({ size, gap = 2 }: { size: number; gap?: number }) {
         className="absolute inset-0 overflow-hidden"
         style={{ width: size / 2 }}
       >
-        <IoStar
+        <Star
           style={{ width: size, height: size }}
           className="text-yellow-400"
         />

@@ -19,11 +19,10 @@ type RouteParams = { slug: string };
 
 export const revalidate = 60;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getProductBySlug(slug: string): Product | null {
-  // Return null or fetch from API
-  return null;
-}
+import {
+  getProductBySlug,
+  getProducts,
+} from "@features/product/services/productService";
 
 /* ===== Metadata ===== */
 export async function generateMetadata({
@@ -31,8 +30,9 @@ export async function generateMetadata({
 }: {
   params: Promise<RouteParams>;
 }): Promise<Metadata> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { slug } = await params;
-  const p = getProductBySlug(slug);
+  const p = await getProductBySlug(slug);
 
   const name = p?.name ?? titleFromSlug(slug);
   const description = shortDesc(
@@ -67,7 +67,8 @@ export async function generateMetadata({
 
 /* ===== Static params ===== */
 export async function generateStaticParams(): Promise<RouteParams[]> {
-  return productsData.map((p) => ({ slug: p.slug }));
+  const products = await getProducts();
+  return products.map((p) => ({ slug: p.slug }));
 }
 
 /* ===== Page ===== */
@@ -78,7 +79,7 @@ export default async function ProductPage({
 }) {
   const { slug } = await params; // ✅ wajib await di Next 15
 
-  const p = getProductBySlug(slug);
+  const p = await getProductBySlug(slug);
   const name = p?.name ?? titleFromSlug(slug);
 
   const productJsonLd = buildProductJsonLd(p, slug);

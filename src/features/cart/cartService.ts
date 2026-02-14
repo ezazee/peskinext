@@ -1,17 +1,15 @@
 "use client";
 
-import type { CartItem, Product } from "@shared/types/types";
+import type { CartItem, Product, CartData } from "@shared/types/types";
+import { createLogger } from "@shared/libs/logger";
 
+const logger = createLogger('CartService');
 const CART_STORAGE_KEY_PREFIX = "pe_skinpro_cart";
 
 /**
  * Cart Service for managing cart items in localStorage
  * Each user has their own cart stored separately
  */
-
-export interface CartData {
-  items: CartItem[];
-}
 
 /**
  * Get storage key for a specific user (or guest)
@@ -251,15 +249,18 @@ export function getSelectedItemsCount(userId?: string | null): number {
  */
 export function removeSelectedItems(userId?: string | null): void {
   const cart = getCart(userId);
-  console.log("🔍 removeSelectedItems called");
-  console.log("Cart before removal:", cart);
-  console.log("Selected items count:", cart.items.filter(i => i.selected).length);
+  const selectedCount = cart.items.filter(i => i.selected).length;
+
+  logger.debug("Removing selected items from cart", {
+    totalItems: cart.items.length,
+    selectedItems: selectedCount,
+  });
 
   cart.items = cart.items.filter((item) => !item.selected);
 
-  console.log("Cart after removal:", cart);
-  console.log("Remaining items count:", cart.items.length);
+  logger.debug("Selected items removed", {
+    remainingItems: cart.items.length,
+  });
 
   saveCart(cart, userId);
-  console.log("✅ Cart saved to localStorage");
 }

@@ -22,9 +22,9 @@ import OrderSummaryMobile from "./OrderSummaryMobile";
 
 import ShippingModal from "@features/checkout/desktop/ShippingModal";
 import type { ShippingOption } from "@shared/types/types";
-import { useShippingQuotes } from "@features/shiping/hooks/useShippingQuotes";
+import { useShippingQuotes } from "@features/shipping/hooks/useShippingQuotes";
 import { getCurrentUser } from "@features/auth/action";
-import type { ShippingQueryParams } from "@features/shiping/hooks/useShippingParamsForProduct";
+import type { ShippingQueryParams } from "@features/shipping/hooks/useShippingParamsForProduct";
 
 import VoucherModal from "@features/checkout/desktop/VoucherModal";
 import { evaluateVoucher, getRegionTag } from "@features/cart/lib/voucher";

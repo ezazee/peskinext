@@ -6,7 +6,7 @@ import type { Review } from "@shared/types/types";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { XMarkIcon } from "@shared/components/icons";
-import { IoStar } from "react-icons/io5";
+import { Star } from "lucide-react";
 import Lightbox from "@shared/components/ui/Lightbox";
 
 type Props = {
@@ -49,7 +49,7 @@ function Stars({ value, size = "md" }: { value: number; size?: "sm" | "md" }) {
   return (
     <span className="flex items-center">
       {Array.from({ length: 5 }).map((_, i) => (
-        <IoStar key={i} className={i < count ? cls : clsEmpty} />
+        <Star key={i} className={i < count ? cls : clsEmpty} />
       ))}
     </span>
   );
@@ -166,8 +166,8 @@ export default function ReviewsModalMobile({ open, reviews, onClose }: Props) {
                       key={v}
                       onClick={() => setFilter(v)}
                       className={`px-2.5 py-1 rounded-full text-xs border shrink-0 ${filter === v
-                          ? "bg-primary/10 text-primary border-primary"
-                          : "bg-white text-gray-700"
+                        ? "bg-primary/10 text-primary border-primary"
+                        : "bg-white text-gray-700"
                         }`}
                     >
                       {v === 0 ? "Semua" : `${v}★`}

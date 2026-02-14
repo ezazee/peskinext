@@ -2,6 +2,14 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@features/auth/action";
 import CheckoutClient from "@features/checkout/CheckoutClient";
 import { getSession } from "@server/checkout";
+import { FeatureErrorBoundary } from "@shared/components/errors/FeatureErrorBoundary";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Checkout - Selesaikan Pesanan | PE Skin Pro",
+  description: "Selesaikan pembelian Anda dengan aman. Gratis ongkir se-Indonesia. Berbagai metode pembayaran tersedia.",
+  robots: { index: false, follow: true }, // Don't index checkout pages
+};
 
 export const dynamic = "force-dynamic";
 
@@ -47,5 +55,9 @@ export default async function Page({
     }
   }
 
-  return <CheckoutClient checkoutSession={checkoutSession} />;
+  return (
+    <FeatureErrorBoundary featureName="Checkout">
+      <CheckoutClient checkoutSession={checkoutSession} />
+    </FeatureErrorBoundary>
+  );
 }

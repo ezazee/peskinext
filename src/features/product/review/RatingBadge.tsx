@@ -1,7 +1,7 @@
 // File: src/features/review/components/RatingBadge.tsx
 "use client";
 
-import { IoStar } from "react-icons/io5";
+import { Star } from "lucide-react";
 import { useProductRating } from "../hooks/useProductRating";
 
 type Props = {
@@ -20,11 +20,10 @@ function Stars({ value, size = "md" }: { value: number; size?: "sm" | "md" }) {
   return (
     <span className="flex items-center">
       {Array.from({ length: 5 }).map((_, i) => (
-        <IoStar
+        <Star
           key={i}
-          className={`${cls} ${
-            i < filled ? "text-yellow-400" : "text-gray-300"
-          }`}
+          className={`${cls} ${i < filled ? "text-yellow-400" : "text-gray-300"
+            }`}
           aria-hidden
         />
       ))}
@@ -52,12 +51,10 @@ export function RatingBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-gray-700 ${
-        size === "sm" ? "text-xs" : "text-sm"
-      } ${className ?? ""}`}
-      aria-label={`Rating ${average.toFixed(1)} dari 5${
-        showCount ? `, ${count} ulasan` : ""
-      }`}
+      className={`inline-flex items-center gap-1.5 text-gray-700 ${size === "sm" ? "text-xs" : "text-sm"
+        } ${className ?? ""}`}
+      aria-label={`Rating ${average.toFixed(1)} dari 5${showCount ? `, ${count} ulasan` : ""
+        }`}
     >
       <Stars value={average} size={size} />
       <span className="font-medium">{average.toFixed(1)}</span>
