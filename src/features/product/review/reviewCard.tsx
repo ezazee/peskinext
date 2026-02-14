@@ -17,11 +17,24 @@ function timeAgo(dateStr: string): string {
   return `${days} hari lalu`;
 }
 
+// Helper to fix localhost image URLs in production
+const sanitizeImageUrl = (url: string) => {
+  if (!url) return "";
+  if (url.includes("127.0.0.1") || url.includes("localhost")) {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.peskinpro.id";
+    // Replace origin (http://127.0.0.1:5000) with API URL
+    return url.replace(/^(?:https?:\/\/)?(?:127\.0\.0\.1|localhost)(?::\d+)?/, apiUrl);
+  }
+  return url;
+};
+
 export const ReviewCard = ({ review }: { review: Review }) => {
   const [open, setOpen] = useState<{ show: boolean; index: number }>({
     show: false,
     index: 0,
   });
+
+  const sanitizedImages = review.images.map(sanitizeImageUrl);
 
   return (
     <div className="border-b py-4">
@@ -61,9 +74,9 @@ export const ReviewCard = ({ review }: { review: Review }) => {
       <p className="mt-3 text-base-text">{review.comment}</p>
 
       {/* Thumbnails */}
-      {review.images.length > 0 && (
+      {sanitizedImages.length > 0 && (
         <div className="mt-2 flex gap-2 flex-wrap">
-          {review.images.map((img, i) => (
+          {sanitizedImages.map((img, i) => (
             <Image
               key={i}
               src={img}
@@ -80,7 +93,7 @@ export const ReviewCard = ({ review }: { review: Review }) => {
       {/* Lightbox */}
       {open.show && (
         <Lightbox
-          images={review.images}
+          images={sanitizedImages}
           startIndex={open.index}
           onClose={() => setOpen({ show: false, index: 0 })}
         />
