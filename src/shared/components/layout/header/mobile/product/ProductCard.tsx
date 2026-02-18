@@ -6,6 +6,7 @@ import type { Product } from "@shared/types/types";
 import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 /** parse "Rp144.000" -> 144000 */
 function parseIDR(str?: string): number | null {
@@ -53,7 +54,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
       <div className="bg-white rounded-lg md:shadow-lg shadow-sm overflow-hidden h-full flex flex-col group">
         <div className="relative w-full h-32 md:h-40 overflow-hidden">
           <Image
-            src={product.img}
+            src={normalizeImageUrl(product.img)}
             alt={product.name}
             width={200}
             height={200}
@@ -61,7 +62,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
           />
           {product.imgHover && (
             <Image
-              src={product.imgHover}
+              src={normalizeImageUrl(product.imgHover)}
               alt={`${product.name} (hover)`}
               width={200}
               height={200}

@@ -3,6 +3,8 @@ import Image from "next/image";
 import { ChevronLeftIcon, ChevronRightIcon } from "@shared/components/icons";
 import { useAutoCarousel } from "@features/product/hooks/useAutoCarousel";
 
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
+
 export function ProductGallery({
   name,
   images,
@@ -25,7 +27,7 @@ export function ProductGallery({
           {images.map((src, i) => (
             <div key={i} className="relative w-full h-full flex-shrink-0">
               <Image
-                src={src}
+                src={normalizeImageUrl(src)}
                 alt={`${name} – gambar ${i + 1}`}
                 fill
                 className="object-cover"
@@ -66,15 +68,14 @@ export function ProductGallery({
           <button
             key={i}
             onClick={() => setIndex(i)}
-            className={`relative w-full aspect-square rounded-md overflow-hidden border-2 transition-colors ${
-              index === i
+            className={`relative w-full aspect-square rounded-md overflow-hidden border-2 transition-colors ${index === i
                 ? "border-primary"
                 : "border-gray-200 hover:border-gray-400"
-            }`}
+              }`}
             aria-label={`Pilih gambar ${i + 1}`}
           >
             <Image
-              src={src}
+              src={normalizeImageUrl(src)}
               alt={`thumb-${i}`}
               fill
               className="object-cover"
