@@ -10,9 +10,6 @@ import {
   buildBreadcrumbJsonLd,
   buildProductJsonLd,
 } from "@shared/libs/seo/jsonld";
-// import { productsData } from "@data/products";
-const productsData: Product[] = [];
-// import type { Product } from "@data/index";
 import type { Product } from "@shared/types/types";
 
 type RouteParams = { slug: string };
@@ -67,8 +64,13 @@ export async function generateMetadata({
 
 /* ===== Static params ===== */
 export async function generateStaticParams(): Promise<RouteParams[]> {
-  const products = await getProducts();
-  return products.map((p) => ({ slug: p.slug }));
+  try {
+    const products = await getProducts();
+    return products.map((p) => ({ slug: p.slug }));
+  } catch (error) {
+    console.warn("Failed to fetch products for static generation:", error);
+    return [];
+  }
 }
 
 /* ===== Page ===== */

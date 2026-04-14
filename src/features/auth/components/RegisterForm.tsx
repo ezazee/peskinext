@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { register } from "../action";
+import Link from "next/link";
 
 export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -226,15 +227,15 @@ export default function RegisterForm() {
         </button>
       </div>
 
-      <p className="text-center text-xs text-subtle-text mt-4">
+      <p className="text-center text-xs text-secondary mt-4">
         Dengan mendaftar, saya menyetujui{" "}
-        <a href="#" className="font-bold text-primary hover:underline">
+        <Link href="/terms-and-conditions" className="font-bold text-primary hover:underline">
           Syarat & Ketentuan
-        </a>{" "}
+        </Link>{" "}
         serta{" "}
-        <a href="#" className="font-bold text-primary hover:underline">
+        <Link href="/privacy-policy" className="font-bold text-primary hover:underline">
           Kebijakan Privasi
-        </a>
+        </Link>
         .
       </p>
     </form>

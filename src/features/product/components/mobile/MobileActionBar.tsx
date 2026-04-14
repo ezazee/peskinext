@@ -69,18 +69,18 @@ export function MobileActionBar({
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={onBuyNow}
-          className="h-11 rounded-lg text-primary font-medium shadow-sm bg-white disabled:opacity-50"
+          className="h-11 rounded-xl text-primary font-bold border-2 border-primary/20 hover:bg-primary/5 transition-colors disabled:opacity-50"
           disabled={isCalculating}
         >
-          {isCalculating ? "Loading..." : "Beli Langsung"}
+          {isCalculating ? "Menghitung..." : "Beli Langsung"}
         </motion.button>
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={onAddToCart}
-          className="h-11 rounded-lg bg-primary text-white font-semibold shadow-sm disabled:opacity-50"
+          className="h-11 rounded-xl bg-primary text-white font-bold shadow-md hover:opacity-90 transition-opacity disabled:opacity-50"
           disabled={isCalculating}
         >
-          {isCalculating ? "Loading..." : "+ Keranjang"}
+          {isCalculating ? "Menghitung..." : "+ Keranjang"}
         </motion.button>
       </div>
     </div>

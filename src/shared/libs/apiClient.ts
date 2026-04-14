@@ -159,13 +159,6 @@ async function handleResponse<T>(response: Response): Promise<T> {
         throw new ApiError(response.status, errorMessage, data);
     }
 
-    // Log successful response in development
-    logger.debug('API Response:', {
-        url: response.url,
-        status: response.status,
-        data,
-    });
-
     return data as T;
 }
 
@@ -190,11 +183,6 @@ async function request<T = unknown>(
     const url = buildUrl(endpoint, options.baseUrl);
     const headers = prepareHeaders(options);
 
-    logger.debug('API Request:', {
-        method: options.method || 'GET',
-        url,
-        body: options.body,
-    });
 
     try {
         const response = await fetch(url, {
@@ -209,8 +197,8 @@ async function request<T = unknown>(
             throw error;
         }
 
-        // Wrap other errors
-        logger.error('Network error:', error);
+        // Log as warning rather than error to avoid annoying dev overlays for transient network blinks
+        logger.warn('Network error:', error);
         throw new ApiError(
             0,
             error instanceof Error ? error.message : 'Network request failed',

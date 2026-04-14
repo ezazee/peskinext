@@ -1,195 +1,257 @@
+"use client";
 
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, Star, Instagram, Play, ArrowRight } from "lucide-react";
-
-export const metadata: Metadata = {
-    title: "Tentang Kami | PE Skin Professional",
-    description: "Pelajari lebih lanjut tentang PE Skin Professional, brand skincare yang menggunakan teknologi Jerman dan bahan natural vegan.",
-    robots: {
-        index: false,
-        follow: false,
-    }
-};
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Check, Star, Instagram, Play, ArrowRight, Beaker, Leaf, ShieldCheck, Zap } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { settingsService, type GeneralSettings } from "@features/settings/settingsService";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
+import { InstagramFeed } from "@features/about/components/InstagramFeed";
 
 export default function AboutPage() {
+    const containerRef = useRef(null);
+    const { scrollYProgress } = useScroll({
+        target: containerRef,
+        offset: ["start start", "end end"]
+    });
+
+    const [settings, setSettings] = useState<GeneralSettings | null>(null);
+
+    useEffect(() => {
+        async function fetchSettings() {
+            const data = await settingsService.getSettings();
+            setSettings(data);
+        }
+        fetchSettings();
+    }, []);
+
+    const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+    const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 1.1]);
+
+    const fadeInUp = {
+        initial: { opacity: 0, y: 30 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true },
+        transition: { duration: 0.8, ease: "easeOut" }
+    } as const;
+
     return (
-        <div className="bg-white pb-0 font-sans">
-            {/* 1. HERO SECTION - Clean & Centered (High-End Feel) */}
-            <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center overflow-hidden bg-gray-900">
-                {/* Minimalist Gradient Accent */}
-                <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-gray-800" />
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-
-                <div className="relative z-10 text-center px-4 max-w-4xl mx-auto animate-fade-in-up">
-                    <p className="text-primary font-bold tracking-[0.2em] uppercase text-sm mb-6">Established 2014</p>
-                    <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
-                        Science Meets <br />
-                        <span className="text-primary italic font-serif">Nature's Best.</span>
-                    </h1>
-                    <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light leading-relaxed">
-                        Satu dekade dedikasi menghadirkan inovasi skincare dengan teknologi Jerman dan kebaikan bahan natural vegan.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link href="#story" className="px-8 py-3 bg-white text-gray-900 font-bold rounded-full hover:bg-gray-100 transition-colors">
-                            Cerita Kami
-                        </Link>
-                        <Link href="/all-product" className="px-8 py-3 border border-white/30 text-white font-bold rounded-full hover:bg-white/10 transition-colors backdrop-blur-sm">
-                            Lihat Produk
-                        </Link>
+        <div ref={containerRef} className="bg-white pb-0 font-sans selection:bg-primary/20 overflow-hidden min-h-screen">
+            {!settings ? (
+                <div className="h-screen flex items-center justify-center bg-secondary">
+                    <div className="text-center">
+                        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                        <p className="text-white/60 font-serif italic">Preparing Excellence...</p>
                     </div>
+                </div>
+            ) : (
+                <>
+                    {/* 1. IMMERSIVE HERO - Full Viewport Luxury */}
+            <section className="relative h-screen flex items-center justify-center overflow-hidden">
+                <motion.div 
+                    style={{ opacity: heroOpacity, scale: heroScale }}
+                    className="absolute inset-0"
+                >
+                    <Image
+                        src={normalizeImageUrl(settings.about_hero_image_url) || "/images/about/hero.png"}
+                        alt={settings.store_name}
+                        fill
+                        priority
+                        className="object-cover brightness-[0.7]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-white" />
+                </motion.div>
+
+                <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1, delay: 0.2 }}
+                    >
+                        <p className="text-white/80 font-medium tracking-[0.4em] uppercase text-xs mb-8 drop-shadow-md">{settings.about_hero_subtitle}</p>
+                        <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold text-white mb-10 leading-none tracking-tight">
+                            {settings.about_hero_title?.split('.')[0]} <br />
+                            <span className="text-white italic font-serif">{settings.about_hero_title?.split('.')[1] || ""}</span>
+                        </h1>
+                        <p className="text-white/90 text-xl md:text-2xl max-w-2xl mx-auto mb-12 font-light leading-relaxed drop-shadow-sm">
+                            {settings.about_hero_description}
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                            <Link href="#vision" className="group px-10 py-4 bg-white text-secondary font-bold rounded-full hover:bg-tertiary transition-all shadow-xl hover:shadow-2xl flex items-center gap-2">
+                                Jelajahi Visi <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                            <Link href="/all-product" className="px-10 py-4 border border-white/40 text-white font-bold rounded-full hover:bg-white/20 transition-all backdrop-blur-md">
+                                Lihat Produk
+                            </Link>
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* Decorative Elements */}
+                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 animate-bounce opacity-50">
+                    <div className="w-[1px] h-16 bg-white" />
                 </div>
             </section>
 
-            {/* 2. TENTANG (Story) - Minimal Sidebar Layout */}
-            <section id="story" className="py-24 md:py-32 bg-white">
-                <div className="max-w-7xl mx-auto px-4 md:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
-                        <div className="md:sticky md:top-32">
-                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                                Dedikasi untuk <br />
-                                <span className="text-primary">Kecantikan Alami.</span>
-                            </h2>
-                            <div className="relative aspect-[4/5] w-full max-w-md rounded-2xl overflow-hidden shadow-2xl mt-8">
-                                <Image
-                                    src="https://picsum.photos/600/800?random=101"
-                                    alt="Founder or Lab"
-                                    fill
-                                    className="object-cover hover:scale-105 transition-transform duration-700"
-                                />
-                                <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg max-w-[200px]">
-                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Our Mission</p>
-                                    <p className="text-sm font-semibold text-gray-900">Skincare berkualitas yang terjangkau untuk semua.</p>
+            {/* 2. THE VISION - Asymmetrical & Airy */}
+            <section id="vision" className="py-32 md:py-48 container mx-auto px-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                    <motion.div {...fadeInUp} className="relative">
+                        <div className="absolute -top-12 -left-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+                        <h2 className="text-sm font-bold text-primary uppercase tracking-[0.3em] mb-6">{settings.about_vision_small_title}</h2>
+                        <h3 className="text-5xl md:text-6xl font-bold text-secondary mb-8 leading-[1.1]">
+                            {settings.about_vision_heading?.split(' ').slice(0, -2).join(' ')} <br />
+                            <span className="text-primary italic font-serif">{settings.about_vision_heading?.split(' ').slice(-2).join(' ')}</span>
+                        </h3>
+                        <p className="text-subtle-text text-xl leading-relaxed mb-10 font-light">
+                            {settings.about_vision_description}
+                        </p>
+                        <div className="space-y-6">
+                            {[
+                                { title: "Presisi Jerman", icon: <Zap className="w-5 h-5" /> },
+                                { title: "Etika Vegan", icon: <Leaf className="w-5 h-5" /> },
+                                { title: "Integritas Produk", icon: <ShieldCheck className="w-5 h-5" /> }
+                            ].map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-4 group cursor-default">
+                                    <div className="w-12 h-12 bg-white shadow-lg rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                        {item.icon}
+                                    </div>
+                                    <span className="text-lg font-semibold text-base-text">{item.title}</span>
                                 </div>
-                            </div>
+                            ))}
                         </div>
+                    </motion.div>
 
-                        <div className="prose prose-lg text-gray-600 leading-loose">
-                            <p className="text-xl text-gray-900 font-medium mb-8">
-                                PE Skin Professional didirikan pada satu dekade yang lalu dengan visi sederhana namun kuat: bahwa kecantikan berkualitas tinggi harus dapat diakses oleh semua orang.
-                            </p>
-                            <p className="mb-6">
-                                Kami menolak kompromi antara harga dan kualitas. Dengan mengadopsi teknologi Jerman yang presisi, kami menciptakan formulasi yang tidak hanya efektif tetapi juga aman jangka panjang. Setiap produk kami adalah sinergi antara sains modern dan kemurnian alam.
-                            </p>
-                            <p className="mb-6">
-                                Fokus kami bukan hanya pada hasil instan, tetapi pada kesehatan kulit yang berkelanjutan. Kami percaya pada:
-                            </p>
-                            <ul className="space-y-4 list-none pl-0 my-8">
-                                {[
-                                    "Bahan Natural Vegan yang ramah lingkungan.",
-                                    "Proses produksi higienis dengan standar GMP.",
-                                    "Pengujian ketat tanpa melibatkan hewan (Cruelty Free).",
-                                    "Transparansi kandungan tanpa bahan tersembunyi."
-                                ].map((item, idx) => (
-                                    <li key={idx} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <Check className="w-4 h-4 text-primary" />
-                                        </div>
-                                        <span className="font-medium text-gray-800">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <p>
-                                Hari ini, kami terus berinovasi untuk menjawab kebutuhan kulit Anda yang terus berkembang, karena Anda berhak mendapatkan yang terbaik.
-                            </p>
+                    <motion.div 
+                        initial={{ opacity: 0, x: 50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 1 }}
+                        className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] hover:shadow-2xl transition-all duration-700"
+                    >
+                        <Image
+                            src={normalizeImageUrl(settings.about_vision_image_url) || "/images/about/botanical.png"}
+                            alt="Natural Philosophy"
+                            fill
+                            className="object-cover hover:scale-110 transition-transform duration-1000"
+                        />
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                        <div className="absolute bottom-10 left-10 right-10 p-8 bg-white/40 backdrop-blur-xl rounded-2xl border border-white/20">
+                            <p className="text-secondary font-serif italic text-xl">"{settings.about_vision_quote}"</p>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* 3. SCIENTIFIC PRECISION - High-Tech Dark Section */}
+            <section className="py-32 bg-secondary relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 blur-[150px] rounded-full" />
+                
+                <div className="container mx-auto px-4 relative z-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+                        <motion.div 
+                             initial={{ opacity: 0, scale: 0.9 }}
+                             whileInView={{ opacity: 1, scale: 1 }}
+                             transition={{ duration: 0.8 }}
+                             className="order-2 lg:order-1 relative aspect-square lg:aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl"
+                        >
+                            <Image
+                                src={normalizeImageUrl(settings.about_science_image_url) || "/images/about/lab.png"}
+                                alt="High-Tech Laboratory"
+                                fill
+                                className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-primary/20 mix-blend-overlay" />
+                        </motion.div>
+
+                        <div className="order-1 lg:order-2 text-white">
+                            <motion.div {...fadeInUp}>
+                                <h2 className="text-sm font-bold text-primary uppercase tracking-[0.3em] mb-6">{settings.about_science_small_title}</h2>
+                                <h3 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+                                    {settings.about_science_heading?.split(' ').slice(0, -2).join(' ')} <br />
+                                    <span className="text-primary italic font-serif">{settings.about_science_heading?.split(' ').slice(-2).join(' ')}</span>
+                                </h3>
+                                <p className="text-white/60 text-lg leading-relaxed mb-12 font-light">
+                                    {settings.about_science_description}
+                                </p>
+                                <div className="grid grid-cols-2 gap-8">
+                                    <div>
+                                        <p className="text-4xl font-bold text-white mb-2 font-serif">{settings.about_science_stat1_value}</p>
+                                        <p className="text-white/40 text-xs uppercase tracking-widest font-bold">{settings.about_science_stat1_label}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-4xl font-bold text-white mb-2 font-serif">{settings.about_science_stat2_value}</p>
+                                        <p className="text-white/40 text-xs uppercase tracking-widest font-bold">{settings.about_science_stat2_label}</p>
+                                    </div>
+                                </div>
+                            </motion.div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* 3. MANFAAT (Benefits) - Horizontal Scroll / Clean Grid */}
-            <section className="py-24 bg-[#F8FAFC]">
-                <div className="max-w-7xl mx-auto px-4 md:px-8">
-                    <div className="flex flex-col md:flex-row justify-between items-end mb-12">
-                        <div>
-                            <h2 className="text-3xl font-bold text-gray-900 mb-2">Manfaat Nyata</h2>
-                            <p className="text-gray-500">Hasil teruji untuk kulit sehat Anda.</p>
-                        </div>
-                        <Link href="/all-product" className="hidden md:flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all">
-                            Coba Sekarang <ArrowRight className="w-4 h-4" />
-                        </Link>
+            {/* 4. CORE COMMITMENT - Iconography & Values */}
+            <section className="py-32 md:py-48 bg-tertiary">
+                <div className="container mx-auto px-4">
+                    <div className="text-center max-w-3xl mx-auto mb-20">
+                        <motion.h2 {...fadeInUp} className="text-4xl md:text-5xl font-bold text-secondary mb-6 font-serif italic">{settings.about_commitment_title}</motion.h2>
+                        <motion.p {...fadeInUp} className="text-subtle-text text-lg">{settings.about_commitment_subtitle}</motion.p>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {[
-                            { title: "Mencerahkan", sub: "Brightening", img: "https://picsum.photos/400/400?random=110" },
-                            { title: "Menghaluskan", sub: "Smoothing", img: "https://picsum.photos/400/400?random=111" },
-                            { title: "Melembabkan", sub: "Hydrating", img: "https://picsum.photos/400/400?random=112" },
-                            { title: "Anti-Aging", sub: "Firming", img: "https://picsum.photos/400/400?random=113" },
-                            { title: "Skin Barrier", sub: "Protecting", img: "https://picsum.photos/400/400?random=114" },
-                        ].map((item, idx) => (
-                            <div key={idx} className="group relative aspect-[4/5] rounded-2xl overflow-hidden cursor-default shadow-sm hover:shadow-xl transition-all">
-                                <Image
-                                    src={item.img}
-                                    alt={item.title}
-                                    fill
-                                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                                <div className="absolute bottom-0 left-0 p-4">
-                                    <p className="text-gray-300 text-xs uppercase tracking-wider mb-1">{item.sub}</p>
-                                    <h3 className="text-white font-bold text-lg">{item.title}</h3>
+                            { title: settings.about_commitment_card1_title, desc: settings.about_commitment_card1_desc, icon: <ShieldCheck className="w-8 h-8" /> },
+                            { title: settings.about_commitment_card2_title, desc: settings.about_commitment_card2_desc, icon: <Leaf className="w-8 h-8" /> },
+                            { title: settings.about_commitment_card3_title, desc: settings.about_commitment_card3_desc, icon: <Zap className="w-8 h-8" /> },
+                            { title: settings.about_commitment_card4_title, desc: settings.about_commitment_card4_desc, icon: <Star className="w-8 h-8" /> }
+                        ].map((card, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="group p-10 bg-white rounded-[2rem] border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-2xl hover:-translate-y-2 transition-all duration-500"
+                            >
+                                <div className="w-16 h-16 bg-tertiary rounded-2xl flex items-center justify-center text-primary mb-8 group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-primary/20">
+                                    {card.icon}
                                 </div>
-                            </div>
+                                <h3 className="text-xl font-bold text-secondary mb-4">{card.title}</h3>
+                                <p className="text-subtle-text leading-relaxed font-light">{card.desc}</p>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* 4. KEUNGGULAN (Advantages) - Dark Minimal */}
-            <section className="py-24 bg-gray-900 text-white">
-                <div className="max-w-7xl mx-auto px-4 md:px-8 text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-16">Standar Kualitas Tertinggi</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-                        {[
-                            { value: "German", label: "Technology" },
-                            { value: "100%", label: "Natural Vegan" },
-                            { value: "GMP", label: "Certified" },
-                            { value: "0%", label: "Harmful Chemicals" },
-                        ].map((stat, idx) => (
-                            <div key={idx} className="flex flex-col items-center">
-                                <div className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-primary to-primary/50 mb-2 font-serif">
-                                    {stat.value}
-                                </div>
-                                <div className="text-gray-400 font-medium tracking-wide text-sm uppercase">
-                                    {stat.label}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* 5. SOCIAL MEDIA (Feed) */}
-            <section className="py-24 bg-white overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 md:px-8">
-                    <div className="text-center mb-12">
-                        <Instagram className="w-8 h-8 mx-auto text-gray-900 mb-4" />
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2">@peskinpro</h2>
-                        <a href="https://instagram.com/peskinpro" target="_blank" rel="noopener noreferrer" className="text-primary font-bold hover:underline">
-                            Follow Us on Instagram
+            {/* 5. INSTAGRAM FEED & CTA */}
+            <section className="py-32 bg-white">
+                <div className="container mx-auto px-4">
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8">
+                        <div className="text-center md:text-left">
+                            <h2 className="text-3xl font-bold text-secondary mb-2 font-serif italic tracking-wide">{settings.about_community_title}</h2>
+                            <p className="text-subtle-text">{settings.about_community_subtitle}</p>
+                        </div>
+                        <a href={settings.social_instagram} target="_blank" rel="noopener noreferrer" className="px-8 py-3 bg-secondary text-white rounded-full font-bold flex items-center gap-3 hover:opacity-90 transition-all shadow-xl">
+                            <Instagram className="w-5 h-5" /> @{settings.social_instagram?.split('/').filter(Boolean).pop() || "peskinpro"}
                         </a>
                     </div>
 
-                    <div className="flex gap-4 animate-scroll-sm md:animate-scroll hover:pause">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="flex-shrink-0 w-[200px] md:w-[280px] aspect-square relative rounded-xl overflow-hidden group">
-                                <Image
-                                    src={`https://picsum.photos/400/400?random=${200 + i}`}
-                                    alt="Social"
-                                    fill
-                                    className="object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <Instagram className="w-8 h-8 text-white" />
-                                </div>
-                            </div>
-                        ))}
-                        {/* Duplicate for infinite scroll effect (simplified here just by static list for now) */}
+                    <InstagramFeed feedUrl={settings.about_instagram_feed_url} />
+
+                    <div className="mt-32 p-12 lg:p-24 rounded-[3rem] bg-secondary relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-default" />
+                        <div className="relative z-10 text-center max-w-2xl mx-auto">
+                            <h2 className="text-4xl md:text-6xl font-bold text-white mb-10 leading-tight">{settings.about_cta_title} <br /><span className="text-primary italic font-serif">{settings.about_cta_highlight}</span></h2>
+                            <Link href="/all-product" className="inline-flex px-12 py-5 bg-primary text-white font-bold rounded-full hover:bg-primary/90 transition-all shadow-[0_10px_30px_rgba(var(--primary-rgb),0.3)] hover:scale-105 active:scale-95">
+                                Mulai Perjalanan Sekarang
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </section>
-        </div>
-    );
+        </>
+    )}
+</div>
+);
 }

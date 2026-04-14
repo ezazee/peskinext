@@ -1,6 +1,7 @@
-
 import { BlogHeader } from "@features/blog/components/BlogHeader";
-import { BlogFooter } from "@features/blog/components/BlogFooter";
+import { Footer } from "@shared/components/layout/footer/DekstopFooter";
+import RouteTransition from "@shared/components/transition/RouteTransition";
+import { SessionTimeoutProvider } from "@shared/components/SessionTimeoutProvider";
 
 export const metadata = {
     title: "PESkinPro Blog - Tips Skincare & Kecantikan",
@@ -30,16 +31,22 @@ export default function BlogLayout({
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-white font-sans text-base-text">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
+        <>
+            <SessionTimeoutProvider />
             <BlogHeader />
-            <main className="flex-grow">
-                {children}
-            </main>
-            <BlogFooter />
-        </div>
+            
+            <RouteTransition>
+                <div className="flex flex-col min-h-screen bg-white font-sans text-base-text selection:bg-primary/20">
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                    />
+                    <main className="flex-grow">
+                        {children}
+                    </main>
+                    <Footer />
+                </div>
+            </RouteTransition>
+        </>
     );
 }

@@ -5,10 +5,16 @@ import { ArrowLeftIcon } from "@shared/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 import RegisterForm from "@/features/auth/components/RegisterForm";
+import { useSettings } from "@features/settings/useSettings";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 const RegisterPage = () => {
+  const { data: settings } = useSettings();
+  const bgImage = normalizeImageUrl(settings?.auth_bg_url) || "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=1200&auto=format&fit=crop";
+
   return (
     <>
+      {/* ... (mobile part remains unchanged) ... */}
       {/* --- Tampilan Mobile --- */}
       <div className="md:hidden w-full h-screen bg-white flex flex-col">
         <header className="flex items-center justify-between p-4 border-b border-border-color">
@@ -27,13 +33,14 @@ const RegisterPage = () => {
 
       {/* --- Tampilan Desktop --- */}
       <div className="hidden md:flex w-full max-w-5xl items-center justify-center">
-        {/* Kolom Kiri - Ilustrasi */}
+        {/* Kolom Kiri - Ilustrasi Dinamis */}
         <div className="w-1/2 flex flex-col items-center text-center p-8">
           <Image
-            src="/images/auth/ICON-PESkinproid.png"
+            src={bgImage}
             alt="PE Skinpro ID"
             width={400}
             height={300}
+            className="object-contain"
           />
           <h2 className="text-2xl font-bold text-base-text mt-6">
             Your Daily Skin Routine

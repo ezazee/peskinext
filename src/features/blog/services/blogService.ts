@@ -1,4 +1,5 @@
 import type { BlogPost, BlogCategory } from "@features/blog/types";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
@@ -113,7 +114,7 @@ const transformPost = (bp: BackendPost): BlogPost => ({
     slug: bp.slug,
     excerpt: bp.content.replace(/<[^>]*>?/gm, "").substring(0, 150) + "...",
     content: bp.content,
-    image: bp.images?.[0]?.image_url || "https://placehold.co/800x450?text=No+Image",
+    image: normalizeImageUrl(bp.images?.[0]?.image_url) || "https://placehold.co/800x450?text=No+Image",
     author: bp.author?.name || "Admin",
     date: new Date(bp.created_at).toLocaleDateString("id-ID", {
         day: "numeric", month: "long", year: "numeric"

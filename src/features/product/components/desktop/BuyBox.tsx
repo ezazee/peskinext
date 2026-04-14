@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AuthActionButton } from "@shared/components/ui/AuthActionButton";
 import { formatRupiah } from "@shared/helpers/pricing";
 import { copyProductLink } from "@shared/libs/clipboard";
@@ -58,7 +59,11 @@ export function BuyBox({
   };
 
   return (
-    <div className="sticky top-40 rounded-xl border border-gray-200 p-4 bg-white">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="sticky top-40 rounded-2xl border border-gray-200 p-6 bg-white shadow-lg"
+    >
       <div className="mb-3 flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="relative w-14 h-14 rounded-md overflow-hidden border">
@@ -70,44 +75,53 @@ export function BuyBox({
               className="object-cover"
             />
           </div>
-          <div className="text-sm text-gray-600 leading-tight">
-            <div className="font-medium text-gray-800 line-clamp-1">
+          <div className="text-sm text-gray-600 space-y-1">
+            <div className="font-bold text-gray-800 line-clamp-1">
               {variant.name}
             </div>
-            <div className="text-gray-500">
+            <div>
               {isCalculating ? (
-                <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+                <div className="h-4 w-20 bg-gray-100 animate-pulse rounded-md" />
               ) : (
-                `Stok: ${(currentStock ?? variant.stock).toLocaleString("id-ID")}`
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-gray-400 font-medium"
+                >
+                  Stok: {(currentStock ?? variant.stock).toLocaleString("id-ID")}
+                </motion.span>
               )}
             </div>
           </div>
         </div>
 
         {/* salin link */}
-        <button
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           type="button"
           onClick={handleCopyLink}
           aria-label="Salin link produk"
-          className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-primary"
+          className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors"
           title="Salin link"
         >
           <ShareIcon className="text-sm" />
-        </button>
+        </motion.button>
       </div>
 
       {/* Qty */}
       <div className="flex items-center justify-between">
         <span className="text-sm text-gray-600">Atur jumlah</span>
-        <div className="flex items-center border rounded-lg overflow-hidden">
-          <button
-            className="px-3 py-2 hover:bg-gray-50 disabled:opacity-50"
+        <div className="flex items-center border rounded-lg overflow-hidden bg-gray-50/30">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            className="px-3 py-2 hover:bg-white disabled:opacity-50 transition-colors"
             onClick={() => setQty(clamp(qty - 1))}
             aria-label="Kurangi jumlah"
             disabled={qty <= 1 || isCalculating}
           >
             −
-          </button>
+          </motion.button>
           <input
             type="number"
             inputMode="numeric"
@@ -115,30 +129,46 @@ export function BuyBox({
             max={maxQty}
             value={qty}
             onChange={(e) => setQty(clamp(Number(e.target.value) || 1))}
-            className="w-14 text-center outline-none py-2"
+            className="w-14 text-center outline-none py-2 bg-transparent font-medium"
             aria-label="Jumlah"
             disabled={isCalculating}
           />
-          <button
-            className="px-3 py-2 hover:bg-gray-50 disabled:opacity-50"
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            className="px-3 py-2 hover:bg-white disabled:opacity-50 transition-colors"
             onClick={() => setQty(clamp(qty + 1))}
             aria-label="Tambah jumlah"
             disabled={qty >= maxQty || isCalculating}
           >
             +
-          </button>
+          </motion.button>
         </div>
       </div>
 
-      <div className="mt-4 flex justify-between items-center">
+      <div className="mt-4 flex justify-between items-center bg-gray-50/50 p-3 rounded-lg">
         <span className="text-sm text-gray-500">Subtotal</span>
-        <span className="text-2xl font-bold">
-          {isCalculating ? (
-            <div className="h-8 w-32 bg-gray-200 animate-pulse rounded" />
-          ) : (
-            formatRupiah(subtotal)
-          )}
-        </span>
+        <div className="text-right">
+          <AnimatePresence mode="wait">
+            {isCalculating ? (
+              <motion.div 
+                key="skeleton"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-8 w-32 bg-gray-200 animate-pulse rounded" 
+              />
+            ) : (
+              <motion.span
+                key={subtotal}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-2xl font-bold block"
+              >
+                {formatRupiah(subtotal)}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <form ref={buyNowFormRef} action={createCheckoutFromBuyNow}>
@@ -147,31 +177,40 @@ export function BuyBox({
         <input type="hidden" name="qty" value={qty} />
       </form>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-6 space-y-3">
         {/* + Keranjang tetap memanggil handler lokal */}
-        <AuthActionButton
-          isLoggedIn={isLoggedIn}
-          openAuthModal={onAuthRequired}
-          onClick={() => onAdd(qty)}
-          className="w-full bg-primary cursor-pointer text-white py-3 rounded-lg hover:opacity-90 font-semibold"
-          disabled={isCalculating}
-        >
-          {isCalculating ? "Menghitung..." : "+ Keranjang"}
-        </AuthActionButton>
+        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+          <AuthActionButton
+            isLoggedIn={isLoggedIn}
+            openAuthModal={onAuthRequired}
+            onClick={() => onAdd(qty)}
+            className="w-full bg-primary cursor-pointer text-white py-3.5 rounded-xl hover:opacity-90 font-bold shadow-md transition-all flex items-center justify-center gap-2"
+            disabled={isCalculating}
+          >
+            {isCalculating ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Menghitung...</span>
+              </>
+            ) : "+ Keranjang"}
+          </AuthActionButton>
+        </motion.div>
 
         {/* Beli Langsung → submit form ke server action */}
-        <AuthActionButton
-          isLoggedIn={isLoggedIn}
-          openAuthModal={onAuthRequired}
-          onClick={() => {
-            buyNowFormRef.current?.requestSubmit();
-          }}
-          className="w-full border cursor-pointer border-primary text-primary py-3 rounded-lg hover:bg-primary/5 font-semibold"
-          disabled={isCalculating}
-        >
-          {isCalculating ? "Menghitung..." : "Beli Langsung"}
-        </AuthActionButton>
+        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+          <AuthActionButton
+            isLoggedIn={isLoggedIn}
+            openAuthModal={onAuthRequired}
+            onClick={() => {
+              buyNowFormRef.current?.requestSubmit();
+            }}
+            className="w-full border-2 cursor-pointer border-primary/20 text-primary py-3.5 rounded-xl hover:bg-primary/5 font-bold transition-all"
+            disabled={isCalculating}
+          >
+            {isCalculating ? "Menghitung..." : "Beli Langsung"}
+          </AuthActionButton>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 import type { Banner } from "@shared/types/types";
 
@@ -66,7 +67,7 @@ export const PromoBanner = ({ banners }: PromoBannerProps) => {
               className="relative flex-shrink-0 w-full aspect-[4/1]"
             >
               <Image
-                src={slide.src}
+                src={normalizeImageUrl(slide.src)}
                 alt={slide.alt}
                 fill
                 className="object-cover"
@@ -88,7 +89,7 @@ export const PromoBanner = ({ banners }: PromoBannerProps) => {
               className="relative w-full flex-shrink-0 aspect-[3/1]"
             >
               <Image
-                src={slide.mobileSrc || slide.src}
+                src={normalizeImageUrl(slide.mobileSrc || slide.src)}
                 alt={slide.alt}
                 fill
                 className="object-cover"

@@ -45,14 +45,14 @@ export async function getVouchers(): Promise<VoucherResponse> {
 }
 
 // Check specific coupon code validity
-export async function checkVoucherCode(code: string, total: number, items: unknown[], regionTag?: string): Promise<CheckCouponResult> {
+export async function checkVoucherCode(code: string, total: number, items: unknown[], regionTag?: string, isManual: boolean = false): Promise<CheckCouponResult> {
     try {
         const res = await fetch(`${API_URL}/api/v1/vouchers/check`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ code, total, items, regionTag }),
+            body: JSON.stringify({ code, total, items, regionTag, isManual }),
             cache: "no-store",
         });
 

@@ -3,14 +3,15 @@
 
 import React, { useRef } from "react";
 import Image from "next/image";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 // import { productsData } from "@data/products";
 import type { Product } from "@shared/types/types";
 const productsData: Product[] = []; // empty
 import type { EventPromoProps } from "@shared/types/types";
-import { ProductCard } from "../layout/header/mobile/product/ProductCard";
-import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
+import { ProductCard } from "@shared/components/layout/header/mobile/product/ProductCard";
+import { ChevronLeftIcon, ChevronRightIcon } from "@shared/components/icons";
 import { copyText } from "@shared/libs/clipboard";
-import { useToast } from "@shared/components/ui/Toaster"; // ⬅️ pakai toaster global
+import { useToast } from "@shared/components/ui/Toaster";
 
 import { useMediaQuery } from "@shared/hooks/useMediaQuery";
 
@@ -56,7 +57,7 @@ export const EventPromo: React.FC<EventPromoProps> = ({
     <section className="container mx-auto my-8 px-4 md:px-0">
       <div className="relative rounded-lg p-4 md:p-6 flex flex-col md:flex-row items-center overflow-hidden">
         <Image
-          src={bgSrc}
+          src={normalizeImageUrl(bgSrc)}
           alt="Promo background"
           fill
           className="absolute inset-0 z-0 object-cover"

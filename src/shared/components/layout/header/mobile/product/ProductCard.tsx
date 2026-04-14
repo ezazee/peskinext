@@ -8,11 +8,22 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
-/** parse "Rp144.000" -> 144000 */
+/** parse "Rp144.000.00" -> 144000 */
 function parseIDR(str?: string): number | null {
   if (!str) return null;
   // Jika range seperti "Rp288.000 - Rp980.000", ambil angka pertama (min)
-  const firstPart = str.split("-")[0];
+  let firstPart = str.split("-")[0];
+  
+  // Buang bagian desimal jika ada (misal .00 di akhir)
+  // Tapi hati-hati, di IDR "." biasanya ribuan, dan desimal biasanya ",". 
+  // Namun di database/api ini terkadang pakai "." desimal US style.
+  // Jika polanya "000.00", kita buang yang setelah titik terakhir
+  if (firstPart.includes(".") && firstPart.split(".").pop()?.length === 2) {
+    const parts = firstPart.split(".");
+    parts.pop();
+    firstPart = parts.join(".");
+  }
+
   const digits = firstPart.replace(/[^\d]/g, "");
   return digits ? Number(digits) : null;
 }
@@ -96,7 +107,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
           >
             <Star className="text-yellow-400 fill-yellow-400" size={13} />
             <span className="font-semibold text-gray-700">{average.toFixed(1)}</span>
-            <span>• 500+ terjual</span>
+            <span>• {product.soldCount?.toLocaleString("id-ID") || 0} terjual</span>
           </div>
 
           {/* Pricing area - pushed to bottom */}

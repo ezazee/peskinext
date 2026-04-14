@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { settingsService, type GeneralSettings } from "@features/settings/settingsService";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 const NAV_ITEMS = [
     { label: "HOME", href: "/blog" },
@@ -17,6 +19,17 @@ const NAV_ITEMS = [
 export const BlogHeader = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const pathname = usePathname();
+    const [settings, setSettings] = useState<GeneralSettings | null>(null);
+
+    useEffect(() => {
+        async function fetchSettings() {
+            const data = await settingsService.getSettings();
+            setSettings(data);
+        }
+        fetchSettings();
+    }, []);
+
+    const logoUrl = normalizeImageUrl(settings?.logo_url) || "/Logo.png";
 
     const isActive = (path: string) => {
         if (path === "/blog" && pathname === "/blog") return true;
@@ -32,16 +45,15 @@ export const BlogHeader = () => {
                     <div className="flex items-center gap-4 lg:gap-10">
 
 
-                        {/* Brand Logo */}
                         <Link href="/blog" className="flex items-center">
-                            <div className="relative h-8 w-28 md:h-10 md:w-36 transition-all">
-                                <Image
-                                    src="/Logo.png"
-                                    alt="PE Skinpro"
-                                    fill
-                                    className="object-contain object-left"
-                                    sizes="(max-width: 768px) 120px, 144px"
+                            <div className="relative h-8 w-28 md:h-10 md:w-40 transition-all">
+                                <Image 
+                                    src={logoUrl} 
+                                    alt={settings?.store_name || "Logo"} 
+                                    fill 
+                                    className="object-contain object-left" 
                                     priority
+                                    sizes="(max-width: 768px) 112px, 160px"
                                 />
                             </div>
                         </Link>

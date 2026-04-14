@@ -21,6 +21,12 @@ import { SlidersHorizontal } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
+const categoryLabels: Record<string, string> = {
+  "facial-care": "Facial Care",
+  "body-care": "Body Care",
+  "bundles-sets": "Bundles & Promo Sets",
+};
+
 export default function BundleProductPage() {
   const [mounted, setMounted] = React.useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
@@ -203,7 +209,7 @@ export default function BundleProductPage() {
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                       }`}
                   >
-                    {cat}
+                    {categoryLabels[cat] || cat}
                   </button>
                 );
               })}

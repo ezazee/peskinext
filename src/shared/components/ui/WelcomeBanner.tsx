@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 const XMarkIcon = () => (
   <svg
@@ -70,7 +71,7 @@ export const WelcomeBanner = ({ isOpen, onClose, bannerData }: WelcomeBannerProp
 
               <Link href={bannerData.href || "/shop"} onClick={handleClose}>
                 <Image
-                  src={bannerData.src}
+                  src={normalizeImageUrl(bannerData.src)}
                   alt={bannerData.alt || "Promo Spesial"}
                   width={500}
                   height={625}

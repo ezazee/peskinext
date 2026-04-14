@@ -310,8 +310,8 @@ export default function MobileCheckout({
   const availableShipping = useMemo(() => decorateVouchers(shippingVouchers, ctx), [shippingVouchers, ctx]);
   const availablePromos = useMemo(() => decorateVouchers(promoVouchers, ctx), [promoVouchers, ctx]);
 
-  async function onRedeemCode(codeUpper: string) {
-    const res = await checkVoucherCode(codeUpper, subtotal, items, ctx.regionTag);
+  async function onRedeemCode(codeUpper: string, isManual: boolean = false) {
+    const res = await checkVoucherCode(codeUpper, subtotal, items, ctx.regionTag, isManual);
     if (res.success && res.voucher) {
       setCodeVoucher(res.voucher);
       return { ok: true as const, voucher: res.voucher };
@@ -442,6 +442,20 @@ export default function MobileCheckout({
                 const addr = primary;
                 if (!addr) throw new Error("Alamat belum dipilih");
 
+                // Collect all active coupon IDs to send to backend
+                const couponIds: string[] = [];
+                if (selectedVoucher.code && codeVoucher) {
+                  couponIds.push(codeVoucher.id);
+                }
+                if (selectedVoucher.promoId) {
+                  couponIds.push(selectedVoucher.promoId);
+                }
+                if (selectedVoucher.shippingId) {
+                  couponIds.push(selectedVoucher.shippingId);
+                }
+                // Filter out duplicates and join by comma
+                const finalCouponId = Array.from(new Set(couponIds)).join(",");
+
                 const updatePayload = {
                   address_id: addr.id,
                   courier: shippingCurrent.courier,
@@ -450,6 +464,7 @@ export default function MobileCheckout({
                   original_shipping_cost: shippingCurrent.price, // Base price before discount
                   discount: promoDiscountList + promoDiscountCode, // Total promo discount
                   total_amount: grandTotal,
+                  coupon_id: finalCouponId || null, // Send the comma-separated used coupon IDs!
                 };
 
                 const updateRes = await fetch(`${API_URL}/orders/${orderId}`, {

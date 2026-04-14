@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import LoginFormWrapper from '@/features/auth/components/LoginFormWrapper';
 import SocialLoginButtons from '@/features/auth/components/SocialLoginButtons';
+import { useSettings } from "@features/settings/useSettings";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 const ArrowLeftIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
@@ -39,20 +41,7 @@ const LoginPage = () => {
       </div>
 
       {/* --- Tampilan Desktop --- */}
-      <div className="hidden md:flex w-full h-full items-center justify-center relative">
-        <div className="fixed inset-0 z-[-1] overflow-hidden">
-          <Image
-            src="/images/login.png"
-            alt="Background"
-            fill
-            className="object-cover"
-            quality={100}
-            priority
-          />
-          {/* Overlay to ensure text readability if needed, or just match original */}
-          {/* <div className="absolute inset-0 bg-black/10" /> */}
-        </div>
-
+      <div className="hidden md:flex w-full h-full items-center justify-center relative bg-gray-50">
         <div className="w-full max-w-md bg-white p-8 rounded-lg border border-gray-200 shadow-xl z-10 mx-4">
           <div className="mb-6">
             <div className="flex justify-between items-center">

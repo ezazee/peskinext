@@ -9,6 +9,17 @@ import { getRecommendations } from "@features/product/services/productService";
 import { ProductCard } from "@shared/components/layout/header/mobile/product/ProductCard";
 import { BlogContent } from "../page";
 import { BlogListSkeleton } from "@features/blog/components/skeletons/BlogListSkeleton";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
+
+/**
+ * Replaces relative image paths in HTML content with full URLs
+ */
+function fixContentImages(content: string): string {
+    if (!content) return "";
+    return content.replace(/src="(\/uploads\/[^"]+)"/g, (match, p1) => {
+        return `src="${normalizeImageUrl(p1)}"`;
+    });
+}
 
 // ... existing code ...
 
@@ -103,7 +114,7 @@ export default async function BlogDynamicPage({ params, searchParams }: PageProp
 
                         {/* Article Body */}
                         <div className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl">
-                            <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                            <div dangerouslySetInnerHTML={{ __html: fixContentImages(post.content) }} />
                         </div>
 
                         {/* Tags Footer */}

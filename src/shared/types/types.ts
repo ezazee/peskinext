@@ -14,6 +14,7 @@ export interface Variant {
   oldPrice?: number;
   stock: number;
   weight?: number;
+  soldCount?: number;
 }
 
 export interface NavItem {
@@ -69,6 +70,7 @@ export type Review = {
   rating: number;
   date: string;
   productSlug: string;
+  userImage?: string;
 };
 
 export type DesktopDetailProps = {

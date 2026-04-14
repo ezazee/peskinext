@@ -21,7 +21,7 @@ type Props = {
   initialSelected?: VoucherSelection;
   loading?: boolean;
   /** opsional: handler redeem kode (boleh dihubungkan ke API / fallback) */
-  onRedeemCode?: (codeUpper: string) => Promise<RedeemResult>;
+  onRedeemCode?: (codeUpper: string, isManual?: boolean) => Promise<RedeemResult>;
 };
 
 export default function VoucherModal({
@@ -93,7 +93,7 @@ export default function VoucherModal({
     }
 
     setRedeemBusy(true);
-    const res = await onRedeemCode(upper);
+    const res = await onRedeemCode(upper, true);
     setRedeemBusy(false);
 
     if (!res.ok) {

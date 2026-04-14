@@ -2,12 +2,14 @@
 
 import { DesktopHeader } from "./desktop/DekstopHeader";
 import { useResolveMobileHeader } from "./mobile/headerRegistry";
+import { AnnouncementBar } from "./AnnouncementBar";
 
 export default function HeaderSwitcher() {
   const mobileHeader = useResolveMobileHeader();
 
   return (
     <>
+      <AnnouncementBar />
       {/* Desktop */}
       <div className="hidden md:block bg-white sticky top-0 z-50 shadow-sm w-full">
         <DesktopHeader />

@@ -21,7 +21,14 @@ import { addToCart } from "@features/cart/cartService";
 import { useToast } from "@shared/components/ui/Toaster";
 import { AuthModal } from "@features/auth/components/AuthModal";
 import { getCurrentUser } from "@features/auth/action";
-import { Skeleton } from "@shared/components/ui/SkeletonLoading";
+import { motion, AnimatePresence } from "framer-motion";
+import { Skeleton } from "@shared/components/ui/Skeleton";
+
+const categoryLabels = {
+  "facial-care": "Facial Care",
+  "body-care": "Body Care",
+  "bundles-sets": "Bundles & Promo Sets",
+};
 
 // Simple debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -69,7 +76,7 @@ export default function DesktopDetail({
 
   const [variant, setVariant] = useState<Variant>(defaultVariant);
   const [qty, setQty] = useState(1);
-  const debouncedQty = useDebounce(qty, 500); // Debounce qty change 500ms
+  const debouncedQty = useDebounce(qty, 300); // Shorter debounce for better feel
 
   // Calculation State
   const [isCalculating, setIsCalculating] = useState(false);
@@ -85,8 +92,8 @@ export default function DesktopDetail({
   useEffect(() => {
     // Immediate skeleton
     setIsCalculating(true);
-    setCalculatedData(null);
-  }, [variant.id]);
+    // Don't null immediately unless actually changing complex data to avoid flickers
+  }, [variant.id, qty]);
 
   // Trigger calculation on debounced qty or variant change
   useEffect(() => {
@@ -124,17 +131,6 @@ export default function DesktopDetail({
     return () => { active = false; };
   }, [product.id, variant.id, variant.price, variant.name, product.name, debouncedQty, variant.stock]); // Depend on debouncedQty
 
-  // Handle immediate visual skeleton for qty
-  useEffect(() => {
-    // If qty changes but debounced hasn't yet, we are "waiting" for debounce
-    // So we can show internal loading state if we want, OR just waiting is fine
-    // But user requested "skeleton dlu", so we should probably set calculating true immediately on qty change
-    if (qty !== debouncedQty) {
-      setIsCalculating(true);
-    }
-  }, [qty, debouncedQty]);
-
-
   const [selectedShippingId, setSelectedShippingId] = useState<
     string | undefined
   >(undefined);
@@ -157,8 +153,6 @@ export default function DesktopDetail({
   }]), [product.name, variant.name, variant.price, params.weightGr, estimateQty]);
 
   // prefetch quotes supaya ShippingInfo bisa dapat "cheapest"
-  // prefetch quotes supaya ShippingInfo bisa dapat "cheapest"
-  // Only fetch if logged in AND has address
   const hasAddress = currentUser?.addresses && currentUser.addresses.length > 0;
   const { data: quotes, refetch: refetchQuotes } = useShippingQuotes(Boolean(params) && !!currentUser?.id && hasAddress, params ?? null, currentUser?.id, itemsForShipping);
 
@@ -193,8 +187,8 @@ export default function DesktopDetail({
   if (isLoading) return <DesktopDetailSkeleton />;
 
   // Display values
-  const displayPrice = isCalculating ? 0 : (calculatedData?.unit_price ?? variant.price);
-  const displaySubtotal = isCalculating ? 0 : (calculatedData?.subtotal ?? (variant.price * qty));
+  const displayPrice = isCalculating && !calculatedData ? 0 : (calculatedData?.unit_price ?? variant.price);
+  const displaySubtotal = isCalculating && !calculatedData ? 0 : (calculatedData?.subtotal ?? (variant.price * qty));
 
   return (
     <>
@@ -204,10 +198,10 @@ export default function DesktopDetail({
         initialView="login"
       />
 
-      <div className="hidden md:block container mx-auto">
-        <div className="grid grid-cols-12 grid-rows-[auto_auto] gap-6">
+      <div className="hidden md:block container mx-auto px-4 pb-20">
+        <div className="grid grid-cols-12 grid-rows-[auto_auto] gap-8">
           {/* Gallery */}
-          <section className="col-span-4 row-start-1">
+          <section className="col-span-12 lg:col-span-4 row-start-1">
             <ProductGallery
               name={product.name}
               images={product.galleryImages}
@@ -216,52 +210,83 @@ export default function DesktopDetail({
           </section>
 
           {/* Info */}
-          <section className="col-span-5 row-start-1 pt-5">
-            <h1 className="text-2xl font-semibold leading-snug min-h-[32px]">
-              {isCalculating ? (
-                <Skeleton.Text lines={1} widths={["80%"]} />
-              ) : (
-                `${product.name} – ${variant.name}`
-              )}
-            </h1>
+          <section className="col-span-12 lg:col-span-5 row-start-1 pt-2">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={variant.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h1 className="text-3xl font-bold text-slate-800 leading-tight">
+                  {product.name}
+                </h1>
+                <p className="text-lg text-slate-500 mt-1 font-medium italic">
+                   {variant.name}
+                </p>
+              </motion.div>
+            </AnimatePresence>
 
-            <div className="mt-3 flex items-center gap-3 text-sm text-gray-500">
+            <div className="mt-4 flex items-center gap-4 text-sm text-gray-500 border-b border-gray-100 pb-4">
               <span className="flex items-center gap-1">
-                <RatingBadge sku={product.sku} slug={product.slug} size="sm" />
+                {/* Key forced refresh to simulate variant-specific rating if data exists */}
+                <RatingBadge key={`rating-${variant.id}`} sku={product.sku} slug={product.slug} size="sm" />
               </span>
-              <span>•</span>
-              <span>
-                Terjual <strong>{product.soldCount?.toLocaleString("id-ID") || 0}</strong>
+              <span className="text-gray-300">|</span>
+              <span className="flex gap-1">
+                <AnimatePresence mode="wait">
+                  <motion.span 
+                    key={`sold-${variant.id}`}
+                    initial={{ opacity: 0, y: 3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -3 }}
+                    className="text-slate-900 font-bold"
+                  >
+                    {(variant.soldCount ?? 0).toLocaleString("id-ID")}
+                  </motion.span>
+                </AnimatePresence>
+                <span>Terjual</span>
               </span>
             </div>
 
-            <div className="mt-4 flex items-end gap-3 min-h-[36px]">
-              {isCalculating ? (
-                <Skeleton.Block width={150} height={36} radius={4} />
-              ) : (
-                <>
-                  <div className="text-3xl font-bold text-gray-900">
-                    {formatRupiah(displayPrice)}
-                  </div>
-                  {variant.oldPrice && (
-                    <div className="flex items-center gap-2">
-                      <span className="line-through text-gray-400">
-                        {formatRupiah(variant.oldPrice)}
-                      </span>
-                      <span className="text-red-600 font-semibold">{disc}%</span>
+            <div className="mt-6 min-h-[48px]">
+              <AnimatePresence mode="wait">
+                {isCalculating ? (
+                  <motion.div 
+                    key="price-skeleton"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <Skeleton className="h-10 w-48 bg-gray-100 rounded-lg" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={`price-${variant.id}-${displayPrice}`}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-baseline gap-3"
+                  >
+                    <div className="text-4xl font-extrabold text-slate-900 tracking-tight">
+                      {formatRupiah(displayPrice)}
                     </div>
-                  )}
-                </>
-              )}
+                    {variant.oldPrice && variant.oldPrice > variant.price && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg text-gray-400 line-through">
+                          {formatRupiah(variant.oldPrice)}
+                        </span>
+                        <span className="bg-red-50 text-red-600 text-xs px-2 py-1 rounded-md font-bold">
+                          -{Math.round(((variant.oldPrice - variant.price) / variant.oldPrice) * 100)}%
+                        </span>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <div className="mt-6 space-y-3">
-              <p className="text-sm text-gray-600">
-                Category: <span className="font-bold">{product.category}</span>
-              </p>
-              <p className="text-sm text-gray-600">
-                SKU: <span className="font-bold">{product.sku}</span>
-              </p>
               <VariantSelector
                 variants={product.variants}
                 selectedId={variant.id}
@@ -270,15 +295,37 @@ export default function DesktopDetail({
                   setQty(1); // Reset qty on variant change
                 }}
               />
+              <div className="mt-8 space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Category:</span>
+                  <span className="text-slate-700 font-bold">
+                    {product.type === "bundle" 
+                      ? "Bundles & Promo Sets" 
+                      : (categoryLabels[product.category as keyof typeof categoryLabels] || product.category)
+                    }
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">SKU:</span>
+                  <span className="text-slate-700 font-bold uppercase tracking-tight">
+                    {product.sku || "—"}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {isCalculating ? (
-              <Skeleton className="h-5 w-24 bg-gray-200" />
-            ) : (
-              <span className="text-gray-600">
-                Stok: {calculatedData?.stock_available ?? variant.stock}
-              </span>
-            )}
+            <div className="mt-6 border-t border-gray-100 pt-4">
+              {isCalculating ? (
+                <Skeleton className="h-5 w-32 bg-gray-100" />
+              ) : (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-400">Tersedia:</span>
+                  <span className="text-slate-700 font-bold">
+                    {calculatedData?.stock_available ?? variant.stock} pcs
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="mt-8">
               <ProductTabs
                 description={product.description}

@@ -4,7 +4,8 @@
 import type { PromoShowcaseProps } from "@shared/types/types";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
+import { ChevronLeftIcon, ChevronRightIcon } from "@shared/components/icons";
 
 export default function PromoShowcase({
   title = "Galeri promo spesial",
@@ -49,7 +50,7 @@ export default function PromoShowcase({
               >
                 <div className="relative w-full h-full">
                   <Image
-                    src={b.src}
+                    src={normalizeImageUrl(b.src)}
                     alt={b.alt}
                     fill
                     className="object-cover"
@@ -104,7 +105,7 @@ export default function PromoShowcase({
             >
               <div className="relative w-full h-full">
                 <Image
-                  src={t.src}
+                  src={normalizeImageUrl(t.src)}
                   alt={t.alt}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -133,7 +134,7 @@ export default function PromoShowcase({
               >
                 <div className="relative aspect-[19/6] w-full">
                   <Image
-                    src={b.src}
+                    src={normalizeImageUrl(b.src)}
                     alt={b.alt}
                     fill
                     className="object-cover"
@@ -171,7 +172,7 @@ export default function PromoShowcase({
             >
               <div className="relative w-full h-full">
                 <Image
-                  src={t.src}
+                  src={normalizeImageUrl(t.src)}
                   alt={t.alt}
                   fill
                   className="object-cover"

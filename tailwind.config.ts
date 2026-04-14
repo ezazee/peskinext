@@ -10,9 +10,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#1D9AD2",
-        secondary: "#045880",
-        tertiary: "#E8F5FA",
+        primary: "var(--primary, #1D9AD2)",
+        secondary: "var(--secondary, #045880)",
+        tertiary: "var(--tertiary, #E8F5FA)",
         "base-text": "#374151",
         "subtle-text": "#6B7280",
         "border-color": "#D1D5DB",

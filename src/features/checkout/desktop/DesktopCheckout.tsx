@@ -324,8 +324,8 @@ export default function DesktopCheckout({
     return labels.length ? labels.join(" + ") : undefined;
   }, [selectedVoucher, availableShipping, availablePromos, codeVoucher]);
 
-  async function onRedeemCode(codeUpper: string) {
-    const res = await checkVoucherCode(codeUpper, subtotal, selectedItems);
+  async function onRedeemCode(codeUpper: string, isManual: boolean = false) {
+    const res = await checkVoucherCode(codeUpper, subtotal, selectedItems, ctx.regionTag, isManual);
     if (res.success && res.voucher) {
       setCodeVoucher(res.voucher);
       return { ok: true as const, voucher: res.voucher };
@@ -479,6 +479,20 @@ export default function DesktopCheckout({
                     const addr = primary;
                     if (!addr) throw new Error("Alamat belum dipilih");
 
+                    // Collect all active coupon IDs to send to backend
+                    const couponIds: string[] = [];
+                    if (selectedVoucher.code && codeVoucher) {
+                      couponIds.push(codeVoucher.id);
+                    }
+                    if (selectedVoucher.promoId) {
+                      couponIds.push(selectedVoucher.promoId);
+                    }
+                    if (selectedVoucher.shippingId) {
+                      couponIds.push(selectedVoucher.shippingId);
+                    }
+                    // Filter out duplicates and join by comma
+                    const finalCouponId = Array.from(new Set(couponIds)).join(",");
+
                     const updatePayload = {
                       address_id: addr.id,
                       courier: shipSelected.courier,
@@ -487,6 +501,7 @@ export default function DesktopCheckout({
                       original_shipping_cost: shipSelected.price, // Base price before discount
                       discount: promoDiscountList + promoDiscountCode, // Total promo discount
                       total_amount: grandTotal,
+                      coupon_id: finalCouponId || null, // Send the comma-separated used coupon IDs!
                     };
 
                     const updateRes = await fetch(`${API_URL}/orders/${orderId}`, {

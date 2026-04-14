@@ -76,9 +76,9 @@ export default function HomeClient() {
                         mobileBanner={data.promo_mobile?.[0]}
                         desktopBanner={data.promo_desktop?.[0]}
                     />
-                    <FlashSaleDiscount products={data.products} />
+                    <FlashSaleDiscount campaign={data.flashSale} />
                     <PromoShowcase carousel={data.carousel} tiles={data.tiles} />
-                    <BundleSection products={data.products} />
+                    <BundleSection products={data.products} banner={data.bundle?.[0]} />
                     <ProductGrid products={data.products} />
                 </main>
             </div>

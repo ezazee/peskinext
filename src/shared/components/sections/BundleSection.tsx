@@ -1,14 +1,14 @@
-// File: src/features/shared/sections/BundleSection.tsx
 "use client";
 
 import React, { useRef } from "react";
-import Image from "next/image";
-import { ProductCard } from "../layout/header/mobile/product/ProductCard";
-import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
+import NextImage from "next/image";
 import Link from "next/link";
-import type { Product } from "@shared/types/types";
+import { ProductCard } from "@shared/components/layout/header/mobile/product/ProductCard";
+import { ChevronLeftIcon, ChevronRightIcon } from "@shared/components/icons";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
+import type { Product, Banner } from "@shared/types/types";
 
-export const BundleSection = ({ products }: { products: ReadonlyArray<Product> }) => {
+export const BundleSection = ({ products, banner }: { products: ReadonlyArray<Product>, banner?: Banner }) => {
   // Filter data untuk hanya menampilkan produk bundle
   const bundleProducts = products.filter(
     (product) => product.type === "bundle"
@@ -50,12 +50,11 @@ export const BundleSection = ({ products }: { products: ReadonlyArray<Product> }
         <div className="relative hidden w-1/5 overflow-hidden rounded-lg md:block md:self-stretch">
           <a href="#" className="block h-full w-full">
             <div className="relative h-full w-full">
-              <Image
-                src="https://placehold.co/300x500/FBBF24/FFFFFF?text=Promo+Spesial"
-                alt="Penawaran Spesial"
+              <NextImage
+                src={normalizeImageUrl(banner?.src) || "https://placehold.co/300x500/FBBF24/FFFFFF?text=Promo+Spesial"}
+                alt={banner?.alt || "Penawaran Spesial"}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
-                // banner ini hanya tampil ≥ md dan lebarnya ±20% viewport
                 sizes="(max-width: 767px) 0px, 20vw"
                 priority={false}
               />

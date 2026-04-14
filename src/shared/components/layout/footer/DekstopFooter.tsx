@@ -1,14 +1,18 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
   Instagram,
   ChevronDown,
   ShieldCheck,
+  Phone,
 } from "lucide-react";
+import { type GeneralSettings, SETTINGS_FALLBACKS } from "@features/settings/settingsService";
+import { useSettings } from "@features/settings/useSettings";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 // --- Custom Icons for Missing Lucide Icons ---
 const TiktokIcon = ({ size = 20 }: { size?: number }) => (
@@ -26,10 +30,11 @@ const FOOTER_LINKS = {
   ],
   support: [
     { name: "Pusat Bantuan", href: "/help" },
+    { name: "Tanya Jawab (FAQ)", href: "/faq" },
   ],
   legal: [
-    { name: "Syarat & Ketentuan", href: "/terms" },
-    { name: "Kebijakan Privasi", href: "/privacy" },
+    { name: "Syarat & Ketentuan", href: "/terms-and-conditions" },
+    { name: "Kebijakan Privasi", href: "/privacy-policy" },
   ],
   shop: [
     { name: "Semua Produk", href: "/all-product" },
@@ -76,7 +81,10 @@ const AccordionItem = ({ title, children }: { title: string; children: React.Rea
   );
 };
 
+// ... inside Footer component
 export const Footer = () => {
+  const { data: settings = SETTINGS_FALLBACKS } = useSettings();
+
   return (
     <footer className="bg-white text-gray-600 font-sans border-t border-gray-100 mt-auto">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-16">
@@ -84,23 +92,33 @@ export const Footer = () => {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <div className="mb-6 relative h-10 w-40">
-              <Image src="/Logo.png" alt="PE Skinpro" fill className="object-contain object-left" />
+              <Image 
+                src={normalizeImageUrl(settings.logo_footer_url) || "/Logo.png"} 
+                alt={settings.store_name} 
+                fill 
+                className="object-contain object-left" 
+              />
             </div>
             <p className="mb-6 text-sm leading-relaxed max-w-sm text-gray-500">
-              Brand skincare lokal dengan standar internasional. Menggabungkan teknologi Jerman dan kekayaan alam untuk solusi kulit sehat, aman, dan terjangkau.
+              {settings.brand_description}
             </p>
             <div className="flex items-center gap-4 mb-8">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors border border-gray-100">
+              <a href={settings.social_instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors border border-gray-100">
                 <Instagram size={20} />
               </a>
-              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors border border-gray-100">
+              <a href={settings.social_tiktok} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors border border-gray-100">
                 <TiktokIcon size={20} />
               </a>
-              <a href="https://shopee.co.id" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors border border-gray-100 overflow-hidden relative">
+              <a href={settings.social_shopee} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors border border-gray-100 overflow-hidden relative">
                 <div className="relative w-5 h-5">
                   <Image src="/images/icon/shopee.png" alt="Shopee" fill className="object-contain" />
                 </div>
               </a>
+              {settings.contact_whatsapp && (
+                <a href={`https://wa.me/${settings.contact_whatsapp}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-primary hover:text-white transition-colors border border-gray-100">
+                  <Phone size={20} className="text-green-600" />
+                </a>
+              )}
             </div>
 
             {/* Badges */}
@@ -183,11 +201,11 @@ export const Footer = () => {
 
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-          <p>&copy; {new Date().getFullYear()} PT Kilau Berlian Nusantara. All rights reserved.</p>
+          <p>{settings.copyright_text}</p>
           <div className="flex gap-6">
             <span>Indonesia (ID)</span>
-            <span>Privacy</span>
-            <span>Terms</span>
+            <Link href="/privacy-policy" className="hover:text-primary transition-colors cursor-pointer">Privacy</Link>
+            <Link href="/terms-and-conditions" className="hover:text-primary transition-colors cursor-pointer">Terms</Link>
           </div>
         </div>
       </div>

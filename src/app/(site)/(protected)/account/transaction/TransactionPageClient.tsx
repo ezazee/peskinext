@@ -28,20 +28,16 @@ export default function TransactionPageClient({ userId }: { userId: string }): J
       console.warn("TransactionPageClient: userId is missing/empty");
       return;
     }
-    console.log(`TransactionPageClient: Fetching orders for user ${userId} from ${process.env.NEXT_PUBLIC_API_URL}`);
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${userId}`)
       .then((res) => {
-        console.log("Response status:", res.status);
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         return res.json();
       })
       .then((data) => {
-        console.log("Orders data received:", data);
         if (Array.isArray(data)) {
-          console.log(`Found ${data.length} orders`);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const mapped: UserTransaction[] = data.map((order: any) => ({
             id: order.id,
@@ -76,7 +72,6 @@ export default function TransactionPageClient({ userId }: { userId: string }): J
               };
             })
           }));
-          console.log("Mapped transactions:", mapped);
           setTransactions(mapped);
         } else {
           console.warn("Data is not an array:", data);

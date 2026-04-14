@@ -18,10 +18,13 @@ export function VariantChips({
         return (
           <motion.button
             whileTap={{ scale: 0.94 }}
+            whileHover={{ scale: 1.02 }}
             key={v.id}
             onClick={() => onSelect(v)}
-            className={`cursor-pointer px-3 py-1.5 rounded-full text-sm shadow-sm shrink-0 ${
-              active ? "bg-primary/10 text-primary" : "bg-white text-gray-700"
+            className={`cursor-pointer px-4 py-1.5 rounded-full text-sm font-medium shadow-sm shrink-0 transition-colors ${
+              active
+                ? "bg-primary text-white shadow-md"
+                : "bg-white text-gray-700 border border-gray-200 hover:border-primary/50"
             }`}
           >
             {v.name}

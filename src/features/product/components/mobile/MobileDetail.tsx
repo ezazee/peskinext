@@ -20,7 +20,7 @@ import { CollapseCard } from "@shared/components/ui/ExpandableCard";
 import { ProductDescriptionCard } from "@shared/components/ui/ProductDescriptionCard";
 
 import { discountPercent } from "@shared/helpers/pricing";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { MobileDetailSkeleton } from "../skeleton/MobileDetailSkeleton";
 
 import { useShippingParamsForProduct } from "@features/shipping/hooks/useShippingParamsForProduct";
@@ -36,7 +36,13 @@ import { addToCart } from "@features/cart/cartService";
 import { createCheckoutFromBuyNow } from "@features/checkout/action";
 import { getCurrentUser } from "@features/auth/action";
 import { AuthModal } from "@features/auth/components/AuthModal";
-import { Skeleton } from "@shared/components/ui/SkeletonLoading";
+import { Skeleton } from "@shared/components/ui/Skeleton";
+
+const categoryLabels: Record<string, string> = {
+  "facial-care": "Facial Care",
+  "body-care": "Body Care",
+  "bundles-sets": "Bundles & Promo Sets",
+};
 
 // Simple debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -249,31 +255,35 @@ export default function MobileDetail({
         {/* KONTEN */}
         <div className="p-4 bg-white rounded-t-2xl -mt-4 relative z-10 shadow-sm">
           {/* HARGA */}
-          <div className="flex items-end gap-2 min-h-[32px]">
-            {isCalculating ? (
-              <Skeleton.Block width={120} height={32} radius={4} />
-            ) : (
-              <>
+          <div className="flex items-end gap-2 min-h-[36px]">
+            <AnimatePresence mode="wait">
+              {isCalculating ? (
+                <motion.div key="price-skel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <Skeleton className="h-8 w-32 bg-gray-100 rounded-lg" />
+                </motion.div>
+              ) : (
                 <motion.div
-                  key={variant.id}
+                  key={`price-${variant.id}-${priceNum}`}
                   initial={{ scale: 0.98, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="text-2xl font-bold text-gray-900"
+                  className="flex items-end gap-2"
                 >
-                  {formatRupiah(priceNum)}
+                  <span className="text-2xl font-bold text-gray-900">
+                    {formatRupiah(priceNum)}
+                  </span>
+                  {hasDiscount && (
+                    <>
+                      <span className="text-sm text-gray-400 line-through">
+                        {formatRupiah(oldPriceNum!)}
+                      </span>
+                      <span className="text-sm text-red-600 font-semibold">
+                        -{disc}%
+                      </span>
+                    </>
+                  )}
                 </motion.div>
-                {hasDiscount && (
-                  <>
-                    <div className="text-sm text-gray-400 line-through">
-                      {formatRupiah(oldPriceNum!)}
-                    </div>
-                    <div className="text-sm text-red-600 font-semibold">
-                      {disc}%
-                    </div>
-                  </>
-                )}
-              </>
-            )}
+              )}
+            </AnimatePresence>
           </div>
 
           {/* NAMA + AKSI */}
@@ -281,7 +291,7 @@ export default function MobileDetail({
             <div className="flex items-start justify-between gap-3">
               <h1 className="text-base font-semibold leading-snug min-h-[24px]">
                 {isCalculating ? (
-                  <Skeleton.Text lines={1} widths={["90%"]} />
+                  <div className="h-5 w-4/5 bg-gray-100 animate-pulse rounded-md" />
                 ) : (
                   `${product.name} – ${variant.name}`
                 )}
@@ -301,11 +311,21 @@ export default function MobileDetail({
             {/* RATING & TERJUAL */}
             <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
               <span className="flex items-center gap-1">
-                <RatingBadge sku={product.sku} slug={product.slug} size="md" />
+                <RatingBadge key={`rating-${variant.id}`} sku={product.sku} slug={product.slug} size="md" />
               </span>
               <span>•</span>
-              <span>
-                Terjual <strong>1.150</strong>
+              <span className="flex items-center gap-1">
+                Terjual{" "}
+                <AnimatePresence mode="wait">
+                  <motion.strong
+                    key={`sold-${variant.id}`}
+                    initial={{ opacity: 0, y: 2 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -2 }}
+                  >
+                    {(variant.soldCount ?? 0).toLocaleString("id-ID")}
+                  </motion.strong>
+                </AnimatePresence>
               </span>
             </div>
           </div>
@@ -372,7 +392,11 @@ export default function MobileDetail({
             <Card title="Detail produk">
               <DetailRow label="SKU">{product.sku || "-"}</DetailRow>
               <Divider />
-              <DetailRow label="Kategori">{product.category || "-"}</DetailRow>
+              <DetailRow label="Kategori">
+                {product.type === "bundle"
+                  ? "Bundles & Promo Sets"
+                  : (categoryLabels[product.category] || product.category || "-")}
+              </DetailRow>
               <Divider />
               <DetailRow label="Tipe">
                 {product.type?.toUpperCase?.() || "-"}

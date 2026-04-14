@@ -4,6 +4,9 @@ import "./globals.css";
 import QueryProvider from "@app/providers/QueryProvider";
 import { ToastProvider } from "@shared/components/ui/Toaster";
 import { ErrorBoundary } from "@shared/components/ErrorBoundary";
+import { MaintenanceOverlay } from "@shared/components/layout/MaintenanceOverlay";
+import { settingsService, SETTINGS_FALLBACKS } from "@features/settings/settingsService";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 const poppins = Poppins({
   weight: ["400", "700"],
@@ -11,95 +14,61 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://peskinpro.id"),
-
-  title: "PE Skin Pro - Skincare Alami Terbaik",
-  description:
-    "PE Skin Pro adalah platform e-commerce yang menyediakan produk skincare alami berkualitas tinggi. Temukan berbagai produk perawatan kulit yang aman dan efektif untuk semua jenis kulit.",
-
-  manifest: "/favicon/site.webmanifest",
-
-  keywords: [
-    "skincare alami",
-    "perawatan kulit",
-    "produk kecantikan",
-    "PE Skin Pro",
-    "e-commerce skincare",
-  ],
-
-  authors: [{ name: "PE Skin Pro", url: "https://peskinpro.id" }],
-  creator: "PE Skin Pro Team",
-
-  openGraph: {
-    title: "PE Skin Pro - Skincare Alami Berkualitas Tinggi",
-    description: "Temukan produk perawatan kulit alami yang aman dan efektif.",
-    url: "https://peskinpro.id",
-    siteName: "PE Skin Pro",
-    images: [
-      {
-        url: "/web-app.png",
-        width: 1200,
-        height: 630,
-        alt: "Banner Promosi PE Skin Pro",
-      },
-    ],
-    locale: "id_ID",
-    type: "website",
-  },
-
-  twitter: {
-    card: "summary_large_image",
-    title: "PE Skin Pro - Skincare Alami Terbaik",
-    description:
-      "Jelajahi koleksi skincare alami kami yang dirancang untuk semua jenis kulit.",
-    images: ["/web-app.png"],
-  },
-
-  icons: {
-    icon: [
-      { url: "/favicon/favicon.ico" },
-      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: "/favicon/apple-touch-icon.png",
-    other: [
-      {
-        rel: "android-chrome-192x192",
-        url: "/favicon/android-chrome-192x192.png",
-      },
-      {
-        rel: "android-chrome-512x512",
-        url: "/favicon/android-chrome-512x512.png",
-      },
-    ],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await settingsService.getSettings();
+  const faviconUrl = normalizeImageUrl(settings.favicon_url) || "/favicon/favicon.ico";
+  
+  return {
+    metadataBase: new URL("https://peskinpro.id"),
+    title: settings.seo_title || settings.store_name || "PE Skin Pro - Skincare Alami Terbaik",
+    description: settings.seo_description || SETTINGS_FALLBACKS.seo_description,
+    keywords: settings.seo_keywords?.split(",") || SETTINGS_FALLBACKS.seo_keywords.split(","),
+    
+    icons: {
+      icon: [
+        { url: faviconUrl },
+      ],
+      apple: "/favicon/apple-touch-icon.png",
+    },
+    openGraph: {
+      title: settings.store_name,
+      description: settings.seo_description,
+      url: "https://peskinpro.id",
+      siteName: settings.store_name,
+      images: [
+        {
+          url: "/web-app.png",
+          width: 1200,
+          height: 630,
+          alt: "Banner Promosi PE Skin Pro",
+        },
+      ],
+      locale: "id_ID",
+      type: "website",
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
     },
-  },
-};
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await settingsService.getSettings();
+  const logoUrl = normalizeImageUrl(settings.logo_url) || "https://peskinpro.id/logo.png";
+
   // Organization Schema for SEO (Google Knowledge Graph)
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "PE Skin Pro",
+    "name": settings.store_name || "PE Skin Pro",
     "url": "https://peskinpro.id",
-    "logo": "https://peskinpro.id/logo.png",
-    "description": "Platform e-commerce skincare alami berkualitas tinggi untuk semua jenis kulit",
+    "logo": logoUrl,
+    "description": settings.brand_description || "Platform e-commerce skincare alami berkualitas tinggi untuk semua jenis kulit",
     "address": {
       "@type": "PostalAddress",
       "addressCountry": "ID",
@@ -111,15 +80,15 @@ export default function RootLayout({
       "availableLanguage": ["Indonesian"],
     },
     "sameAs": [
-      "https://www.facebook.com/peskinpro",
-      "https://www.instagram.com/peskinpro",
-    ],
+      settings.social_instagram,
+      settings.social_tiktok,
+    ].filter(Boolean),
   };
 
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "PE Skin Pro",
+    "name": settings.store_name || "PE Skin Pro",
     "url": "https://peskinpro.id",
     "potentialAction": {
       "@type": "SearchAction",
@@ -142,8 +111,18 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
 
+        {/* Dynamic Theme Styles */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --primary: ${settings.marketplace_primary_color || '#1D9AD2'};
+            --secondary: ${settings.marketplace_secondary_color || '#045880'};
+            --tertiary: ${settings.marketplace_tertiary_color || '#E8F5FA'};
+          }
+        `}} />
+
         <ErrorBoundary>
           <QueryProvider>
+            <MaintenanceOverlay />
             <ToastProvider>{children}</ToastProvider>
           </QueryProvider>
         </ErrorBoundary>

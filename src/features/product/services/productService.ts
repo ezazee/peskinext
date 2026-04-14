@@ -54,7 +54,8 @@ export async function getProducts(): Promise<Product[]> {
     });
 
     if (!res.ok) {
-        throw new Error("Failed to fetch products from backend");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to fetch products from backend");
     }
 
     // Backend returns already formatted data

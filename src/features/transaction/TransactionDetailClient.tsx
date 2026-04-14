@@ -42,8 +42,6 @@ export default function TransactionDetailClient({
         return res.json();
       })
       .then(data => {
-        console.log("📝 [Frontend Debug] Raw data received:", data);
-        console.log("📝 [Frontend Debug] Items:", data.items);
 
         // Map data to UserTransaction
         const mapped: UserTransaction = {
@@ -87,14 +85,6 @@ export default function TransactionDetailClient({
           } : undefined),
           expiresAt: data.expires_at,
         };
-
-        console.log("📝 [Frontend Debug] Mapped transaction:", mapped);
-        console.log("📝 [Frontend Debug] Expires At:", mapped.expiresAt); // Added debug
-        console.log("📝 [Frontend Debug] Mapped items with review:", mapped.items.map(i => ({
-          name: i.product.name,
-          has_review: !!i.review,
-          review: i.review
-        })));
 
         setTx(mapped);
         setLoading(false);
@@ -195,7 +185,6 @@ export default function TransactionDetailClient({
                   </div>
                 </div>
                 {(() => {
-                  console.log(`📝 [Button Render] Item: ${item.product.name}, has review:`, !!item.review, item.review);
                   return item.review ? (
                     <button
                       onClick={() => setReviewingItemIndex(idx)}

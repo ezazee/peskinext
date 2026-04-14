@@ -12,5 +12,6 @@ export async function getBanners(): Promise<BannersResponse> {
         throw new Error("Failed to fetch banners");
     }
 
-    return res.json();
+    const json = await res.json();
+    return json.data;
 }

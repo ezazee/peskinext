@@ -33,6 +33,8 @@ import { getCartItemCount, setCurrentUserId as setCartUserId } from "@features/c
 import { getUnreadNotificationCount } from "@features/notifications/notificationActions";
 
 import { Avatar } from "@shared/components/ui/Avatar";
+import { useSettings } from "@features/settings/useSettings";
+import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 type OptionForModal = AddressListEntry & {
   recipient?: string;
@@ -86,6 +88,7 @@ function MenuItem({
 }
 
 export const DesktopHeader = () => {
+  const { data: settings } = useSettings();
   const switching = useAddressSwitching();
   const router = useRouter();
   const toast = useToast();
@@ -417,8 +420,8 @@ export const DesktopHeader = () => {
           <div className="flex items-center gap-6 py-3">
             <Link href="/" className="relative h-10 w-40 shrink-0">
               <Image
-                src="/Logo.png"
-                alt="PE Skinpro Logo"
+                src={normalizeImageUrl(settings?.logo_url) || "/Logo.png"}
+                alt={settings?.store_name || "PE Skinpro"}
                 fill
                 className="object-contain"
                 sizes="(max-width: 768px) 120px, 160px"

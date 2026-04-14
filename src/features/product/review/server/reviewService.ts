@@ -23,6 +23,7 @@ interface BackendReview {
   user?: string | { name: string }; // Backend returns string "Name", old interface expected object
   productSlug?: string;
   variant?: string;
+  userImage?: string;
 }
 
 export async function getReviewsByKey({
@@ -91,6 +92,7 @@ export async function getReviewsByKey({
         images: images,
         date: r.created_at,
         productSlug: slug || "",
+        userImage: r.userImage,
       };
     });
 
