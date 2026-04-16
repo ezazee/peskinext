@@ -1,7 +1,9 @@
 import { withSentryConfig } from '@sentry/nextjs';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
+
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   experimental: {
@@ -67,9 +69,15 @@ const nextConfig = {
         hostname: '*.fbcdn.net',
         pathname: '/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'stack-kbn-minio-api-6a7b95-103-85-59-38.traefik.me',
+        pathname: '/**',
+      },
     ],
   },
 };
+
 
 export default withSentryConfig(nextConfig, {
   // For all available options, see:

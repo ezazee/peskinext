@@ -429,15 +429,7 @@ export default function MobileCheckout({
                   return;
                 }
 
-                // 1. Get existing order ID from URL params (support both oid and tx)
-                const orderId = searchParams.get("oid") || searchParams.get("tx");
-                if (!orderId) {
-                  toast.error("Order tidak ditemukan. Silakan checkout ulang dari cart.");
-                  return;
-                }
-
-                // 2. Update order with complete address and shipping info
-                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080/api/v1";
 
                 const addr = primary;
                 if (!addr) throw new Error("Alamat belum dipilih");
@@ -453,31 +445,74 @@ export default function MobileCheckout({
                 if (selectedVoucher.shippingId) {
                   couponIds.push(selectedVoucher.shippingId);
                 }
-                // Filter out duplicates and join by comma
                 const finalCouponId = Array.from(new Set(couponIds)).join(",");
 
-                const updatePayload = {
-                  address_id: addr.id,
-                  courier: shippingCurrent.courier,
-                  shipping_service: shippingCurrent.service,
-                  shipping_cost: shippingAfter, // Net cost after discount
-                  original_shipping_cost: shippingCurrent.price, // Base price before discount
-                  discount: promoDiscountList + promoDiscountCode, // Total promo discount
-                  total_amount: grandTotal,
-                  coupon_id: finalCouponId || null, // Send the comma-separated used coupon IDs!
-                };
+                // Check if order already exists (from URL params)
+                let orderId = searchParams.get("oid") || searchParams.get("tx");
 
-                const updateRes = await fetch(`${API_URL}/orders/${orderId}`, {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(updatePayload),
-                });
+                if (!orderId) {
+                  // === NEW FLOW: Create order with COMPLETE data ===
+                  const orderItems = items.map((item) => {
+                    const v = item.product.variants.find((x) => x.id === item.variantId);
+                    return {
+                      product_id: item.product.id,
+                      variant_id: item.variantId,
+                      quantity: item.qty,
+                      price: Number(v?.price) || 0,
+                    };
+                  });
 
-                if (!updateRes.ok) throw new Error("Gagal mengupdate pesanan");
+                  const createRes = await fetch(`${API_URL}/orders`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      user_id: userId,
+                      address_id: addr.id,
+                      items: orderItems,
+                      total_amount: grandTotal,
+                      shipping_cost: shippingAfter,
+                      original_shipping_cost: shippingCurrent.price,
+                      discount: promoDiscountList + promoDiscountCode,
+                      courier: shippingCurrent.courier,
+                      courier_service: shippingCurrent.service,
+                      coupon_id: finalCouponId || null,
+                    }),
+                  });
+
+                  if (!createRes.ok) {
+                    const errText = await createRes.text();
+                    console.error("Failed to create order:", errText);
+                    throw new Error("Gagal membuat pesanan");
+                  }
+
+                  const orderData = await createRes.json();
+                  orderId = orderData.order_id || orderData.id;
+                  console.log("✅ Order created at mobile checkout:", orderId);
+                } else {
+                  // === EXISTING FLOW: Update order with complete data ===
+                  const updatePayload = {
+                    address_id: addr.id,
+                    courier: shippingCurrent.courier,
+                    courier_service: shippingCurrent.service,
+                    shipping_cost: shippingAfter,
+                    original_shipping_cost: shippingCurrent.price,
+                    discount: promoDiscountList + promoDiscountCode,
+                    total_amount: grandTotal,
+                    coupon_id: finalCouponId || null,
+                  };
+
+                  const updateRes = await fetch(`${API_URL}/orders/${orderId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(updatePayload),
+                  });
+
+                  if (!updateRes.ok) throw new Error("Gagal mengupdate pesanan");
+                }
 
                 // 3. Create Payment
                 const { createPayment } = await import("@features/payment/services/paymentService");
-                const paymentRes = await createPayment(orderId);
+                const paymentRes = await createPayment(orderId!);
 
                 // 4. Redirect to DOKU
                 if (paymentRes.payment_url) {

@@ -3,7 +3,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/ap
 
 export async function getActiveFlashSale(): Promise<any> {
     const res = await fetch(`${BACKEND_URL}/flash-sales/active`, {
-        cache: "no-store",
+        next: { revalidate: 60 }, // Cache 1 menit — cukup untuk flash sale
     });
 
     if (!res.ok) {

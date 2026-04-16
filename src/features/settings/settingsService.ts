@@ -127,16 +127,49 @@ export const SETTINGS_FALLBACKS: GeneralSettings = {
 
 export const settingsService = {
   /**
-   * Fetch all settings from the backend
+   * Fetch all settings from the backend.
+   * Cached by Next.js Data Cache — revalidates every 1 hour.
+   * In-memory dedupe prevents duplicate calls within the same render (e.g. generateMetadata + RootLayout).
    */
   getSettings: async (): Promise<GeneralSettings> => {
     try {
-      const response = await apiClient.get<ApiResponse<Record<string, string>>>("/settings");
+      // Direct fetch with Next.js cache tag for ISR-style revalidation
+      const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1")
+        .replace(/\/api\/v1$/, "");
+
+      const res = await fetch(`${BASE_URL}/api/v1/settings`, {
+        next: {
+          revalidate: 3600, // Enable ISR (1 hour) to allow static build and high performance
+          tags: ["settings"],
+        },
+      });
+
+
+      if (!res.ok) return SETTINGS_FALLBACKS;
+
+      const response = await res.json();
       if (response.success && response.data) {
-        // Merge with fallbacks to ensure all keys exist
+        const data = response.data;
+        const processUrl = (url: string) => {
+          if (!url) return url;
+          if (url.includes("localhost")) {
+            return url.replace("localhost", "127.0.0.1");
+          }
+          return url;
+        };
+
         return {
           ...SETTINGS_FALLBACKS,
-          ...response.data
+          ...data,
+          logo_url: processUrl(data.logo_url),
+          logo_footer_url: processUrl(data.logo_footer_url),
+          favicon_url: processUrl(data.favicon_url),
+          maintenance_icon_url: processUrl(data.maintenance_icon_url),
+          auth_bg_url: processUrl(data.auth_bg_url),
+          admin_logo_url: processUrl(data.admin_logo_url),
+          about_hero_image_url: processUrl(data.about_hero_image_url),
+          about_vision_image_url: processUrl(data.about_vision_image_url),
+          about_science_image_url: processUrl(data.about_science_image_url),
         } as GeneralSettings;
       }
       return SETTINGS_FALLBACKS;
@@ -144,5 +177,5 @@ export const settingsService = {
       console.error("Failed to fetch settings, using fallbacks:", error);
       return SETTINGS_FALLBACKS;
     }
-  }
+  },
 };

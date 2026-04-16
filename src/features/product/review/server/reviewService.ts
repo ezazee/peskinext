@@ -45,7 +45,9 @@ export async function getReviewsByKey({
   }
 
   try {
-    const res = await fetch(`${BACKEND_URL}/reviews?slug=${slug}`);
+    const res = await fetch(`${BACKEND_URL}/reviews?slug=${slug}`, {
+      next: { revalidate: 300 }
+    });
 
     if (res.status === 404) {
       return { items: [], total: 0, average: 0, count: 0, page, pageSize: safePageSize };

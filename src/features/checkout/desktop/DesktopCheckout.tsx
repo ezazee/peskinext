@@ -462,15 +462,7 @@ export default function DesktopCheckout({
                       return;
                     }
 
-                    // 1. Get existing order ID from URL params (support both oid and tx)
-                    const orderId = searchParams.get("oid") || searchParams.get("tx");
-                    if (!orderId) {
-                      toast.error("Order tidak ditemukan. Silakan checkout ulang dari cart.");
-                      return;
-                    }
-
-                    // 2. Update order with complete address and shipping info
-                    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/api/v1";
+                    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080/api/v1";
 
                     // Calculate net shipping cost (after discount)
                     const shippingDiscountCapped = Math.min(Math.max(0, shippingDiscount), shippingFee);
@@ -490,33 +482,78 @@ export default function DesktopCheckout({
                     if (selectedVoucher.shippingId) {
                       couponIds.push(selectedVoucher.shippingId);
                     }
-                    // Filter out duplicates and join by comma
                     const finalCouponId = Array.from(new Set(couponIds)).join(",");
 
-                    const updatePayload = {
-                      address_id: addr.id,
-                      courier: shipSelected.courier,
-                      shipping_service: shipSelected.service,
-                      shipping_cost: netShippingCost, // Net cost after discount
-                      original_shipping_cost: shipSelected.price, // Base price before discount
-                      discount: promoDiscountList + promoDiscountCode, // Total promo discount
-                      total_amount: grandTotal,
-                      coupon_id: finalCouponId || null, // Send the comma-separated used coupon IDs!
-                    };
+                    // Check if order already exists (from URL params)
+                    let orderId = searchParams.get("oid") || searchParams.get("tx");
 
-                    const updateRes = await fetch(`${API_URL}/orders/${orderId}`, {
-                      method: "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify(updatePayload),
-                    });
+                    if (!orderId) {
+                      // === NEW FLOW: Create order with COMPLETE data ===
+                      // No zombie orders — order only exists when user is ready to pay
 
-                    if (!updateRes.ok) throw new Error("Gagal mengupdate pesanan");
+                      const items = selectedItems.map((item) => {
+                        const v = item.product.variants.find((x) => x.id === item.variantId);
+                        return {
+                          product_id: item.product.id,
+                          variant_id: item.variantId,
+                          quantity: item.qty,
+                          price: Number(v?.price) || 0,
+                        };
+                      });
 
-                    // 3. Create Payment
+                      const createRes = await fetch(`${API_URL}/orders`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          user_id: userId,
+                          address_id: addr.id,
+                          items,
+                          total_amount: grandTotal,
+                          shipping_cost: netShippingCost,
+                          original_shipping_cost: shipSelected.price,
+                          discount: promoDiscountList + promoDiscountCode,
+                          courier: shipSelected.courier,
+                          courier_service: shipSelected.service,
+                          coupon_id: finalCouponId || null,
+                        }),
+                      });
+
+                      if (!createRes.ok) {
+                        const errText = await createRes.text();
+                        console.error("Failed to create order:", errText);
+                        throw new Error("Gagal membuat pesanan");
+                      }
+
+                      const orderData = await createRes.json();
+                      orderId = orderData.order_id || orderData.id;
+                      console.log("✅ Order created at checkout:", orderId);
+                    } else {
+                      // === EXISTING FLOW: Update order with complete data ===
+                      const updatePayload = {
+                        address_id: addr.id,
+                        courier: shipSelected.courier,
+                        courier_service: shipSelected.service,
+                        shipping_cost: netShippingCost,
+                        original_shipping_cost: shipSelected.price,
+                        discount: promoDiscountList + promoDiscountCode,
+                        total_amount: grandTotal,
+                        coupon_id: finalCouponId || null,
+                      };
+
+                      const updateRes = await fetch(`${API_URL}/orders/${orderId}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(updatePayload),
+                      });
+
+                      if (!updateRes.ok) throw new Error("Gagal mengupdate pesanan");
+                    }
+
+                    // Create Payment
                     const { createPayment } = await import("@features/payment/services/paymentService");
-                    const paymentRes = await createPayment(orderId);
+                    const paymentRes = await createPayment(orderId!);
 
-                    // 4. Redirect to DOKU
+                    // Redirect to DOKU
                     if (paymentRes.payment_url) {
                       sessionStorage.removeItem("pending_order_id");
                       window.location.href = paymentRes.payment_url;

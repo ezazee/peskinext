@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@app/providers/QueryProvider";
@@ -14,8 +15,13 @@ const poppins = Poppins({
   variable: "--font-poppins",
 });
 
+// React.cache deduplikasi: meski dipanggil 2x (generateMetadata + RootLayout),
+// server hanya akan fetch ke backend SEKALI per request.
+const getCachedSettings = cache(() => settingsService.getSettings());
+
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await settingsService.getSettings();
+  const settings = await getCachedSettings();
+
   const faviconUrl = normalizeImageUrl(settings.favicon_url) || "/favicon/favicon.ico";
   
   return {
@@ -58,7 +64,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await settingsService.getSettings();
+  const settings = await getCachedSettings(); // Shared cache — tidak ada double fetch
   const logoUrl = normalizeImageUrl(settings.logo_url) || "https://peskinpro.id/logo.png";
 
   // Organization Schema for SEO (Google Knowledge Graph)
