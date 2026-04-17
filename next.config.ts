@@ -70,10 +70,16 @@ const nextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'https',
+        hostname: 'peskin-minio.103.85.59.38.sslip.io',
+        pathname: '/**',
+      },
+      {
         protocol: 'http',
         hostname: 'stack-kbn-minio-api-6a7b95-103-85-59-38.traefik.me',
         pathname: '/**',
       },
+
     ],
   },
 };
