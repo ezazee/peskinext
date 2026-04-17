@@ -49,7 +49,11 @@ export const AboutHeader = () => {
                     >
                         <div className="flex justify-between items-center mb-12">
                             <div className="relative h-10 w-40">
-                                <Image src={logoUrl} alt="Logo" fill className="object-contain object-left" />
+                                {logoUrl ? (
+                                    <Image src={logoUrl} alt="Logo" fill className="object-contain object-left" />
+                                ) : (
+                                    <span className="font-bold text-secondary text-xl">{settings?.store_name}</span>
+                                )}
                             </div>
                             <button 
                                 onClick={() => setMobileMenuOpen(false)} 
@@ -90,14 +94,20 @@ export const AboutHeader = () => {
             >
                 <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
                     {/* Logo Section */}
-                    <Link href="/" className="relative h-12 w-48 group">
-                        <Image
-                            src={logoUrl}
-                            alt={settings?.store_name || "PE Skin Pro"}
-                            fill
-                            className="object-contain object-left transition-transform group-hover:scale-105"
-                            priority
-                        />
+                    <Link href="/" className="relative h-12 group flex items-center">
+                        {logoUrl ? (
+                            <Image
+                                src={logoUrl}
+                                alt={settings?.store_name || "PE Skin Pro"}
+                                fill
+                                className="object-contain object-left transition-transform group-hover:scale-105"
+                                priority
+                            />
+                        ) : (
+                            <span className={`font-bold text-2xl transition-colors ${isScrolled ? 'text-secondary' : 'text-white'}`}>
+                                {settings?.store_name}
+                            </span>
+                        )}
                     </Link>
 
                     {/* Desktop Navigation */}

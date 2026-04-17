@@ -418,15 +418,19 @@ export const DesktopHeader = () => {
 
         <div className="max-w-screen-xl mx-auto px-8">
           <div className="flex items-center gap-6 py-3">
-            <Link href="/" className="relative h-10 w-40 shrink-0">
-              <Image
-                src={normalizeImageUrl(settings?.logo_url)}
-                alt={settings?.store_name || "PE Skinpro"}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 120px, 160px"
-                priority
-              />
+            <Link href="/" className="relative h-10 w-40 shrink-0 flex items-center">
+              {normalizeImageUrl(settings?.logo_url) ? (
+                <Image
+                  src={normalizeImageUrl(settings?.logo_url)!}
+                  alt={settings?.store_name || "PE Skinpro"}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 120px, 160px"
+                  priority
+                />
+              ) : (
+                <span className="font-bold text-lg text-secondary">{settings?.store_name || "PE Skinpro"}</span>
+              )}
             </Link>
 
             {/* Search */}

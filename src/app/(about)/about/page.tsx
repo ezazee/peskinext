@@ -18,13 +18,22 @@ export default function AboutPage() {
     });
 
     const [settings, setSettings] = useState<GeneralSettings | null>(null);
+    const [galleryBanners, setGalleryBanners] = useState([]);
 
     useEffect(() => {
-        async function fetchSettings() {
-            const data = await settingsService.getSettings();
-            setSettings(data);
+        async function fetchData() {
+            try {
+                const [settingsData, bannersData] = await Promise.all([
+                    settingsService.getSettings(),
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/banners`).then(res => res.json())
+                ]);
+                setSettings(settingsData);
+                setGalleryBanners(bannersData.gallery_carousel || []);
+            } catch (error) {
+                console.error("About Page Data Fetch Error:", error);
+            }
         }
-        fetchSettings();
+        fetchData();
     }, []);
 
     const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
@@ -54,13 +63,19 @@ export default function AboutPage() {
                     style={{ opacity: heroOpacity, scale: heroScale }}
                     className="absolute inset-0"
                 >
-                    <Image
-                        src={normalizeImageUrl(settings.about_hero_image_url)}
-                        alt={settings.store_name}
-                        fill
-                        priority
-                        className="object-cover brightness-[0.7]"
-                    />
+                    {normalizeImageUrl(settings.about_hero_image_url) ? (
+                        <Image
+                            src={normalizeImageUrl(settings.about_hero_image_url)!}
+                            alt={settings.store_name}
+                            fill
+                            priority
+                            className="object-cover brightness-[0.7]"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 bg-secondary flex items-center justify-center">
+                             <span className="text-white/20 font-serif italic text-4xl">PE Skinpro Excellence</span>
+                        </div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-white" />
                 </motion.div>
 
@@ -128,14 +143,18 @@ export default function AboutPage() {
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         transition={{ duration: 1 }}
-                        className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] hover:shadow-2xl transition-all duration-700"
+                        className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] hover:shadow-2xl transition-all duration-700 bg-gray-50"
                     >
-                        <Image
-                            src={normalizeImageUrl(settings.about_vision_image_url)}
-                            alt="Natural Philosophy"
-                            fill
-                            className="object-cover hover:scale-110 transition-transform duration-1000"
-                        />
+                        {normalizeImageUrl(settings.about_vision_image_url) ? (
+                            <Image
+                                src={normalizeImageUrl(settings.about_vision_image_url)!}
+                                alt="Natural Philosophy"
+                                fill
+                                className="object-cover hover:scale-110 transition-transform duration-1000"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-primary/20 italic">Visionary Care</div>
+                        )}
                         <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
                         <div className="absolute bottom-10 left-10 right-10 p-8 bg-white/40 backdrop-blur-xl rounded-2xl border border-white/20">
                             <p className="text-secondary font-serif italic text-xl">"{settings.about_vision_quote}"</p>
@@ -154,15 +173,21 @@ export default function AboutPage() {
                              initial={{ opacity: 0, scale: 0.9 }}
                              whileInView={{ opacity: 1, scale: 1 }}
                              transition={{ duration: 0.8 }}
-                             className="order-2 lg:order-1 relative aspect-square lg:aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl"
+                             className="order-2 lg:order-1 relative aspect-square lg:aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl bg-gray-50 flex items-center justify-center"
                         >
-                            <Image
-                                src={normalizeImageUrl(settings.about_science_image_url)}
-                                alt="High-Tech Laboratory"
-                                fill
-                                className="object-cover"
-                            />
-                            <div className="absolute inset-0 bg-primary/20 mix-blend-overlay" />
+                            {normalizeImageUrl(settings.about_science_image_url) ? (
+                                <>
+                                    <Image
+                                        src={normalizeImageUrl(settings.about_science_image_url)!}
+                                        alt="High-Tech Laboratory"
+                                        fill
+                                        className="object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-primary/20 mix-blend-overlay" />
+                                </>
+                            ) : (
+                                <span className="text-primary/20 italic">Scientific Integrity</span>
+                            )}
                         </motion.div>
 
                         <div className="order-1 lg:order-2 text-white">
@@ -237,7 +262,10 @@ export default function AboutPage() {
                         </a>
                     </div>
 
-                    <InstagramFeed feedUrl={settings.about_instagram_feed_url} />
+                    <InstagramFeed 
+                        feedUrl={settings.about_instagram_feed_url} 
+                        fallbackBanners={galleryBanners}
+                    />
 
                     <div className="mt-32 p-12 lg:p-24 rounded-[3rem] bg-secondary relative overflow-hidden group">
                         <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-default" />

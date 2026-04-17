@@ -63,17 +63,22 @@ export const ProductCard = ({ product }: { product: Product }) => {
   return (
     <Link href={`/product/${product.slug}`} className="no-underline h-full">
       <div className="bg-white rounded-lg md:shadow-lg shadow-sm overflow-hidden h-full flex flex-col group">
-        <div className="relative w-full h-32 md:h-40 overflow-hidden">
-          <Image
-            src={normalizeImageUrl(product.img)}
-            alt={product.name}
-            width={200}
-            height={200}
-            className="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-300"
-          />
-          {product.imgHover && (
+        <div className="relative w-full h-32 md:h-40 overflow-hidden bg-gray-50 flex items-center justify-center">
+          {normalizeImageUrl(product.img) ? (
             <Image
-              src={normalizeImageUrl(product.imgHover)}
+              src={normalizeImageUrl(product.img)!}
+              alt={product.name}
+              width={200}
+              height={200}
+              className="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-300"
+            />
+          ) : (
+            <span className="text-[10px] text-gray-300 font-bold uppercase">PE Skin</span>
+          )}
+
+          {product.imgHover && normalizeImageUrl(product.imgHover) && (
+            <Image
+              src={normalizeImageUrl(product.imgHover)!}
               alt={`${product.name} (hover)`}
               width={200}
               height={200}

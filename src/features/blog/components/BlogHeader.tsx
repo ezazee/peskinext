@@ -46,15 +46,19 @@ export const BlogHeader = () => {
 
 
                         <Link href="/blog" className="flex items-center">
-                            <div className="relative h-8 w-28 md:h-10 md:w-40 transition-all">
-                                <Image 
-                                    src={logoUrl} 
-                                    alt={settings?.store_name || "Logo"} 
-                                    fill 
-                                    className="object-contain object-left" 
-                                    priority
-                                    sizes="(max-width: 768px) 112px, 160px"
-                                />
+                            <div className="relative h-8 w-28 md:h-10 md:w-40 transition-all flex items-center">
+                                {logoUrl ? (
+                                    <Image 
+                                        src={logoUrl} 
+                                        alt={settings?.store_name || "Logo"} 
+                                        fill 
+                                        className="object-contain object-left" 
+                                        priority
+                                        sizes="(max-width: 768px) 112px, 160px"
+                                    />
+                                ) : (
+                                    <span className="font-bold text-gray-900 text-lg md:text-xl">{settings?.store_name}</span>
+                                )}
                             </div>
                         </Link>
 

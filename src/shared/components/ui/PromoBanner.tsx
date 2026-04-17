@@ -14,6 +14,14 @@ interface PromoBannerProps {
 
 export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Desktop context
   const desktopSlides = banners.filter(b => b.section === "promo_desktop" || b.section === "main");
@@ -26,6 +34,9 @@ export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
     
   // Use desktopSlides for dots and main control if focused on desktop
   const activeDesktop = desktopSlides.length > 0 ? desktopSlides : banners;
+
+  // Final slides choice for logic
+  const activeSlides = isMobile ? activeMobile : activeDesktop;
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -45,17 +56,19 @@ export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
 
   const goToPrevious = useCallback(() => {
     setCurrentIndex((i) => {
-      const len = activeDesktop.length;
+      const len = activeSlides.length;
+      if (len === 0) return 0;
       return i === 0 ? len - 1 : i - 1;
     });
-  }, [activeDesktop.length]);
+  }, [activeSlides.length]);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((i) => {
-      const len = activeDesktop.length;
+      const len = activeSlides.length;
+      if (len === 0) return 0;
       return i === len - 1 ? 0 : i + 1;
     });
-  }, [activeDesktop.length]);
+  }, [activeSlides.length]);
 
   useEffect(() => {
     const t = setInterval(goToNext, 5000);
@@ -82,14 +95,18 @@ export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
               key={`desktop-${slide.id || i}`}
               className="relative flex-shrink-0 w-full h-full bg-gray-100"
             >
-              <Image
-                src={normalizeImageUrl(slide.src)}
-                alt={slide.alt || "Promo PE Skinpro"}
-                fill
-                className={`${(slide.src === "" || slide.src?.includes("logo")) ? 'object-contain p-20' : 'object-cover'}`}
-                sizes="100vw"
-                priority={i === 0}
-              />
+              {normalizeImageUrl(slide.src) ? (
+                <Image
+                  src={normalizeImageUrl(slide.src)!}
+                  alt={slide.alt || "Promo PE Skinpro"}
+                  fill
+                  className={`${(slide.src === "" || slide.src?.includes("logo")) ? 'object-contain p-20' : 'object-cover'}`}
+                  sizes="100vw"
+                  priority={i === 0}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-300">Promo PE Skinpro</div>
+              )}
             </div>
           ))}
         </div>
@@ -104,14 +121,18 @@ export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
               key={`mobile-${slide.id || i}`}
               className="relative w-full flex-shrink-0 aspect-[16/9] bg-gray-100"
             >
-              <Image
-                src={normalizeImageUrl(slide.src)}
-                alt={slide.alt || "Promo PE Skinpro"}
-                fill
-                className="object-cover"
-                sizes="100vw"
-                priority={i === 0}
-              />
+              {normalizeImageUrl(slide.src) ? (
+                <Image
+                  src={normalizeImageUrl(slide.src)!}
+                  alt={slide.alt || "Promo PE Skinpro"}
+                  fill
+                  className="object-cover"
+                  sizes="100vw"
+                  priority={i === 0}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-300">Promo PE Skinpro</div>
+              )}
             </div>
           ))}
         </div>
@@ -133,7 +154,7 @@ export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
 
       {/* Titik Indikator */}
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex justify-center gap-2">
-        {activeDesktop.map((_, i) => (
+        {activeSlides.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrentIndex(i)}

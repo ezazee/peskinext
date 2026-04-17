@@ -70,13 +70,17 @@ export const WelcomeBanner = ({ isOpen, onClose, bannerData }: WelcomeBannerProp
               </button>
 
               <Link href={bannerData.href || "/shop"} onClick={handleClose}>
-                <Image
-                  src={normalizeImageUrl(bannerData.src)}
-                  alt={bannerData.alt || "Promo Spesial"}
-                  width={500}
-                  height={625}
-                  className="w-full h-auto"
-                />
+                {normalizeImageUrl(bannerData.src) ? (
+                  <Image
+                    src={normalizeImageUrl(bannerData.src)!}
+                    alt={bannerData.alt || "Promo Spesial"}
+                    width={500}
+                    height={625}
+                    className="w-full h-auto"
+                  />
+                ) : (
+                  <div className="w-full h-[400px] bg-white flex items-center justify-center text-primary font-bold">PE Skinpro Promo</div>
+                )}
               </Link>
             </div>
 

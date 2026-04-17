@@ -49,15 +49,19 @@ export const BundleSection = ({ products, banner }: { products: ReadonlyArray<Pr
         {/* Banner Promo Kiri (ikut tinggi slider, TANPA aspect/tinggi fixed) */}
         <div className="relative hidden w-1/5 overflow-hidden rounded-lg md:block md:self-stretch">
           <a href="#" className="block h-full w-full">
-            <div className="relative h-full w-full">
-              <NextImage
-                src={normalizeImageUrl(banner?.src)}
-                alt={banner?.alt || "Penawaran Spesial"}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                sizes="(max-width: 767px) 0px, 20vw"
-                priority={false}
-              />
+            <div className="relative h-full w-full flex items-center justify-center bg-gray-50">
+              {normalizeImageUrl(banner?.src) ? (
+                <NextImage
+                  src={normalizeImageUrl(banner?.src)!}
+                  alt={banner?.alt || "Penawaran Spesial"}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="(max-width: 767px) 0px, 20vw"
+                  priority={false}
+                />
+              ) : (
+                <span className="text-[10px] text-gray-300 font-bold uppercase tracking-tighter text-center px-2">PE Skinpro Bundle</span>
+              )}
             </div>
           </a>
         </div>

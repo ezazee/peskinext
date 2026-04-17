@@ -91,13 +91,17 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="lg:col-span-2">
-            <div className="mb-6 relative h-10 w-40">
-              <Image 
-                src={normalizeImageUrl(settings.logo_footer_url)} 
-                alt={settings.store_name} 
-                fill 
-                className="object-contain object-left" 
-              />
+            <div className="mb-6 relative h-10 w-40 flex items-center">
+              {normalizeImageUrl(settings.logo_footer_url) ? (
+                <Image 
+                  src={normalizeImageUrl(settings.logo_footer_url)!} 
+                  alt={settings.store_name} 
+                  fill 
+                  className="object-contain object-left" 
+                />
+              ) : (
+                <span className="font-bold text-gray-900">{settings.store_name}</span>
+              )}
             </div>
             <p className="mb-6 text-sm leading-relaxed max-w-sm text-gray-500">
               {settings.brand_description}

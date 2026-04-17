@@ -5,8 +5,8 @@ import { config } from "@shared/config";
  * - Replacements 'localhost' with '127.0.0.1' to avoid IPv6 issues.
  * - Prefixes relative paths (like /uploads) with the backend base URL.
  */
-export function normalizeImageUrl(url?: string): string {
-    if (!url) return "";
+export function normalizeImageUrl(url?: string): string | null {
+    if (!url) return null;
 
     let finalUrl = url;
 
