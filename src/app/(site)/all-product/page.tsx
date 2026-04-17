@@ -168,7 +168,10 @@ export default function BundleProductPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-6">
       <div className="-mx-4 -mt-6 md:m-0">
-        <PromoBanner banners={bannerData?.main || []} />
+        <PromoBanner 
+          banners={bannerData?.main || []} 
+          mobileBanners={bannerData?.promo_mobile || []}
+        />
       </div>
 
       {/* Mobile Sticky Filter Bar */}

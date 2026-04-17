@@ -100,7 +100,7 @@ export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
                   src={normalizeImageUrl(slide.src)!}
                   alt={slide.alt || "Promo PE Skinpro"}
                   fill
-                  className={`${(slide.src === "" || slide.src?.includes("logo")) ? 'object-contain p-20' : 'object-cover'}`}
+                  className="object-cover"
                   sizes="100vw"
                   priority={i === 0}
                 />
