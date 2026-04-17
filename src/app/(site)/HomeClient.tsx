@@ -71,7 +71,10 @@ export default function HomeClient() {
 
             <div className="max-w-screen-xl mx-auto bg-white md:bg-white">
                 <main className="p-0 md:px-8 md:py-6 bg-white md:bg-white">
-                    <PromoBanner banners={data.main} />
+                    <PromoBanner 
+                        banners={data.main} 
+                        mobileBanners={data.promo_mobile}
+                    />
                     <EventPromo
                         mobileBanner={data.promo_mobile?.[0]}
                         desktopBanner={data.promo_desktop?.[0]}

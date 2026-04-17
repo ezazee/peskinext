@@ -9,18 +9,23 @@ import type { Banner } from "@shared/types/types";
 
 interface PromoBannerProps {
   banners: Banner[];
+  mobileBanners?: Banner[];
 }
 
-export const PromoBanner = ({ banners }: PromoBannerProps) => {
+export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Pisahkan banner berdasarkan section (Hasil dari perbaikan Backend tadi)
+  // Desktop context
   const desktopSlides = banners.filter(b => b.section === "promo_desktop" || b.section === "main");
-  const mobileSlides = banners.filter(b => b.section === "promo_mobile");
+  const fallbackMobile = banners.filter(b => b.section === "promo_mobile");
 
-  // Logika Fallback: Jika salah satu kosong, pakai yang ada
-  const activeDesktop = desktopSlides.length > 0 ? desktopSlides : (mobileSlides.length > 0 ? mobileSlides : banners);
-  const activeMobile = mobileSlides.length > 0 ? mobileSlides : (desktopSlides.length > 0 ? desktopSlides : banners);
+  // Mobile context (prioritize from props, then from main list)
+  const activeMobile = (mobileBanners && mobileBanners.length > 0) 
+    ? mobileBanners 
+    : (fallbackMobile.length > 0 ? fallbackMobile : desktopSlides);
+    
+  // Use desktopSlides for dots and main control if focused on desktop
+  const activeDesktop = desktopSlides.length > 0 ? desktopSlides : banners;
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -39,11 +44,17 @@ export const PromoBanner = ({ banners }: PromoBannerProps) => {
   };
 
   const goToPrevious = useCallback(() => {
-    setCurrentIndex((i) => (i === 0 ? activeDesktop.length - 1 : i - 1));
+    setCurrentIndex((i) => {
+      const len = activeDesktop.length;
+      return i === 0 ? len - 1 : i - 1;
+    });
   }, [activeDesktop.length]);
 
   const goToNext = useCallback(() => {
-    setCurrentIndex((i) => (i === activeDesktop.length - 1 ? 0 : i + 1));
+    setCurrentIndex((i) => {
+      const len = activeDesktop.length;
+      return i === len - 1 ? 0 : i + 1;
+    });
   }, [activeDesktop.length]);
 
   useEffect(() => {
@@ -68,7 +79,7 @@ export const PromoBanner = ({ banners }: PromoBannerProps) => {
         >
           {activeDesktop.map((slide, i) => (
             <div
-              key={slide.id || i + "-desktop"}
+              key={`desktop-${slide.id || i}`}
               className="relative flex-shrink-0 w-full h-full bg-gray-100"
             >
               <Image
@@ -90,7 +101,7 @@ export const PromoBanner = ({ banners }: PromoBannerProps) => {
         >
           {activeMobile.map((slide, i) => (
             <div
-              key={slide.id || i + "-mobile"}
+              key={`mobile-${slide.id || i}`}
               className="relative w-full flex-shrink-0 aspect-[16/9] bg-gray-100"
             >
               <Image
