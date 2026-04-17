@@ -138,10 +138,7 @@ export const settingsService = {
         .replace(/\/api\/v1$/, "");
 
       const res = await fetch(`${BASE_URL}/api/v1/settings`, {
-        next: {
-          revalidate: 3600, // Enable ISR (1 hour) to allow static build and high performance
-          tags: ["settings"],
-        },
+        cache: 'no-store',
       });
 
 

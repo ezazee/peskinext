@@ -50,8 +50,9 @@ interface FormattedBackendProduct {
 
 export async function getProducts(): Promise<Product[]> {
     const res = await fetch(`${API_URL}/products`, {
-        next: { revalidate: 300 }, // Cache 5 menit — balance antara freshness & hemat invocation
+        cache: 'no-store',
     });
+
 
     if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));

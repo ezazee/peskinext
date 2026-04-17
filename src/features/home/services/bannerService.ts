@@ -5,7 +5,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000/ap
 export async function getBanners(): Promise<BannersResponse> {
 
     const res = await fetch(`${BACKEND_URL}/banners`, {
-        next: { revalidate: 3600 }, // Cache 1 jam — banners tidak perlu real-time
+        cache: 'no-store',
     });
 
     if (!res.ok) {
