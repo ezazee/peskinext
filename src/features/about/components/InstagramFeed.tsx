@@ -98,42 +98,27 @@ export function InstagramFeed({ feedUrl, fallbackBanners }: InstagramFeedProps) 
 
   return (
     <div className="relative w-full overflow-hidden py-4">
-      {/* Desktop View: Auto Marquee */}
-      <div className="hidden md:block">
-        <motion.div 
-            className="flex gap-4 w-max"
-            animate={{ x: [0, "-50%"] }}
-            transition={{ 
-                duration: 40,
-                ease: "linear", 
-                repeat: Infinity 
-            }}
-            whileHover={{ transition: { duration: 0.2 }, opacity: 1 }}
-        >
-            <div className="flex gap-4 group">
-            {marqueePosts.map((post, idx) => (
-                <InstagramCard key={`${post.id}-${idx}`} post={post} />
-            ))}
-            </div>
-        </motion.div>
-      </div>
-
-      {/* Mobile View: Natural Horizontal Scroll */}
-      <div 
-        ref={scrollRef}
-        className="md:hidden flex gap-4 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory px-4"
-        style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
+      {/* Unified View: Auto Marquee for all devices */}
+      <motion.div 
+          className="flex gap-3 md:gap-4 w-max"
+          animate={{ x: [0, "-50%"] }}
+          transition={{ 
+              duration: 40,
+              ease: "linear", 
+              repeat: Infinity 
+          }}
+          whileHover={{ transition: { duration: 0.2 }, opacity: 1 }}
       >
-        {posts.map((post, idx) => (
-          <div key={post.id} className="snap-center shrink-0">
-             <InstagramCard post={post} />
+          <div className="flex gap-3 md:gap-4 group px-4 md:px-0">
+          {marqueePosts.map((post, idx) => (
+              <InstagramCard key={`${post.id}-${idx}`} post={post} />
+          ))}
           </div>
-        ))}
-      </div>
+      </motion.div>
       
-      {/* Desktop Overlays */}
-      <div className="hidden md:block absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-      <div className="hidden md:block absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+      {/* Overlays for depth */}
+      <div className="absolute inset-y-0 left-0 w-16 md:w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+      <div className="absolute inset-y-0 right-0 w-16 md:w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
     </div>
   );
 }
