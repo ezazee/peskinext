@@ -63,15 +63,15 @@ export const PromoBanner = ({ banners }: PromoBannerProps) => {
         >
           {banners.map((slide, i) => (
             <div
-              key={slide.alt + "-desktop"}
-              className="relative flex-shrink-0 w-full aspect-[4/1]"
+              key={slide.id || i + "-desktop"}
+              className="relative flex-shrink-0 w-full h-[300px] lg:h-[400px] bg-gray-100"
             >
               <Image
-                src={normalizeImageUrl(slide.src)}
-                alt={slide.alt}
+                src={normalizeImageUrl(slide.src || slide.mobileSrc)}
+                alt={slide.alt || "Promo PE Skinpro"}
                 fill
-                className="object-cover"
-                sizes="(max-width: 767px) 0px, 100vw"
+                className={`${(slide.src === "" || slide.src?.includes("logo")) ? 'object-contain p-20' : 'object-cover'}`}
+                sizes="100vw"
                 priority={i === 0}
               />
             </div>
@@ -85,15 +85,15 @@ export const PromoBanner = ({ banners }: PromoBannerProps) => {
         >
           {banners.map((slide, i) => (
             <div
-              key={slide.alt + "-mobile"}
-              className="relative w-full flex-shrink-0 aspect-[3/1]"
+              key={slide.id || i + "-mobile"}
+              className="relative w-full flex-shrink-0 aspect-[16/9] bg-gray-100"
             >
               <Image
                 src={normalizeImageUrl(slide.mobileSrc || slide.src)}
-                alt={slide.alt}
+                alt={slide.alt || "Promo PE Skinpro"}
                 fill
                 className="object-cover"
-                sizes="(max-width: 767px) 100vw, 0px"
+                sizes="100vw"
                 priority={i === 0}
               />
             </div>
