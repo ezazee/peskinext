@@ -14,11 +14,6 @@ export function useReviews(slug: string, page = 1, pageSize = 10) {
       if (!res.ok) throw new Error("Failed to fetch reviews");
       return (await res.json()) as ReviewsResponse;
     },
-    // anti-refetch total
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
   });
 }
 
@@ -30,9 +25,5 @@ export function useReviewSummary(slug: string) {
       if (!res.ok) throw new Error("Failed to fetch review summary");
       return (await res.json()) as Aggregate;
     },
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    refetchOnMount: false,
   });
 }

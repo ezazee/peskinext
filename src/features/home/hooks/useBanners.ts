@@ -8,6 +8,5 @@ export function useBanners() {
     return useQuery<BannersResponse>({
         queryKey: ["banners"],
         queryFn: getBanners,
-        staleTime: 1000 * 60 * 10, // 10 minutes
     });
 }

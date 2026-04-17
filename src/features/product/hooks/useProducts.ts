@@ -11,6 +11,5 @@ export function useProducts() {
             if (!res.ok) throw new Error("Failed to fetch products");
             return res.json();
         },
-        staleTime: 1000 * 60 * 5, // 5 minutes
     });
 }

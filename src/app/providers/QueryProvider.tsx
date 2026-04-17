@@ -18,11 +18,11 @@ export default function QueryProvider({
       new QueryClient({
         defaultOptions: {
           queries: {
-            refetchOnWindowFocus: false,
-            refetchOnReconnect: false,
-            refetchOnMount: false,
-            staleTime: Infinity,
-            gcTime: 60 * 60 * 1000,
+            refetchOnWindowFocus: true,
+            refetchOnReconnect: true,
+            refetchOnMount: true,
+            staleTime: 0,
+            gcTime: 5 * 60 * 1000,
             retry: 1,
           },
           mutations: {
