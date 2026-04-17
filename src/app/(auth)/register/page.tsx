@@ -10,7 +10,7 @@ import { normalizeImageUrl } from "@shared/utils/imageUrl";
 
 const RegisterPage = () => {
   const { data: settings } = useSettings();
-  const bgImage = normalizeImageUrl(settings?.auth_bg_url) || "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=1200&auto=format&fit=crop";
+  const bgImage = normalizeImageUrl(settings?.auth_bg_url);
 
   return (
     <>

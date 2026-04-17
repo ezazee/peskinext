@@ -28,7 +28,7 @@ export const AboutHeader = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const logoUrl = normalizeImageUrl(settings?.logo_url) || "/Logo.png";
+    const logoUrl = normalizeImageUrl(settings?.logo_url);
 
     const navLinks = [
         { name: 'Home', href: '/about' },

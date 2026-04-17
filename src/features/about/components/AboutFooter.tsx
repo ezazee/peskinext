@@ -18,7 +18,7 @@ export const AboutFooter = () => {
         fetchSettings();
     }, []);
 
-    const logoUrl = normalizeImageUrl(settings?.logo_url) || "/Logo.png";
+    const logoUrl = normalizeImageUrl(settings?.logo_url);
 
     const socialLinks = [
         { 

@@ -22,8 +22,6 @@ const getCachedSettings = cache(() => settingsService.getSettings());
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedSettings();
-
-  const faviconUrl = normalizeImageUrl(settings.favicon_url) || "/favicon/favicon.ico";
   
   return {
     metadataBase: new URL("https://peskinpro.id"),
@@ -32,9 +30,9 @@ export async function generateMetadata(): Promise<Metadata> {
     keywords: settings.seo_keywords?.split(",") || SETTINGS_FALLBACKS.seo_keywords.split(","),
     
     icons: {
-      icon: [
-        { url: faviconUrl },
-      ],
+      icon: normalizeImageUrl(settings.favicon_url) ? [
+        { url: normalizeImageUrl(settings.favicon_url) },
+      ] : [],
       apple: "/favicon/apple-touch-icon.png",
     },
     openGraph: {
@@ -66,7 +64,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getCachedSettings(); // Shared cache — tidak ada double fetch
-  const logoUrl = normalizeImageUrl(settings.logo_url) || "https://peskinpro.id/logo.png";
+  const logoUrl = normalizeImageUrl(settings.logo_url);
 
   // Organization Schema for SEO (Google Knowledge Graph)
   const organizationSchema = {

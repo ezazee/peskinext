@@ -93,7 +93,7 @@ export const Footer = () => {
           <div className="lg:col-span-2">
             <div className="mb-6 relative h-10 w-40">
               <Image 
-                src={normalizeImageUrl(settings.logo_footer_url) || "/Logo.png"} 
+                src={normalizeImageUrl(settings.logo_footer_url)} 
                 alt={settings.store_name} 
                 fill 
                 className="object-contain object-left" 

@@ -51,7 +51,7 @@ export const BundleSection = ({ products, banner }: { products: ReadonlyArray<Pr
           <a href="#" className="block h-full w-full">
             <div className="relative h-full w-full">
               <NextImage
-                src={normalizeImageUrl(banner?.src) || "https://placehold.co/300x500/FBBF24/FFFFFF?text=Promo+Spesial"}
+                src={normalizeImageUrl(banner?.src)}
                 alt={banner?.alt || "Penawaran Spesial"}
                 fill
                 className="object-cover transition-transform duration-300 group-hover:scale-105"

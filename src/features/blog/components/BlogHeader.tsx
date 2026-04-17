@@ -29,7 +29,7 @@ export const BlogHeader = () => {
         fetchSettings();
     }, []);
 
-    const logoUrl = normalizeImageUrl(settings?.logo_url) || "/Logo.png";
+    const logoUrl = normalizeImageUrl(settings?.logo_url);
 
     const isActive = (path: string) => {
         if (path === "/blog" && pathname === "/blog") return true;

@@ -420,7 +420,7 @@ export const DesktopHeader = () => {
           <div className="flex items-center gap-6 py-3">
             <Link href="/" className="relative h-10 w-40 shrink-0">
               <Image
-                src={normalizeImageUrl(settings?.logo_url) || "/Logo.png"}
+                src={normalizeImageUrl(settings?.logo_url)}
                 alt={settings?.store_name || "PE Skinpro"}
                 fill
                 className="object-contain"

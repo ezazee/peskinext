@@ -114,7 +114,7 @@ const transformPost = (bp: BackendPost): BlogPost => ({
     slug: bp.slug,
     excerpt: bp.content.replace(/<[^>]*>?/gm, "").substring(0, 150) + "...",
     content: bp.content,
-    image: normalizeImageUrl(bp.images?.[0]?.image_url) || "https://placehold.co/800x450?text=No+Image",
+    image: normalizeImageUrl(bp.images?.[0]?.image_url),
     author: bp.author?.name || "Admin",
     date: new Date(bp.created_at).toLocaleDateString("id-ID", {
         day: "numeric", month: "long", year: "numeric"

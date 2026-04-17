@@ -55,7 +55,7 @@ export default function AboutPage() {
                     className="absolute inset-0"
                 >
                     <Image
-                        src={normalizeImageUrl(settings.about_hero_image_url) || "/images/about/hero.png"}
+                        src={normalizeImageUrl(settings.about_hero_image_url)}
                         alt={settings.store_name}
                         fill
                         priority
@@ -131,7 +131,7 @@ export default function AboutPage() {
                         className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] hover:shadow-2xl transition-all duration-700"
                     >
                         <Image
-                            src={normalizeImageUrl(settings.about_vision_image_url) || "/images/about/botanical.png"}
+                            src={normalizeImageUrl(settings.about_vision_image_url)}
                             alt="Natural Philosophy"
                             fill
                             className="object-cover hover:scale-110 transition-transform duration-1000"
@@ -157,7 +157,7 @@ export default function AboutPage() {
                              className="order-2 lg:order-1 relative aspect-square lg:aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl"
                         >
                             <Image
-                                src={normalizeImageUrl(settings.about_science_image_url) || "/images/about/lab.png"}
+                                src={normalizeImageUrl(settings.about_science_image_url)}
                                 alt="High-Tech Laboratory"
                                 fill
                                 className="object-cover"
