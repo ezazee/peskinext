@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cache } from "react";
+export const dynamic = "force-dynamic";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@app/providers/QueryProvider";
