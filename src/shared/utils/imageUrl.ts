@@ -10,16 +10,17 @@ export function normalizeImageUrl(url?: string): string {
 
     let finalUrl = url;
 
-    // Handle relative paths from backend (e.g. /uploads/branding/logo.webp)
+    // Force redirect any local/traefik links to the public sslip.io HTTPS address
+    if (finalUrl.includes("traefik.me") || finalUrl.includes("localhost") || finalUrl.includes("127.0.0.1")) {
+        // Replace the entire origin part with the production Minio URL
+        finalUrl = finalUrl.replace(/http:\/\/.*?(traefik\.me|localhost|127\.0\.0\.1)/g, "https://peskin-minio.103.85.59.38.sslip.io");
+    }
+
+    // Handle relative paths from backend
     if (url.startsWith("/uploads") || url.startsWith("uploads")) {
         const baseUrl = config.apiUrl.replace("/api/v1", "");
         const cleanPath = url.startsWith("/") ? url : `/${url}`;
         finalUrl = `${baseUrl}${cleanPath}`;
-    }
-
-    // Replace localhost with 127.0.0.1 to force IPv4
-    if (finalUrl.includes("localhost")) {
-        return finalUrl.replace("localhost", "127.0.0.1");
     }
 
     return finalUrl;
