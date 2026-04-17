@@ -79,7 +79,7 @@ export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
 
   return (
     <div
-      className="relative w-full aspect-[16/9] md:aspect-auto md:h-[300px] lg:h-[400px] mb-0 md:mb-6 group"
+      className="relative w-full aspect-[3/2] md:aspect-[4/1] mb-0 md:mb-6 group"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -119,7 +119,7 @@ export const PromoBanner = ({ banners, mobileBanners }: PromoBannerProps) => {
           {activeMobile.map((slide, i) => (
             <div
               key={`mobile-${slide.id || i}`}
-              className="relative w-full flex-shrink-0 aspect-[16/9] bg-gray-100"
+              className="relative w-full flex-shrink-0 aspect-[3/2] bg-gray-100"
             >
               {normalizeImageUrl(slide.src) ? (
                 <Image

@@ -49,7 +49,7 @@ export const BundleSection = ({ products, banner }: { products: ReadonlyArray<Pr
         {/* Banner Promo Kiri (ikut tinggi slider, TANPA aspect/tinggi fixed) */}
         <div className="relative hidden w-1/5 overflow-hidden rounded-lg md:block md:self-stretch">
           <a href="#" className="block h-full w-full">
-            <div className="relative h-full w-full flex items-center justify-center bg-gray-50">
+            <div className="relative h-full w-full aspect-[3/5] flex items-center justify-center bg-gray-50">
               {normalizeImageUrl(banner?.src) ? (
                 <NextImage
                   src={normalizeImageUrl(banner?.src)!}
