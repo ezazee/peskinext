@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import * as Sentry from '@sentry/nextjs';
 import { useToast } from '@shared/components/ui/Toaster';
 
 interface UseAsyncHandlerOptions<T> {
@@ -15,7 +14,6 @@ interface UseAsyncHandlerOptions<T> {
  * Hook for handling async operations with automatic error handling
  * 
  * Features:
- * - Automatic Sentry error reporting
  * - Loading state management
  * - Toast notifications
  * - Type-safe error handling
@@ -32,10 +30,6 @@ interface UseAsyncHandlerOptions<T> {
  *     errorMessage: 'Gagal menyelesaikan checkout',
  *   }
  * );
- * 
- * <button onClick={handleCheckout} disabled={loading}>
- *   {loading ? 'Memproses...' : 'Checkout'}
- * </button>
  * ```
  */
 export function useAsyncHandler<T extends (...args: unknown[]) => Promise<unknown>>(
@@ -69,15 +63,11 @@ export function useAsyncHandler<T extends (...args: unknown[]) => Promise<unknow
                 const error = err instanceof Error ? err : new Error(String(err));
                 setError(error);
 
-                // Report to Sentry
-                Sentry.captureException(error, {
-                    extra: {
-                        args,
-                        handlerName: handler.name || 'anonymous',
-                    },
-                    tags: {
-                        errorType: 'async-handler',
-                    },
+                // Log error
+                console.error('[AsyncHandler Error]', {
+                    error,
+                    args,
+                    handler: handler.name || 'anonymous'
                 });
 
                 // Error toast
@@ -87,12 +77,6 @@ export function useAsyncHandler<T extends (...args: unknown[]) => Promise<unknow
                 // Error callback
                 if (options?.onError) {
                     options.onError(error);
-                }
-
-                // Log in development
-                if (process.env.NODE_ENV === 'development') {
-                    console.error('[useAsyncHandler] Error:', error);
-                    console.error('[useAsyncHandler] Args:', args);
                 }
 
                 // Don't throw - let component handle via loading/error states
@@ -118,18 +102,6 @@ export function useAsyncHandler<T extends (...args: unknown[]) => Promise<unknow
 
 /**
  * Simpler version for fire-and-forget operations
- * 
- * Usage:
- * ```tsx
- * const handleDelete = useAsyncAction(
- *   async (id: string) => {
- *     await apiClient.delete(`/items/${id}`);
- *   },
- *   { successMessage: 'Item dihapus' }
- * );
- * 
- * <button onClick={() => handleDelete('123')}>Hapus</button>
- * ```
  */
 export function useAsyncAction<T extends (...args: unknown[]) => Promise<unknown>>(
     action: T,

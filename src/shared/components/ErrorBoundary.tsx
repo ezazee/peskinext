@@ -1,15 +1,13 @@
 /**
- * Error Boundary Component with Sentry Integration
+ * Error Boundary Component
  * 
- * Catches React errors and reports to Sentry for production monitoring.
- * Provides user-friendly error UI instead of blank screen.
+ * Catches React errors and provides user-friendly error UI instead of blank screen.
  */
 
 'use client';
 
 import React, { Component } from 'react';
 import type { ReactNode } from 'react';
-import * as Sentry from '@sentry/nextjs';
 
 interface Props {
     children: ReactNode;
@@ -26,18 +24,11 @@ interface State {
 }
 
 /**
- * Error Boundary with Sentry Integration
+ * Error Boundary 
  * 
  * Usage:
  * ```tsx
  * <ErrorBoundary>
- *   <YourComponent />
- * </ErrorBoundary>
- * ```
- * 
- * With custom fallback:
- * ```tsx
- * <ErrorBoundary fallback={(error) => <div>Error: {error.message}</div>}>
  *   <YourComponent />
  * </ErrorBoundary>
  * ```
@@ -60,31 +51,18 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-        // Log to Sentry
-        Sentry.withScope((scope) => {
-            // Add context from props
-            if (this.props.context) {
-                scope.setContext('component_context', this.props.context);
-            }
-
-            // Add component stack
-            scope.setContext('react_error_info', {
-                componentStack: errorInfo.componentStack,
-            });
-
-            // Capture exception
-            Sentry.captureException(error);
-        });
+        // Log to console
+        console.error('Error Boundary caught an error:', error, errorInfo);
+        
+        // Add context to log if available
+        if (this.props.context) {
+            console.error('Error context:', this.props.context);
+        }
 
         // Update state with error info
         this.setState({
             errorInfo,
         });
-
-        // Log to console in development
-        if (process.env.NODE_ENV === 'development') {
-            console.error('Error Boundary caught an error:', error, errorInfo);
-        }
     }
 
     handleReset = (): void => {
@@ -129,7 +107,7 @@ export class ErrorBoundary extends Component<Props, State> {
                                 Oops! Terjadi Kesalahan
                             </h2>
                             <p className="text-gray-600 mb-6">
-                                Kami telah mencatat error ini dan akan segera memperbaikinya.
+                                Terjadi masalah saat memuat halaman ini. Silakan coba segarkan halaman atau kembali lagi nanti.
                             </p>
 
                             {/* Error Details (Development Only) */}

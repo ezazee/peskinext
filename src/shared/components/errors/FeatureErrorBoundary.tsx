@@ -1,7 +1,6 @@
 'use client';
 
 import { Component, type ReactNode } from 'react';
-import * as Sentry from '@sentry/nextjs';
 
 interface Props {
     children: ReactNode;
@@ -18,14 +17,7 @@ interface State {
  * Feature-level Error Boundary
  * 
  * Prevents errors in one feature from crashing the entire app.
- * Automatically reports errors to Sentry with feature context.
- * 
- * Usage:
- * ```tsx
- * <FeatureErrorBoundary featureName="Keranjang Belanja">
- *   <CartPageClient />
- * </FeatureErrorBoundary>
- * ```
+ * Provides user-friendly fallback and logging.
  */
 export class FeatureErrorBoundary extends Component<Props, State> {
     state: State = { hasError: false };
@@ -35,25 +27,8 @@ export class FeatureErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-        // Report to Sentry with feature context
-        Sentry.captureException(error, {
-            contexts: {
-                react: {
-                    componentStack: errorInfo.componentStack,
-                },
-            },
-            tags: {
-                feature: this.props.featureName,
-                errorBoundary: 'feature',
-            },
-            level: 'error',
-        });
-
-        // Log to console in development
-        if (process.env.NODE_ENV === 'development') {
-            console.error(`[${this.props.featureName}] Error caught by boundary:`, error);
-            console.error('Component stack:', errorInfo.componentStack);
-        }
+        // Log to console
+        console.error(`[${this.props.featureName}] Error caught by boundary:`, error, errorInfo);
     }
 
     handleReload = () => {
@@ -100,7 +75,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
                                 </h3>
                                 <p className="text-sm text-red-700 mb-4">
                                     Maaf, fitur <strong>{this.props.featureName}</strong> mengalami masalah.
-                                    Tim kami telah diberitahu dan akan segera memperbaikinya.
+                                    Silakan coba muat ulang halaman atau kembali ke beranda.
                                 </p>
 
                                 {/* Development error details */}
